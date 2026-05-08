@@ -8,7 +8,7 @@ Class Database {
     public $conn;
 
     //função para fazer a conexão com o banco de dados (fazer amanhã o link da planilha com o banco de dados)
-    public function getConnetion() {
+    public function getConnection() {
         $this->conn = null;
 
         try{
