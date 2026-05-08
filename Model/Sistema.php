@@ -13,7 +13,8 @@ class Sistema {
             FROM pedidos p
             JOIN pedido_produtos pp ON p.id_pedido = pp.id_pedido
             JOIN produtos pr ON pp.id_produto = pr.id_produto
-            JOIN cores c ON p.id_cor = c.id_cor";
+            JOIN cores c ON p.id_cor = c.id_cor
+            WHERE linha =  'CONTEMPORÂNEA'";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

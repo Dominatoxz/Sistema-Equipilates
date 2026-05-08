@@ -10,7 +10,6 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f7f6;
     color: #333;
-    padding: 20px;
 }
 
 h1 {
@@ -21,7 +20,7 @@ h1 {
 
 table {
     width: 100%;
-    max-width: 1000px;
+    max-width: 100%;
     margin: 0 auto;
     border-collapse: collapse; 
     background-color: #fff;
@@ -64,26 +63,29 @@ td:first-child {
 }
 </style>
 <body>
-    <h1>Dados da Planilha</h1>
     <table border="1">
         <thead>
             <tr>
-                <th>ID-Pedido</th>
-                <th>Número</th>
-                <th>Cor</th>
-                <th>Prazo de Produção</th>
+                <th>Número do Pedido</th>
+                <th>Reformer</th>
+                <th>Reformer Torre</th>
+                <th>Cadilac</th>
+                <th>Step Chair</th>
+                <th>Barrel</th>
+                <th>Carrinho</th>
+                <th>Gaiola</th>
             </tr>
         </thead>
         <tbody>
-            <?php $pedidos = $pedidos ?? []; ?>
-            <?php foreach($pedidos as $pedido): ?>
             <tr>
-                <td><?= htmlspecialchars($pedido['id_pedido']); ?></td>
-                <td><a href=""><?= htmlspecialchars($pedido['num_pedido']); ?></a></td>
-                <td><?= htmlspecialchars($pedido['codigo_cor']); ?></td>
-                <td><?= htmlspecialchars($pedido['prazo_producao']); ?></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
             </tr>
-            <?php endforeach; ?>
         </tbody>
     </table>
 </body>
