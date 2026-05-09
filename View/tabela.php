@@ -41,7 +41,12 @@ th {
 
 td {
     padding: 12px 15px;
+    text-align: center;
     border-bottom: 1px solid #eee;
+    text-align: center;
+}
+thead th {
+    text-align: center;
 }
 
 
@@ -61,32 +66,69 @@ td:first-child {
     color: #db8534;
     width: 80px;
 }
+
 </style>
 <body>
     <table border="1">
-        <thead>
-            <tr>
-                <th>Número do Pedido</th>
-                <th>Reformer</th>
-                <th>Reformer Torre</th>
-                <th>Cadilac</th>
-                <th>Step Chair</th>
-                <th>Barrel</th>
-                <th>Carrinho</th>
-                <th>Gaiola</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-        </tbody>
-    </table>
+<?php
+
+
+$pedidos_agrupados = [];
+if (!isset($pedidos)) {
+    $pedidos = [];
+}
+foreach ($pedidos as $linha) {
+    $num = $linha['numero_pedido'];
+    $item = $linha['item'];
+    $qtd = $linha['quantidade'];
+    
+    if (!isset($pedidos_agrupados[$num])) {
+        $pedidos_agrupados[$num] = [
+            'numero' => $num,
+            'Reformer' => 0,
+            'Reformer Torre' => 0,
+            'Cadilac' => 0,
+            'Step Chair' => 0,
+            'Barrel' => 0,
+            'Carrinho' => 0,
+            'Gaiola' => 0
+        ];
+    }
+    $pedidos_agrupados[$num][$item] = $qtd;
+
+}
+?>
+    <thead>
+        <tr>
+            <th>Número do Pedido</th>
+            <th>Reformer</th>
+            <th>Reformer Torre</th>
+            <th>Cadilac</th>
+            <th>Step Chair</th>
+            <th>Barrel</th>
+            <th>Carrinho</th>
+            <th>Gaiola</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($pedidos_agrupados as $pedido): ?>
+        <tr>
+            <td><?= $pedido['numero'] ?></td>
+            
+            <?php 
+            $equipamentos = ['Reformer', 'Reformer Torre', 'Cadilac', 'Step Chair', 'Barrel', 'Carrinho', 'Gaiola'];
+            
+            foreach ($equipamentos as $nome): 
+                $qtd = $pedido[$nome];
+                
+                $visual = ($qtd > 0) ? str_repeat('❌', $qtd) : '➖';
+            ?>
+                <td><?= $visual ?></td>
+            <?php endforeach; ?>
+            
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
 </body>
 </html>
