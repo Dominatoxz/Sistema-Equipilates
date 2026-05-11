@@ -18,7 +18,7 @@ class SistemaController {
         //pede lista de dados ao Model
         $pedidos = $this->sistema->mostrarTabela();
         require_once './View/tabela.php';
-    } 
+    }
 
 }
 ?>
