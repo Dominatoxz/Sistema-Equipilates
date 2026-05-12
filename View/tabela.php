@@ -50,7 +50,7 @@ thead th {
 }
 
 tbody td{
-    font-size: 25px;
+    font-size: 20px;
 }
 
 a {
@@ -124,12 +124,13 @@ foreach ($pedidos as $linha) {
         <tr>
             <th>Número do Pedido</th>
             <th>Reformer</th>
+            <th>Carrinho</th>
             <th>Reformer Torre</th>
             <th>Cadilac</th>
+            <th>Gaiola</th>
             <th>Step Chair</th>
             <th>Barrel</th>
-            <th>Carrinho</th>
-            <th>Gaiola</th>
+            <th>QR Code</th>
         </tr>
     </thead>
         <tbody>
@@ -138,7 +139,7 @@ foreach ($pedidos as $linha) {
                 <td><?= $pedido['numero'] ?></td>
                 
                 <?php 
-                $equipamentos = ['Reformer', 'Reformer Torre', 'Cadilac', 'Step Chair', 'Barrel', 'Carrinho', 'Gaiola'];
+                $equipamentos = ['Reformer', 'Carrinho', 'Reformer Torre', 'Cadilac', 'Step Chair', 'Barrel', 'Gaiola'];
                 
                 foreach ($equipamentos as $nome): 
                     $qtd = $pedido[$nome];
@@ -153,7 +154,16 @@ foreach ($pedidos as $linha) {
                         <?php endif; ?>
                     </td>
                 <?php endforeach; ?>
-            </tr>
+                    <td>
+                        <?php 
+                            $link_qr = "gerar_qr.php?numero=" . urlencode($pedido['numero']); 
+                        ?>
+                        <a href="<?= $link_qr ?>" 
+                        target="_blank" 
+                        style="font-size: 14px; background: #2ecc71; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; display: inline-block;">
+                        VISUALIZAR QR CODE
+                        </a>
+                    </td>
             <?php endforeach; ?>
         </tbody>
         
@@ -182,33 +192,46 @@ foreach ($pedidos as $linha) {
 
         window.onload = iniciarScrollAutomatico;
        
-
-       function playSound() {
-            const audio = new Audio('./audios/som-sucesso.mp3');
-            audio.play();
-        }
         document.querySelectorAll('.item-check').forEach(item => {
             item.addEventListener('click', function() {
                 if (this.innerText === '❌') {
                     this.innerText = '✅';
                     this.style.cursor = 'default';
 
-                    const flash = document.getElementById('flash-effect');
-                    flash.classList.add('flash-active');
-                    
-                    setTimeout(() => {
-                        flash.classList.remove('flash-active');
-                    }, 1000);
+                    dispararFeedbackCerto();
 
-                    somSucesso.currentTime = 0; 
-                    playSound();
+                    verificarConclusaoDaLinha(this.closest('tr'));
                 } else {
                     this.innerText = '❌';
                     this.style.cursor = 'pointer';
                 }
             });
         });
-       
+
+           function verificarConclusaoDaLinha(linha) {
+            const todosOsItens = linha.querySelectorAll('.item-check');
+            const itensFaltantes = Array.from(todosOsItens).filter(item => item.innerText === '❌');
+
+            if (itensFaltantes.length === 0) {
+                linha.style.transition = "all 0.5s ease";
+                linha.style.opacity = "0";
+                linha.style.backgroundColor = "#d4edda"; 
+
+                setTimeout(() => {
+                    linha.remove();
+                }, 500);
+            }
+        }
+
+        function dispararFeedbackCerto() {
+            const flash = document.getElementById('flash-effect');
+            if(flash) {
+                flash.classList.add('flash-active');
+                setTimeout(() => flash.classList.remove('flash-active'), 200);
+            }
+            const som = new Audio('../audios/som-sucesso.mp3');
+            som.play();
+        }
         </script>
     </tbody>
 </table>
