@@ -15,7 +15,9 @@ class Sistema {
                          `Reformer Torre`, 
                          `Cadilac Excelence`, 
                          `Step Chair Excelence`, 
-                         `Lader Barrel Excelence`
+                         `Lader Barrel Excelence`,
+                         'Carrinho',
+                         'Gaiola'
                   FROM tabela_adaptada";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
