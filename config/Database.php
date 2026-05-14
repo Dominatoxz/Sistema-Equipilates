@@ -2,7 +2,7 @@
 Class Database {
     //variáveis do banco de dados e a variavel que representa a conexão
     private $host = "localhost";
-    private $db_name = "planilha_db_teste";
+    private $db_name = "planilha_db";
     private $user = "root";
     private $password = "equipilates26";
     public $conn;

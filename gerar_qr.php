@@ -1,49 +1,111 @@
 <?php
-while (ob_get_level()) { ob_end_clean(); }
-
-require_once __DIR__ . '/./vendor/autoload.php';
+require_once './vendor/autoload.php';
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 
-$numero = $_GET['numero'] ?? '';
+require_once './config/Database.php';
+$database = new Database();
+$pdo = $database->getConnection();
 
-if (empty($numero)) {
-    die("Erro: Número do pedido não informado.");
+$numeroPedido = $_GET['numero'] ?? null;
+$equipamento  = $_GET['item'] ?? null;
+$posicao      = $_GET['pos'] ?? null;
+
+if (!$numeroPedido || !$equipamento || !$posicao) {
+    die("Dados incompletos.");
 }
 
-$meuIpLocal = "10.0.0.127"; 
-$porta      = "8000"; 
-$urlDestino = "http://$meuIpLocal:$porta/View/visualizarInformações.php?numero=" . $numero;
+$stmt = $pdo->prepare("SELECT id FROM itens_producao WHERE numero_pedido = ? AND equipamento = ? AND posicao_no_pedido = ?");
+$stmt->execute([$numeroPedido, $equipamento, $posicao]);
+$peca = $stmt->fetch(PDO::FETCH_ASSOC);
 
+if (!$peca) {
+    die("Erro: Esta peça ainda não foi processada no banco de produção. Execute o CALL gerar_unidades_producao();");
+}
 
-$options = new QROptions([
-    'version'      => 6,
-    'outputType'   => 'fpm-png', 
-    'imageBase64'  => true,
-    'scale'        => 10,
-    'addQuietzone' => true, 
-    'quietzoneSize'=> 4,
-]);
+$id_unico = $peca['id'];
+$meuIp = "10.0.0.127";
+$urlParaCelular = "http://$meuIp:8000/View/visualizar.php?id=$id_unico";
 
-try {
-    $base64Image = (new QRCode($options))->render($urlDestino);
+$options = new QROptions(['outputType' => 'fpm-png', 'imageBase64' => true]);
+$qrBase64 = (new QRCode($options))->render($urlParaCelular);
 
-    echo "<!DOCTYPE html>
-    <html lang='pt'>
-    <head><meta charset='UTF-8'><title>QR Code - Pedido $numero</title></head>
-    <body style='font-family:sans-serif; text-align:center; padding-top:50px; background:#f4f4f9;'>
-        <div style='display:inline-block; background:white; padding:30px; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.1);'>
-            <h2 style='margin-bottom:10px;'>QR Code de Acesso</h2>
-            <p style='color:#666;'>Escaneie para ver os detalhes do Pedido: <strong>$numero</strong></p>
-            
-            <img src='$base64Image' style='border:1px solid #eee;' />
-            
-            <br>
-            <button onclick='window.print()' style='padding:10px 20px; margin-top:20px; cursor:pointer;'>Imprimir</button>
+echo "
+<!DOCTYPE html>
+<html lang='pt-br'>
+<title>Informações do QR Code</title>
+<head>
+    <meta charset='UTF-8'>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .etiqueta {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            border-top: 10px solid #db8534; /* Cor laranja da sua marca */
+            width: 320px;
+        }
+        h1 {
+            color: #333;
+            font-size: 22px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        .detalhes {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #ddd;
+        }
+        .pedido-badge {
+            font-weight: bold;
+            color: #db8534;
+        }
+        .qr-container {
+            background: #fff;
+            padding: 10px;
+            display: inline-block;
+            border: 1px solid #eee;
+            border-radius: 10px;
+        }
+        .footer {
+            margin-top: 15px;
+            font-size: 11px;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+        @media print {
+            body { background: none; }
+            .etiqueta { box-shadow: none; border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+    <div class='etiqueta'>
+        <h1>$equipamento</h1>
+        <div class='detalhes'>
+            Pedido: <span class='pedido-badge'>#$numeroPedido</span> | Peça: <strong>$posicao</strong>
         </div>
-    </body>
-    </html>";
-
-} catch (Exception $e) {
-    die("Erro ao gerar QR Code: " . $e->getMessage());
-}
+        <div class='qr-container'>
+            <img src='$qrBase64' style='width:220px; display:block;'>
+        </div>
+        <div class='footer'>
+            Rastreabilidade Equipilates
+        </div>
+        <br>
+        <button onclick='window.print()' style='cursor:pointer; background:#db8534; color:white; border:none; padding:8px 15px; border-radius:5px;'>Imprimir</button>
+    </div>
+</body>
+</html>
+";
