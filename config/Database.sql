@@ -51,7 +51,7 @@ BEGIN
                 VALUES (v_pedido, 'Reformer Excellence', i, 'Pendente');
                 
                 INSERT IGNORE INTO itens_producao (numero_pedido, equipamento, posicao_no_pedido, status) 
-                VALUES (v_pedido, 'Carrinho', i, 'Pendente');
+                VALUES (v_pedido, 'Carrinho Excellence', i, 'Pendente');
                 
                 SET i = i + 1;
             END WHILE;
@@ -64,7 +64,7 @@ BEGIN
                 VALUES (v_pedido, 'Reformer Torre', i, 'Pendente');
                 
 				INSERT IGNORE INTO itens_producao (numero_pedido, equipamento, posicao_no_pedido, status) 
-                VALUES (v_pedido, 'Carrinho', i, 'Pendente');
+                VALUES (v_pedido, 'Carrinho Torre', i, 'Pendente');
                 SET i = i + 1;
             END WHILE;
         END IF;
@@ -76,7 +76,7 @@ BEGIN
                 VALUES (v_pedido, 'Cadilac Excelence', i, 'Pendente');
                 
                 INSERT IGNORE INTO itens_producao (numero_pedido, equipamento, posicao_no_pedido, status) 
-                VALUES (v_pedido, 'Gaiola', i, 'Pendente');
+                VALUES (v_pedido, 'Gaiola Cadilac', i, 'Pendente');
                 
                 SET i = i + 1;
             END WHILE;
