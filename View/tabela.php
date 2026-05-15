@@ -5,18 +5,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quadro de Produção</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; color: #333; margin: 20px; }
-        h1 { text-align: center; color: #2c3e50; }
-        table { width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; }
-        th { background-color: #db8534; color: white; padding: 15px; text-transform: uppercase; font-size: 13px; }
-        td { padding: 12px; border: 1px solid #1c1c1c; text-align: center; font-size: 18px; }
-        td:first-child { font-weight: bold; color: #db8534; width: 100px; }
-        .item-check { cursor: pointer; user-select: none; transition: transform 0.1s; display: inline-block; }
-        .item-check:active { transform: scale(1.2); }
-        .qr-link { background: #2ecc71; color: white; padding: 3px 6px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: bold; }
-        #flash-effect { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(46, 204, 113, 0.3); pointer-events: none; opacity: 0; z-index: 9999; }
-        .flash-active { opacity: 1 !important; transition: opacity 0.1s; }
-        input#input-pistola {
+            body { 
+                font-family: 'Segoe UI', sans-serif; 
+                background-color: #f4f7f6; 
+                color: #333; 
+                margin: 10px; 
+                max-width: 100vw;
+                overflow-x: hidden; 
+            }
+
+            .table-container {
+                width: 100%;
+                overflow-x: auto;
+            }
+
+            table { 
+                width: 100%; 
+                table-layout: fixed; 
+                border-collapse: collapse; 
+                background: #fff; 
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+                border-radius: 8px; 
+                overflow: hidden; 
+                border: 1px solid black;
+                border-radius: 20px;
+            }
+
+            th { 
+                background-color: #ffffff;
+                height: 50px;
+                color: black; 
+                padding: 10px 5px; 
+                text-transform: uppercase; 
+                font-size: 18px; 
+                word-wrap: break-word; 
+            }
+
+            td { 
+                padding: 8px 4px; 
+                border: 1px solid #1c1c1c; 
+                text-align: center; 
+                font-size: 22px; 
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap; 
+            }
+
+            td:first-child, th:first-child { 
+                font-weight: bold; 
+                color: blue; 
+                width: 60px; 
+                font-size: 16px;
+            }
+
+            .item-check { cursor: pointer; user-select: none; transition: transform 0.1s; display: inline-block; }
+            .item-check:active { transform: scale(1.2); }
+
+            .qr-link { 
+                background: #2ecc71; 
+                color: white; 
+                padding: 2px 4px; 
+                border-radius: 4px; 
+                font-size: 10px; 
+                text-decoration: none; 
+                font-weight: bold; 
+                display: block; 
+                margin: 2px 0;
+            }
+
+            #flash-effect { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(46, 204, 113, 0.3); pointer-events: none; opacity: 0; z-index: 9999; }
+            .flash-active { opacity: 1 !important; transition: opacity 0.1s; }
+
+            input#input-pistola {
                 position: fixed; 
                 top: 0;
                 left: 0;
@@ -44,14 +104,14 @@
         <thead>
             <tr>
                 <th>Pedido</th>
-                <th>Reformer</th><th>R Code</th>
-                <th>Carrinho (Ref)</th><th>CR Code</th>
-                <th>Torre</th><th>RT Code</th>
-                <th>Carrinho (Tor)</th><th>CT Code</th>
-                <th>Cadilac</th><th>CD Code</th>
-                <th>Gaiola</th><th>G Code</th>
-                <th>Chair</th><th>SC Code</th>
-                <th>Barrel</th><th>B Code</th>
+                <th>Reformer</th>
+                <th>Carrinho (Ref)</th>
+                <th>Torre</th>
+                <th>Carrinho (Tor)</th>
+                <th>Cadilac</th>
+                <th>Gaiola</th>
+                <th>Chair</th>
+                <th>Barrel</th>
             </tr>
         </thead>
         <tbody>
@@ -90,13 +150,13 @@
                                 $texto = '✅';
                             } elseif ($peca['status'] === 'Embalado') {
                                 $texto = 'E';
-                                $estilo = 'style="color: #27ae60; font-weight: bold;"';
+                                $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 28px;"';
                             }
                         ?>
                             <span class="item-check" 
                                 data-id="<?= $peca['id'] ?>" 
                                 <?= $estilo ?> 
-                                style="font-size: 16px;">
+                                style="font-size: 26px;">
                                 <?= $texto ?>
                             </span>
                         <?php endforeach; ?>
@@ -104,16 +164,6 @@
                         <span style="color: #ccc;">-</span>
                     <?php endif; ?>
                 </div>
-            </td>
-            <td>
-                <?php if (count($itens_no_banco) > 0): ?>
-                    <div style="display: flex; flex-direction: column; gap: 3px; align-items: center;">
-                        <?php foreach ($itens_no_banco as $index => $peca): ?>
-                            <a href="gerar_qr.php?numero=<?= urlencode($pedido['numero']) ?>&item=<?= urlencode($nome_equipamento) ?>&pos=<?= $index + 1 ?>" 
-                               target="_blank" class="qr-link">Code <?= $index + 1 ?></a>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
             </td>
         <?php endforeach; ?>
     </tr>
@@ -186,7 +236,7 @@
             new Audio('../audios/som-sucesso.mp3').play().catch(() => {});
         }
 
-        let scrollSpeed = 0.5; 
+        let scrollSpeed = 0; 
         function autoScroll() {
             if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
                 setTimeout(() => window.scrollTo(0, 0), 3000);
