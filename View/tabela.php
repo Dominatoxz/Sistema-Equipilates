@@ -56,10 +56,7 @@
                 color: blue; 
                 width: 60px; 
                 font-size: 16px;
-            }
-
-            .item-check { cursor: pointer; user-select: none; transition: transform 0.1s; display: inline-block; }
-            .item-check:active { transform: scale(1.2); }
+            } 
 
             .qr-link { 
                 background: #2ecc71; 
@@ -73,9 +70,7 @@
                 margin: 2px 0;
             }
 
-            #flash-effect { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(46, 204, 113, 0.3); pointer-events: none; opacity: 0; z-index: 9999; }
-            .flash-active { opacity: 1 !important; transition: opacity 0.1s; }
-
+           
             input#input-pistola {
                 position: fixed; 
                 top: 0;
@@ -137,32 +132,30 @@
         <?php foreach ($equipamentos as $nome_equipamento): 
             $stmt = $db->prepare("SELECT id, status FROM itens_producao WHERE numero_pedido = ? AND equipamento = ?");
             $stmt->execute([$pedido['numero'], $nome_equipamento]);
-            $itens_no_banco = $stmt->fetchAll(PDO::FETCH_ASSOC)
+            $peca = $stmt->fetch(PDO::FETCH_ASSOC); 
         ?>
             <td>
-                <div style="display: flex; justify-content: center; gap: 5px;">
-                    <?php if ($itens_no_banco): ?>
-                        <?php foreach ($itens_no_banco as $peca): 
-                            $texto = '❌';
-                            $estilo = '';
+                <div style="display: flex; justify-content: center;">
+                <?php if ($peca): 
+                    $texto = '❌';
+                    $estilo = '';
 
-                            if ($peca['status'] === 'Finalizado') {
-                                $texto = '✅';
-                            } elseif ($peca['status'] === 'Embalado') {
-                                $texto = 'E';
-                                $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 28px;"';
-                            }
-                        ?>
-                            <span class="item-check" 
-                                data-id="<?= $peca['id'] ?>" 
-                                <?= $estilo ?> 
-                                style="font-size: 26px;">
-                                <?= $texto ?>
-                            </span>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <span style="color: #ccc;">-</span>
-                    <?php endif; ?>
+                    if ($peca['status'] === 'Finalizado') {
+                        $texto = '✅';
+                    } elseif ($peca['status'] === 'Embalado') {
+                        $texto = 'E';
+                        $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
+                    }
+                ?>
+                    <span class="item-check" 
+                        data-id="<?= $peca['id'] ?>" 
+                        <?= $estilo ?> 
+                        style="font-size: 25px;">
+                        <?= $texto ?>
+                    </span>
+                <?php else: ?>
+                    <span style="color: #ccc;">-</span>
+                <?php endif; ?>
                 </div>
             </td>
         <?php endforeach; ?>
@@ -191,32 +184,33 @@
             }
         });
 
-    function atualizarStatusNoBanco(id) {
-        fetch(`atualizar_etapa.php?id=${id}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const icon = document.querySelector(`.item-check[data-id="${id}"]`);
-                    if (icon) {
-                        if (data.novoStatus === 'Finalizado') {
-                            icon.innerText = '✅';
-                            dispararFeedbackCerto();
-                        } else if (data.novoStatus === 'Embalado') {
-                            icon.innerText = 'E';
-                            icon.style.color = '#27ae60';
-                            icon.style.fontWeight = 'bold';
-                            icon.style.fontFamily = 'Arial';
-                            
-                            dispararFeedbackCerto();
-                            verificarLinha(icon.closest('tr'));
-                            
-                        }
-
+ function atualizarStatusNoBanco(codigoCompleto) {
+    fetch(`atualizar_etapa.php?id=${codigoCompleto}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const icon = document.querySelector(`.item-check[data-id="${data.idReal}"]`);
+                
+                if (icon) {
+                    if (data.statusGerado === 'Finalizado') {
+                        icon.innerText = '✅';
+                        icon.style.color = ''; 
+                        icon.style.fontWeight = 'normal';
+                    } else if (data.statusGerado === 'Embalado') {
+                        icon.innerText = 'E';
+                        icon.style.color = '#27ae60'; 
+                        icon.style.fontWeight = 'bold';
+                        icon.style.fontSize = '30px';
+                    }
                     
-                    } 
+                    dispararFeedback(); 
+                    verificarLinha(icon.closest('tr'));
                 }
-            })
-            .catch(err => console.error("Erro ao processar leitura:", err));
+            } else {
+                console.error("Erro no servidor:", data.error);
+            }
+        })
+        .catch(err => console.error("Erro na requisição:", err));
 }
 
         function verificarLinha(linha) {
