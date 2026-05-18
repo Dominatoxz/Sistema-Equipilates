@@ -20,5 +20,10 @@ class SistemaController {
         require_once './View/tabela.php';
     }
 
+    public function os() {
+        //pede lista de dados ao Model
+        $pedidos = $this->sistema->mostrarTabelaOs();
+        require_once './View/tabela_os.php';
+    }
 }
 ?>

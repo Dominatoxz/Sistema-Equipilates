@@ -2,6 +2,11 @@
 require_once './Controller/SistemaController.php';
 
 $sistemaController = new SistemaController();
-$sistemaController->index();
+
+if (isset($_GET['pagina']) && $_GET['pagina'] === 'os') {
+    $sistemaController->os();
+} else {
+    $sistemaController->index();
+}
 
 ?>

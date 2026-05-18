@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quadro de Produção</title>
+    <title>Quadro de Produção OS</title>
     <style>
             body { 
                 font-family: 'Segoe UI', sans-serif; 
@@ -134,12 +134,12 @@
 
     foreach ($pedidos_agrupados as $pedido): ?>
     <tr>
-        <td><?= htmlspecialchars($pedido['numero'])?></td>
+        <td class="num-column"><?= htmlspecialchars($pedido['numero'])?></td>
         
         <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
         
         <?php foreach ($equipamentos as $nome_equipamento): 
-            $stmt = $db->prepare("SELECT id, status FROM itens_producao WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido NOT LIKE 'OS%'");
+            $stmt = $db->prepare("SELECT id, status FROM itens_os WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido LIKE 'OS%'");
             $stmt->execute([$pedido['numero'], $nome_equipamento]);
             $peca = $stmt->fetch(PDO::FETCH_ASSOC); 
         ?>
@@ -182,11 +182,10 @@
             const tempoRefresh = urlParams.get('refresh') || null; 
             if (tempoRefresh) {
                 setTimeout(() => {
-                    window.location.href = `index.php?pagina=os&refresh=${tempoRefresh}`;
+                    window.location.href = `index.php?refresh=${tempoRefresh}`;
                 }, tempoRefresh * 1000);
             }
         })();
-
 
         const inputPistola = document.getElementById('input-pistola');
 

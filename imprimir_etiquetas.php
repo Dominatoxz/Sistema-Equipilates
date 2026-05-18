@@ -6,7 +6,7 @@ require_once './config/Database.php';
 $db = (new Database())->getConnection();
 $generator = new BarcodeGeneratorPNG();
 
-$query = "SELECT id, numero_pedido, equipamento, posicao_no_pedido 
+$query = "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor 
           FROM itens_producao 
           WHERE status != 'Embalado' 
             AND equipamento NOT LIKE 'Emb.%' 
@@ -125,6 +125,12 @@ if (!$itens) {
             color: #333;
         }
 
+        .etiqueta-cor {
+            font-weight: bold;
+            font-size: 12px;
+            color: #333;
+        }
+
         .barcode {
             width: 70%;
             height: 40px;
@@ -169,6 +175,8 @@ if (!$itens) {
 
             $barcodeFabrica   = base64_encode($generator->getBarcode($codeFabrica, $generator::TYPE_CODE_128));
             $barcodeEmbalagem = base64_encode($generator->getBarcode($codeEmbalagem, $generator::TYPE_CODE_128));
+
+            $corExibir = (!empty($item['cor']) && $item['cor'] !== 'COD. COR') ? htmlspecialchars($item['cor']) : 'NÃO INFORMADA';
         ?>
                     
             <div class="etiqueta etiqueta-fabrica">
@@ -178,6 +186,7 @@ if (!$itens) {
                 </div>
                 <div class="etiqueta-titulo"><?= htmlspecialchars($item['equipamento']) ?></div>
                 <div class="etiqueta-sub">Peça: <?= htmlspecialchars($item['posicao_no_pedido']) ?></div>
+                <div class="etiqueta-cor">Cor: <?= htmlspecialchars($corExibir) ?></div>
                 <div class="barcodeSection">
                     <img src="data:image/png;base64,<?= $barcodeFabrica ?>" class="barcode">
                 </div>
@@ -191,6 +200,7 @@ if (!$itens) {
                 </div>
                 <div class="etiqueta-titulo"><?= htmlspecialchars($item['equipamento']) ?></div>
                 <div class="etiqueta-sub">Peça: <?= htmlspecialchars($item['posicao_no_pedido']) ?></div>
+                <div class="etiqueta-cor">Cor: <?= htmlspecialchars($corExibir) ?></div>
                 <div class="barcodeSection">
                     <img src="data:image/png;base64,<?= $barcodeEmbalagem ?>" class="barcode">
                 </div>
