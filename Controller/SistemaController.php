@@ -25,5 +25,16 @@ class SistemaController {
         $pedidos = $this->sistema->mostrarTabelaOs();
         require_once './View/tabela_os.php';
     }
+
+    public function acessorios() {
+        $pedidos = $this->sistema->mostrarTabelaAcessorios();
+        require_once './View/tabela_acessorios.php';
+    }
+
+    public function posVenda() {
+        //pede lista de dados ao Model
+        $pedidos = $this->sistema->mostrarFilaPosVenda();
+        require_once './View/tabela_posVenda.php';
+    }
 }
 ?>

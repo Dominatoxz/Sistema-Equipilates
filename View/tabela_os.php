@@ -234,11 +234,26 @@
 
         function verificarLinha(linha) {
             const itens = linha.querySelectorAll('.item-check');
+            
+            if (itens.length === 0) return;
+           
             const pendentes = Array.from(itens).filter(i => i.innerText !== 'E');
+
             if (pendentes.length === 0) {
-                linha.style.transition = "opacity 0.8s";
-                linha.style.background = "#d4edda";
-                setTimeout(() => linha.remove(), 1000);
+                const numeroPedido = linha.cells[0].innerText.trim();
+
+                fetch(`notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log(`Sucesso: Pedido ${numeroPedido} enviado para a fila do Pós-Venda.`);
+                        }
+                    })
+                    .catch(err => console.error("Falha na comunicação com o servidor:", err));
+
+                    linha.style.transition = "opacity 0.8s";
+                    linha.style.background = "#d4edda";
+                    setTimeout(() => linha.remove(), 1000);
             }
         }
 

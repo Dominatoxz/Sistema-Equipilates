@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quadro de Produção</title>
+    <title>Quadro de Produção OS</title>
     <style>
             body { 
                 font-family: 'Segoe UI', sans-serif; 
@@ -106,27 +106,27 @@
             <tr>
                 <th>Pedido</th>
                 <th>Prazo</th>
-                <th>Reformer</th>
-                <th>Carrinho (Ref)</th>
-                <th>Torre</th>
-                <th>Carrinho (Tor)</th>
-                <th>Cadilac</th>
-                <th>Gaiola</th>
-                <th>Chair</th>
-                <th>Barrel</th>
+                <th>Wall Unit</th>
+                <th>Caixa Mini</th>
+                <th>Caixa do Reformer</th>
+                <th>P. de Molas - B</th>
+                <th>P. de Molas - C</th>
+                <th>P. de Molas - PT</th>
+                <th>Caixa da Cadeira</th>
+                <th>Prancha de Alongamento</th>
             </tr>
         </thead>
         <tbody>
     <?php 
     $equipamentos = [
-        'Reformer Excellence', 
-        'Carrinho Excellence', 
-        'Reformer Torre', 
-        'Carrinho Torre',
-        'Cadilac Excelence', 
-        'Gaiola Cadilac',
-        'Step Chair Excelence', 
-        'Lader Barrel Excelence',
+        'Wall Unit', 
+        'Caixa Mini', 
+        'Caixa do Reformer', 
+        'P. de Molas - B R I N D E',
+        'P. de Molas - C O M P L E T A', 
+        'P. de Molas - P u s h T h r u',
+        'Caixa da Cadeira', 
+        'Prancha de Alongamento',
     ];
 
     $database = new Database();
@@ -134,12 +134,12 @@
 
     foreach ($pedidos_agrupados as $pedido): ?>
     <tr>
-        <td><?= htmlspecialchars($pedido['numero'])?></td>
+        <td class="num-column"><?= htmlspecialchars($pedido['numero'])?></td>
         
         <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
         
         <?php foreach ($equipamentos as $nome_equipamento): 
-            $stmt = $db->prepare("SELECT id, status FROM itens_producao WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido NOT LIKE 'OS%'");
+            $stmt = $db->prepare("SELECT id, status FROM itens_producao WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido");
             $stmt->execute([$pedido['numero'], $nome_equipamento]);
             $peca = $stmt->fetch(PDO::FETCH_ASSOC); 
         ?>
@@ -182,11 +182,10 @@
             const tempoRefresh = urlParams.get('refresh') || null; 
             if (tempoRefresh) {
                 setTimeout(() => {
-                    window.location.href = `index.php?pagina=os&refresh=${tempoRefresh}`;
+                    window.location.href = `index.php?refresh=${tempoRefresh}`;
                 }, tempoRefresh * 1000);
             }
         })();
-
 
         const inputPistola = document.getElementById('input-pistola');
 
@@ -235,26 +234,11 @@
 
         function verificarLinha(linha) {
             const itens = linha.querySelectorAll('.item-check');
-            
-            if (itens.length === 0) return;
-           
             const pendentes = Array.from(itens).filter(i => i.innerText !== 'E');
-
             if (pendentes.length === 0) {
-                const numeroPedido = linha.cells[0].innerText.trim();
-
-                fetch(`notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            console.log(`Sucesso: Pedido ${numeroPedido} enviado para a fila do Pós-Venda.`);
-                        }
-                    })
-                    .catch(err => console.error("Falha na comunicação com o servidor:", err));
-
-                    linha.style.transition = "opacity 0.8s";
-                    linha.style.background = "#d4edda";
-                    setTimeout(() => linha.remove(), 1000);
+                linha.style.transition = "opacity 0.8s";
+                linha.style.background = "#d4edda";
+                setTimeout(() => linha.remove(), 1000);
             }
         }
 
