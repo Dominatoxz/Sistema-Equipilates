@@ -98,7 +98,7 @@
         <?php
         if (!isset($pedidos)) {
             $pedidos = [];
-        }
+        } 
 
         $pedidos_agrupados = $pedidos; 
         ?>
@@ -141,20 +141,25 @@
         <?php foreach ($equipamentos as $nome_equipamento): 
             $stmt = $db->prepare("SELECT id, status FROM itens_os WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido LIKE 'OS%'");
             $stmt->execute([$pedido['numero'], $nome_equipamento]);
-            $peca = $stmt->fetch(PDO::FETCH_ASSOC); 
+            $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC); 
         ?>
             <td>
                 <div style="display: flex; justify-content: center;">
-                <?php if ($peca): 
-                    $texto = '❌';
-                    $estilo = '';
+                <?php if ($pecas && count($pecas) > 0): 
+                    foreach ($pecas as $peca):
+                        $status = isset($peca['status']) ? $peca['status'] : 'Pendente';
+                        $id_peca = isset($peca['id']) ? $peca['id'] : 0;
+                        
+                        $texto = '❌';
+                        $estilo = '';
 
-                    if ($peca['status'] === 'Finalizado') {
-                        $texto = '✅';
-                    } elseif ($peca['status'] === 'Embalado') {
-                        $texto = 'E';
-                        $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
-                    }
+                        if ($peca['status'] === 'Finalizado') {
+                            $texto = '✅';
+                        } elseif ($peca['status'] === 'Embalado') {
+                            $texto = 'E';
+                            $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
+                        }
+                    
                 ?>
                     <span class="item-check" 
                         data-id="<?= $peca['id'] ?>" 
@@ -162,6 +167,7 @@
                         style="font-size: 25px;">
                         <?= $texto ?>
                     </span>
+                    <?php endforeach;?>
                 <?php else: ?>
                     <span style="color: #ccc;">-</span>
                 <?php endif; ?>
@@ -222,7 +228,7 @@
                         icon.style.fontSize = '30px';
                     }
                     
-                    dispararFeedback(); 
+                    dispararFeedbackCerto(); 
                     verificarLinha(icon.closest('tr'));
                 }
             } else {

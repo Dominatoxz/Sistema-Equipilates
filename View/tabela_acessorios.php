@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quadro de Produção OS</title>
+    <title>Quadro de Produção Acessórios</title>
     <style>
             body { 
                 font-family: 'Segoe UI', sans-serif; 
@@ -106,7 +106,6 @@
             <tr>
                 <th>Pedido</th>
                 <th>Prazo</th>
-                <th>Wall Unit</th>
                 <th>Caixa Mini</th>
                 <th>Caixa do Reformer</th>
                 <th>P. de Molas - B</th>
@@ -118,8 +117,7 @@
         </thead>
         <tbody>
     <?php 
-    $equipamentos = [
-        'Wall Unit', 
+    $equipamentos = [ 
         'Caixa Mini', 
         'Caixa do Reformer', 
         'P. de Molas - B R I N D E',
@@ -141,13 +139,17 @@
         <?php foreach ($equipamentos as $nome_equipamento): 
             $stmt = $db->prepare("SELECT id, status FROM itens_producao WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido");
             $stmt->execute([$pedido['numero'], $nome_equipamento]);
-            $peca = $stmt->fetch(PDO::FETCH_ASSOC); 
+            $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC); 
         ?>
             <td>
                 <div style="display: flex; justify-content: center;">
-                <?php if ($peca): 
-                    $texto = '❌';
-                    $estilo = '';
+                <?php if ($pecas && count($pecas) > 0): 
+                    foreach ($pecas as $peca):
+                        $status = isset($peca['status']) ? $peca['status'] : 'Pendente';
+                        $id_peca = isset($peca['id']) ? $peca['id'] : 0;
+                        
+                        $texto = '❌';
+                        $estilo = '';
 
                     if ($peca['status'] === 'Finalizado') {
                         $texto = '✅';
@@ -162,6 +164,7 @@
                         style="font-size: 25px;">
                         <?= $texto ?>
                     </span>
+                    <?php endforeach;?>
                 <?php else: ?>
                     <span style="color: #ccc;">-</span>
                 <?php endif; ?>
