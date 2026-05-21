@@ -20,6 +20,7 @@ class Sistema {
                          'Carrinho',
                          'Gaiola'
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
+                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND (
                         (NULLIF(TRIM(`Reformer Excellence`), '') IS NOT NULL AND TRIM(`Reformer Excellence`) != '0') OR
                         (NULLIF(TRIM(`Reformer Torre`), '') IS NOT NULL AND TRIM(`Reformer Torre`) != '0') OR
@@ -47,6 +48,7 @@ class Sistema {
                   FROM tabela_adaptada 
                   WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' 
                     AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
+                    AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                     AND (
                         (NULLIF(TRIM(`Wall Unit`), '') IS NOT NULL AND TRIM(`Wall Unit`) != '0') OR
                         (NULLIF(TRIM(`Caixa Mini`), '') IS NOT NULL AND TRIM(`Caixa Mini`) != '0') OR
@@ -76,6 +78,7 @@ class Sistema {
                          'Carrinho',
                          'Gaiola'
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) LIKE '%os%'
+                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND (
                         (NULLIF(TRIM(`Reformer Excellence`), '') IS NOT NULL AND TRIM(`Reformer Excellence`) != '0') OR
                         (NULLIF(TRIM(`Reformer Torre`), '') IS NOT NULL AND TRIM(`Reformer Torre`) != '0') OR

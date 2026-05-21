@@ -90,6 +90,28 @@
                 pointer-events: none; 
                 z-index: -1;          
             }
+
+            #flash-effect { 
+                position: fixed; 
+                top: 0; 
+                left: 0; 
+                width: 100vw; 
+                height: 100vh; 
+                background: rgba(46, 204, 113, 0.6);
+                opacity: 0; 
+                pointer-events: none; 
+                z-index: 9999; 
+            }
+            
+            .flash-active { 
+                animation: pulseFlash 0.2s ease-out; 
+            }
+
+            @keyframes pulseFlash {
+                0% { opacity: 0; }
+                50% { opacity: 1; }
+                100% { opacity: 0; }
+            }
     </style>
 </head>
 <body>
@@ -231,7 +253,7 @@
                         icon.style.fontSize = '30px';
                     }
                     
-                    dispararFeedback(); 
+                    dispararFeedbackCerto(); 
                     verificarLinha(icon.closest('tr'));
                 }
             } else {
@@ -242,11 +264,13 @@
 }
 
         function verificarLinha(linha) {
-            const itens = linha.querySelectorAll('.item-check');
+            const itensLista = linha.querySelectorAll('.item-check');
             
-            if (itens.length === 0) return;
+            if (itensLista.length === 0) return;
            
-            const pendentes = Array.from(itens).filter(i => i.innerText !== 'E');
+            const pendentes = Array.from(itensLista).filter(function(i) {
+                return i.innerText.trim() !== 'E';
+            });
 
             if (pendentes.length === 0) {
                 const numeroPedido = linha.cells[0].innerText.trim();
@@ -269,8 +293,7 @@
         function dispararFeedbackCerto() {
             const flash = document.getElementById('flash-effect');
             flash.classList.add('flash-active');
-            setTimeout(() => flash.classList.remove('flash-active'), 150);
-            new Audio('../audios/som-sucesso.mp3').play().catch(() => {});
+            setTimeout(() => flash.classList.remove('flash-active'), 150);;
         }
 
         let scrollSpeed = 0; 

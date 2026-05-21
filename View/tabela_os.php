@@ -90,6 +90,29 @@
                 pointer-events: none; 
                 z-index: -1;          
             }
+
+            
+            #flash-effect { 
+                position: fixed; 
+                top: 0; 
+                left: 0; 
+                width: 100vw; 
+                height: 100vh; 
+                background: rgba(46, 204, 113, 0.6);
+                opacity: 0; 
+                pointer-events: none; 
+                z-index: 9999; 
+            }
+            
+            .flash-active { 
+                animation: pulseFlash 0.2s ease-out; 
+            }
+
+            @keyframes pulseFlash {
+                0% { opacity: 0; }
+                50% { opacity: 1; }
+                100% { opacity: 0; }
+            }
     </style>
 </head>
 <body>
@@ -209,41 +232,43 @@
             }
         });
 
- function atualizarStatusNoBanco(codigoCompleto) {
-    fetch(`atualizar_etapa.php?id=${codigoCompleto}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const icon = document.querySelector(`.item-check[data-id="${data.idReal}"]`);
-                
-                if (icon) {
-                    if (data.statusGerado === 'Finalizado') {
-                        icon.innerText = '✅';
-                        icon.style.color = ''; 
-                        icon.style.fontWeight = 'normal';
-                    } else if (data.statusGerado === 'Embalado') {
-                        icon.innerText = 'E';
-                        icon.style.color = '#27ae60'; 
-                        icon.style.fontWeight = 'bold';
-                        icon.style.fontSize = '30px';
+        function atualizarStatusNoBanco(codigoCompleto) {
+            fetch(`atualizar_etapa.php?id=${codigoCompleto}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const icon = document.querySelector(`.item-check[data-id="${data.idReal}"]`);
+                        
+                        if (icon) {
+                            if (data.statusGerado === 'Finalizado') {
+                                icon.innerText = '✅';
+                                icon.style.color = ''; 
+                                icon.style.fontWeight = 'normal';
+                            } else if (data.statusGerado === 'Embalado') {
+                                icon.innerText = 'E';
+                                icon.style.color = '#27ae60'; 
+                                icon.style.fontWeight = 'bold';
+                                icon.style.fontSize = '30px';
+                            }
+                            
+                            dispararFeedbackCerto(); 
+                            verificarLinha(icon.closest('tr'));
+                        }
+                    } else {
+                        console.error("Erro no servidor:", data.error);
                     }
-                    
-                    dispararFeedbackCerto(); 
-                    verificarLinha(icon.closest('tr'));
-                }
-            } else {
-                console.error("Erro no servidor:", data.error);
-            }
-        })
-        .catch(err => console.error("Erro na requisição:", err));
-}
+                })
+                .catch(err => console.error("Erro na requisição:", err));
+        }
 
         function verificarLinha(linha) {
             const itens = linha.querySelectorAll('.item-check');
             
             if (itens.length === 0) return;
            
-            const pendentes = Array.from(itens).filter(i => i.innerText !== 'E');
+            const pendentes = Array.from(itensLista).filter(function(i) {
+                return i.innerText.trim() !== 'E';
+            });
 
             if (pendentes.length === 0) {
                 const numeroPedido = linha.cells[0].innerText.trim();
@@ -251,8 +276,21 @@
                 fetch(`notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data.success) {
-                            console.log(`Sucesso: Pedido ${numeroPedido} enviado para a fila do Pós-Venda.`);
+                        if (data && data.success){
+                            if (data.status_pedido === 'SUBIU_POS_VENDA') {
+                                console.log(`Sucesso: Pedido ${numeroPedido} enviado para a fila do Pós-Venda.`);
+
+                                linha.style.transition = "opacity 0.8s";
+                                linha.style.background = "#d4edda";
+                                setTimeout(() => linha.remove(), 1000);
+                            } else {
+                                console.log(`Esta tela está concluída, mas o pedido ${numeroPedido} ainda tem outras partes pendentes no outro quadro.`);
+                                
+                                linha.style.transition = "background 0.5s";
+                                linha.style.background = "#ffeaa7";
+                            }
+                        } else {
+                            console.log('Erro no processamento do pós-venda:', data.error)
                         }
                     })
                     .catch(err => console.error("Falha na comunicação com o servidor:", err));
@@ -266,10 +304,9 @@
         function dispararFeedbackCerto() {
             const flash = document.getElementById('flash-effect');
             flash.classList.add('flash-active');
-            setTimeout(() => flash.classList.remove('flash-active'), 150);
-            new Audio('../audios/som-sucesso.mp3').play().catch(() => {});
+            setTimeout(() => flash.classList.remove('flash-active'), 150);;
         }
-
+        
         let scrollSpeed = 0; 
         function autoScroll() {
             if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {

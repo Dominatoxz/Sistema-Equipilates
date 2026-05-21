@@ -90,6 +90,28 @@
                 pointer-events: none; 
                 z-index: -1;          
             }
+
+            #flash-effect { 
+                position: fixed; 
+                top: 0; 
+                left: 0; 
+                width: 100vw; 
+                height: 100vh; 
+                background: rgba(46, 204, 113, 0.6);
+                opacity: 0; 
+                pointer-events: none; 
+                z-index: 9999; 
+            }
+            
+            .flash-active { 
+                animation: pulseFlash 0.2s ease-out; 
+            }
+
+            @keyframes pulseFlash {
+                0% { opacity: 0; }
+                50% { opacity: 1; }
+                100% { opacity: 0; }
+            }
     </style>
 </head>
 <body>
@@ -206,42 +228,59 @@
             }
         });
 
- function atualizarStatusNoBanco(codigoCompleto) {
-    fetch(`atualizar_etapa.php?id=${codigoCompleto}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const icon = document.querySelector(`.item-check[data-id="${data.idReal}"]`);
-                
-                if (icon) {
-                    if (data.statusGerado === 'Finalizado') {
-                        icon.innerText = '✅';
-                        icon.style.color = ''; 
-                        icon.style.fontWeight = 'normal';
-                    } else if (data.statusGerado === 'Embalado') {
-                        icon.innerText = 'E';
-                        icon.style.color = '#27ae60'; 
-                        icon.style.fontWeight = 'bold';
-                        icon.style.fontSize = '30px';
+        function atualizarStatusNoBanco(codigoCompleto) {
+            fetch(`atualizar_etapa.php?id=${codigoCompleto}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const icon = document.querySelector(`.item-check[data-id="${data.idReal}"]`);
+                        
+                        if (icon) {
+                            if (data.statusGerado === 'Finalizado') {
+                                icon.innerText = '✅';
+                                icon.style.color = ''; 
+                                icon.style.fontWeight = 'normal';
+                            } else if (data.statusGerado === 'Embalado') {
+                                icon.innerText = 'E';
+                                icon.style.color = '#27ae60'; 
+                                icon.style.fontWeight = 'bold';
+                                icon.style.fontSize = '30px';
+                            }
+                            
+                            dispararFeedbackCerto(); 
+                            verificarLinha(icon.closest('tr'));
+                        }
+                    } else {
+                        console.error("Erro no servidor:", data.error);
                     }
-                    
-                    dispararFeedback(); 
-                    verificarLinha(icon.closest('tr'));
-                }
-            } else {
-                console.error("Erro no servidor:", data.error);
-            }
-        })
-        .catch(err => console.error("Erro na requisição:", err));
-}
+                })
+                .catch(err => console.error("Erro na requisição:", err));
+        }
 
         function verificarLinha(linha) {
-            const itens = linha.querySelectorAll('.item-check');
-            const pendentes = Array.from(itens).filter(i => i.innerText !== 'E');
+            const itensLista = linha.querySelectorAll('.item-check');
+            
+            if (itensLista.length === 0) return;
+           
+            const pendentes = Array.from(itensLista).filter(function(i) {
+                return i.innerText.trim() !== 'E';
+            });
+
             if (pendentes.length === 0) {
-                linha.style.transition = "opacity 0.8s";
-                linha.style.background = "#d4edda";
-                setTimeout(() => linha.remove(), 1000);
+                const numeroPedido = linha.cells[0].innerText.trim();
+
+                fetch(`notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log(`Sucesso: Pedido ${numeroPedido} enviado para a fila do Pós-Venda.`);
+                        }
+                    })
+                    .catch(err => console.error("Falha na comunicação com o servidor:", err));
+
+                    linha.style.transition = "opacity 0.8s";
+                    linha.style.background = "#d4edda";
+                    setTimeout(() => linha.remove(), 1000);
             }
         }
 
