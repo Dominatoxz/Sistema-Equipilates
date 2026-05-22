@@ -9,6 +9,8 @@ if (isset($_GET['pagina']) && $_GET['pagina'] === 'os') {
     $sistemaController->posVenda();
 } elseif (isset($_GET['pagina']) && $_GET['pagina'] === 'acessorios') {
     $sistemaController->acessorios();
+}elseif (isset($_GET['pagina']) && $_GET['pagina'] === 'acessoriosOs') {
+    $sistemaController->acessoriosOs();
 } else {
-    $sistemaController->index();
+    $sistemaController->itens();
 }

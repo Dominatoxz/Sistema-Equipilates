@@ -9,8 +9,8 @@
         .header-painel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         h1 { color: #2c3e50; margin: 0; font-size: 28px; }
         table { width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; }
-        th { background-color: #2c3e50; color: white; padding: 15px; text-align: left; font-size: 16px; text-transform: uppercase; }
-        td { padding: 15px; border-bottom: 1px solid #eef2f5; font-size: 16px; }
+        th {background-color: #2c3e50; color: white; padding: 15px; text-align: left; font-size: 16px; text-transform: uppercase; }
+        td {padding: 15px; border-bottom: 1px solid #eef2f5; font-size: 16px; }
         tr:hover { background-color: #f8fafc; }
         .btn-baixa { background-color: #27ae60; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; font-size: 14px; }
         .btn-baixa:hover { background-color: #219150; }

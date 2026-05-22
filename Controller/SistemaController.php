@@ -14,7 +14,7 @@ class SistemaController {
     }
 
     //listar todos os itens na tela inicial
-    public function index() {
+    public function itens() {
         //pede lista de dados ao Model
         $pedidos = $this->sistema->mostrarTabela();
         require_once './View/tabela.php';
@@ -35,6 +35,11 @@ class SistemaController {
         //pede lista de dados ao Model
         $pedidos = $this->sistema->mostrarFilaPosVenda();
         require_once './View/tabela_posVenda.php';
+    }
+
+    public function acessoriosOs(){
+        $pedidos = $this->sistema->mostrarTabelaAcessoriosOs();
+        require_once './View/tabela_os_acess.php';
     }
 }
 ?>
