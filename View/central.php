@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Central de Controle - Produção</title>
+    <title>Central</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -63,6 +63,5 @@
     </div>
 
     <footer>Sistema de Monitoramento Interno © 2026</footer>
-
 </body>
 </html>

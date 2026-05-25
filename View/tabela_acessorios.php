@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quadro de Produção Acessórios</title>
+    <title>Acessórios</title>
     <style>
             body { 
                 font-family: 'Segoe UI', sans-serif; 
@@ -118,6 +118,17 @@
     <input type="text" id="input-pistola" autofocus>
     <table>
         <?php
+        require_once '../config/Database.php'; 
+        require_once '../Model/Sistema.php'; 
+
+        $database = new Database();
+        $db = $database->getConnection();
+
+        $sistema = new Sistema($db);
+
+        $pedidos = $sistema->mostrarTabelaAcessorios(); 
+        ?>
+        <?php
         if (!isset($pedidos)) {
             $pedidos = [];
         }
@@ -229,7 +240,7 @@
         });
 
         function atualizarStatusNoBanco(codigoCompleto) {
-            fetch(`atualizar_etapa.php?id=${codigoCompleto}`)
+            fetch(`../atualizar_etapa.php?id=${codigoCompleto}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -269,7 +280,7 @@
             if (pendentes.length === 0) {
                 const numeroPedido = linha.cells[0].innerText.trim();
 
-                fetch(`notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}`)
+                fetch(`../notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {

@@ -1,13 +1,8 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 require_once './config/Database.php';
 
-if (ob_get_length()) ob_clean();
-header('Content-Type: application/json');
-
 $pedido = $_GET['pedido'] ?? null;
+$tipoTela = $_GET['tipo_tela'] ?? 'producao';
 
 if (!$pedido) {
     echo json_encode(['success' => false, 'error' => 'Pedido não informado.']);
@@ -19,20 +14,37 @@ try {
     $db = $database->getConnection();
 
     $totalPendentes = 0;
-    $isOs = (stripos($pedido, 'os') !== false);
+    $isOS = (stripos($pedido, 'os') !== false);
 
-    if ($isOs) {
-        $sqlOs = 'SELECT COUNT(*) FROM itens_os WHERE numero_pedido = ? AND status != "Embalado"';
-        $stmtOs = $db->prepare($sqlOs);
-        $stmtOs->execute([$pedido]);
-        $totalPendentes = (int)$stmtOs->fetchColumn();
-    } else {
+    if ($isOS) {
+        if ($tipoTela === 'os_equipamentos') {
+            $sqlOs = "SELECT COUNT(*) FROM itens_os 
+                      WHERE numero_pedido = ? 
+                        AND status != 'Embalado'
+                        AND equipamento NOT LIKE 'Caixa%' 
+                        AND equipamento NOT LIKE 'Prancha%' 
+                        AND equipamento NOT LIKE 'Molas%'
+                        AND equipamento NOT LIKE 'Acessorio%'";
+        } else if ($tipoTela === 'os_acessorios') {
+            $sqlOs = "SELECT COUNT(*) FROM itens_os 
+                      WHERE numero_pedido = ? 
+                        AND status != 'Embalado'
+                        AND (equipamento LIKE 'Caixa%' 
+                          OR equipamento LIKE 'Prancha%' 
+                          OR equipamento LIKE 'Molas%'
+                          OR equipamento LIKE 'Acessorio%')";
+        } else {
+            $sqlOs = 'SELECT COUNT(*) FROM itens_os WHERE numero_pedido = ? AND status != "Embalado"';
+        }
+    
+        } else {
         $equipamentosPrincipais = [
             'Reformer Excellence', 
             'Reformer Torre', 
             'Cadilac Excelence', 
             'Step Chair Excelence', 
-            'Lader Barrel Excelence'
+            'Lader Barrel Excelence',
+            'Wall Unit'
         ];
         
         $placeholders = implode(',', array_fill(0, count($equipamentosPrincipais), '?'));
@@ -57,17 +69,26 @@ try {
         $existe = $stmtCheck->fetchColumn();
 
         if (!$existe) {
-            $stmtPrazo = $db->prepare("SELECT `PRAZO DE PRODUÇÃO` FROM tabela_adaptada WHERE `NUMERO PEDIDO` = ? LIMIT 1");
-            $stmtPrazo->execute([$pedido]);
-            $prazo = $stmtPrazo->fetchColumn() ?: 'Sem prazo';
+            if ($isOS){
+                $stmtPrazo = $db->prepare("SELECT prazo_producao FROM itens_os WHERE numero_pedido = ?");
+                $stmtPrazo->execute([$pedido]);
+                $prazoOriginal = $stmtPrazo->fetchColumn();
 
-        
-            $sqlInsert = "INSERT INTO pedidos_prontos (numero_pedido, prazo_producao, data_conclusao, status_posvenda) 
-                          VALUES (?, ?, NOW(), 'Pendente')";
+                $prazo = $prazoOriginal ? trim($prazoOriginal) : 'Sem prazo';
+
+            } else {
+                $stmtPrazo = $db->prepare("SELECT `PRAZO DE PRODUÇÃO` FROM tabela_adaptada WHERE `NUMERO PEDIDO` = ?");
+                $stmtPrazo->execute([$pedido]);
+                $prazoOriginal = $stmtPrazo->fetchColumn();
+
+                $prazo = $prazoOriginal ? trim($prazoOriginal) : 'Sem prazo';
+            }
+
+            $sqlInsert = "INSERT INTO pedidos_prontos (numero_pedido, prazo_producao, data_conclusao, status_posvenda)
+                            VALUES (?, ?, NOW(), 'Pendente')";
             $stmtInsert = $db->prepare($sqlInsert);
             $stmtInsert->execute([$pedido, $prazo]);
-        }
-        
+        } 
 
         echo json_encode(['success' => true, 'status_pedido' => 'SUBIU_POS_VENDA']);
     } else {

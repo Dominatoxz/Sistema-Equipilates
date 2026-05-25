@@ -7,9 +7,17 @@ $db = (new Database())->getConnection();
 $generator = new BarcodeGeneratorPNG();
 
 $query = "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor 
-          FROM itens_producao 
+          FROM itens_producao
           WHERE status != 'Embalado' 
             AND equipamento NOT LIKE 'Emb.%' 
+          
+          UNION ALL
+          
+          SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor 
+          FROM itens_os
+          WHERE status != 'Embalado' 
+            AND equipamento NOT LIKE 'Emb.%' 
+         
           ORDER BY numero_pedido ASC, id ASC";
 
 $stmt = $db->prepare($query);
@@ -170,11 +178,13 @@ if (!$itens) {
 
     <div class="container-gabarito">
         <?php foreach ($itens as $item): 
-            $codeFabrica   = $item['id'] . '-P';
-            $codeEmbalagem = $item['id'] . '-E';
+            $isOS = (stripos($item['numero_pedido'], 'os') !== false);
+            $titulo = $isOS ? "[OS]" : "";
 
-            $barcodeFabrica   = base64_encode($generator->getBarcode($codeFabrica, $generator::TYPE_CODE_128));
-            $barcodeEmbalagem = base64_encode($generator->getBarcode($codeEmbalagem, $generator::TYPE_CODE_128));
+            $CodigoBarraBase = $isOS ? 'OS' . $item['id'] : $item['id'];
+
+            $barcodeFabrica   = base64_encode($generator->getBarcode($CodigoBarraBase . '-P', $generator::TYPE_CODE_128));
+            $barcodeEmbalagem = base64_encode($generator->getBarcode($CodigoBarraBase . '-E', $generator::TYPE_CODE_128));
 
             $corExibir = (!empty($item['cor']) && $item['cor'] !== 'COD. COR') ? htmlspecialchars($item['cor']) : 'NÃO INFORMADA';
         ?>

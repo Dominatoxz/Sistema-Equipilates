@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quadro Pós-Venda</title>
+    <title>Pós-Venda</title>
 <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; color: #333; margin: 25px; }
         .header-painel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
@@ -35,6 +35,17 @@
             </tr>
         </thead>
         <tbody>
+            <?php
+            require_once '../config/Database.php'; 
+            require_once '../Model/Sistema.php'; 
+
+            $database = new Database();
+            $db = $database->getConnection();
+
+            $sistema = new Sistema($db);
+
+            $pedidos = $sistema->mostrarFilaPosVenda(); 
+            ?>
             <?php if (empty($pedidos)): ?>
                 <tr>
                     <td colspan="5" class="Sem pedidos">Nenhum pedido aguardando liberação.</td>
@@ -43,7 +54,7 @@
                 <?php foreach($pedidos as $p): ?>
                 <tr id="Linha-<? $p['id']?>">
                     <td style="font-weight: bold; color: #2980b9; font-size: 18px;"><?= htmlspecialchars($p['numero_pedido']) ?></td>
-                    <td><?= htmlspecialchars($p['prazo_producao']) ?></td>
+                    <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10))?></td>
                     <td><?= date('d/m/Y H:i', strtotime($p['data_conclusao'])) ?></td>
                     <td><span class="badge-pronto">100% Embalado</span></td>
                     <td>

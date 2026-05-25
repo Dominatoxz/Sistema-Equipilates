@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quadro de Produção OS Acessórios</title>
+    <title>Acessórios OS</title>
     <style>
             body { 
                 font-family: 'Segoe UI', sans-serif; 
@@ -91,7 +91,6 @@
                 z-index: -1;          
             }
 
-            
             #flash-effect { 
                 position: fixed; 
                 top: 0; 
@@ -119,9 +118,20 @@
     <input type="text" id="input-pistola" autofocus>
     <table>
         <?php
+        require_once '../config/Database.php'; 
+        require_once '../Model/Sistema.php';
+
+        $database = new Database();
+        $db = $database->getConnection();
+
+        $sistema = new Sistema($db);
+
+        $pedidos = $sistema->mostrarTabelaAcessoriosOs(); 
+        ?>
+        <?php
         if (!isset($pedidos)) {
             $pedidos = [];
-        } 
+        }
 
         $pedidos_agrupados = $pedidos; 
         ?>
@@ -129,19 +139,18 @@
             <tr>
                 <th>Pedido</th>
                 <th>Prazo</th>
-                <th>Reformer</th>
-                <th>Carrinho (Ref)</th>
-                <th>Torre</th>
-                <th>Carrinho (Tor)</th>
-                <th>Cadilac</th>
-                <th>Gaiola</th>
-                <th>Chair</th>
-                <th>Barrel</th>
+                <th>Caixa Mini</th>
+                <th>Caixa do Reformer</th>
+                <th>P. de Molas - B</th>
+                <th>P. de Molas - C</th>
+                <th>P. de Molas - PT</th>
+                <th>Caixa da Cadeira</th>
+                <th>Prancha de Alongamento</th>
             </tr>
         </thead>
         <tbody>
     <?php 
-    $equipamentos = [
+    $equipamentos = [ 
         'Caixa Mini', 
         'Caixa do Reformer', 
         'P. de Molas - B R I N D E',
@@ -161,7 +170,7 @@
         <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
         
         <?php foreach ($equipamentos as $nome_equipamento): 
-            $stmt = $db->prepare("SELECT id, status FROM itens_os_acess WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido LIKE 'OS%'");
+            $stmt = $db->prepare("SELECT id, status FROM itens_os WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido");
             $stmt->execute([$pedido['numero'], $nome_equipamento]);
             $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC); 
         ?>
@@ -175,13 +184,12 @@
                         $texto = '❌';
                         $estilo = '';
 
-                        if ($peca['status'] === 'Finalizado') {
-                            $texto = '✅';
-                        } elseif ($peca['status'] === 'Embalado') {
-                            $texto = 'E';
-                            $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
-                        }
-                    
+                    if ($peca['status'] === 'Finalizado') {
+                        $texto = '✅';
+                    } elseif ($peca['status'] === 'Embalado') {
+                        $texto = 'E';
+                        $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
+                    }
                 ?>
                     <span class="item-check" 
                         data-id="<?= $peca['id'] ?>" 
@@ -232,7 +240,7 @@
         });
 
         function atualizarStatusNoBanco(codigoCompleto) {
-            fetch(`atualizar_etapa.php?id=${codigoCompleto}`)
+            fetch(`../atualizar_etapa.php?id=${codigoCompleto}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -261,9 +269,9 @@
         }
 
         function verificarLinha(linha) {
-            const itens = linha.querySelectorAll('.item-check');
+            const itensLista = linha.querySelectorAll('.item-check');
             
-            if (itens.length === 0) return;
+            if (itensLista.length === 0) return;
            
             const pendentes = Array.from(itensLista).filter(function(i) {
                 return i.innerText.trim() !== 'E';
@@ -272,24 +280,11 @@
             if (pendentes.length === 0) {
                 const numeroPedido = linha.cells[0].innerText.trim();
 
-                fetch(`notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}`)
+                fetch(`../notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}&tipo_tela=os_acessorios`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data && data.success){
-                            if (data.status_pedido === 'SUBIU_POS_VENDA') {
-                                console.log(`Sucesso: Pedido ${numeroPedido} enviado para a fila do Pós-Venda.`);
-
-                                linha.style.transition = "opacity 0.8s";
-                                linha.style.background = "#d4edda";
-                                setTimeout(() => linha.remove(), 1000);
-                            } else {
-                                console.log(`Esta tela está concluída, mas o pedido ${numeroPedido} ainda tem outras partes pendentes no outro quadro.`);
-                                
-                                linha.style.transition = "background 0.5s";
-                                linha.style.background = "#ffeaa7";
-                            }
-                        } else {
-                            console.log('Erro no processamento do pós-venda:', data.error)
+                        if (data.success) {
+                            console.log(`Sucesso: Pedido ${numeroPedido} enviado para a fila do Pós-Venda.`);
                         }
                     })
                     .catch(err => console.error("Falha na comunicação com o servidor:", err));
@@ -303,9 +298,10 @@
         function dispararFeedbackCerto() {
             const flash = document.getElementById('flash-effect');
             flash.classList.add('flash-active');
-            setTimeout(() => flash.classList.remove('flash-active'), 150);;
+            setTimeout(() => flash.classList.remove('flash-active'), 150);
+            new Audio('../audios/som-sucesso.mp3').play().catch(() => {});
         }
-        
+
         let scrollSpeed = 0; 
         function autoScroll() {
             if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
