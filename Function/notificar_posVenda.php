@@ -1,5 +1,5 @@
 <?php
-require_once './config/Database.php';
+require_once '../config/Database.php';
 
 $pedido = $_GET['pedido'] ?? null;
 $tipoTela = $_GET['tipo_tela'] ?? 'producao';

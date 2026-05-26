@@ -3,7 +3,7 @@ require_once './vendor/autoload.php';
 
 use Picqer\Barcode\BarcodeGeneratorPNG;
 
-require_once './config/Database.php';
+require_once '../config/Database.php';
 $database = new Database();
 $pdo = $database->getConnection();
 

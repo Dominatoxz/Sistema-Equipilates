@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pós-Venda</title>
+    <title>Financeiro</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; color: #333; margin: 25px; }
         .header-painel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
@@ -44,7 +44,7 @@
 </head>
 <body>
     <div class="header-painel">
-        <h1>Painel Pós-Venda</h1>
+        <h1>Painel Financeiro</h1>
         <div style="font-weight: bold; color: #7f8c8d;">Status de Saídas</div>
     </div>
     
@@ -68,7 +68,7 @@
             $db = $database->getConnection();
             $sistema = new Sistema($db);
 
-            $pedidos = $sistema->mostrarFilaPosVenda(); 
+            $pedidos = $sistema->mostrarFilaFinanceiro(); 
             ?>
             <?php if (empty($pedidos)): ?>
                 <tr>
@@ -82,7 +82,7 @@
                     <td><?= date('d/m/Y H:i', strtotime($p['data_conclusao'])) ?></td>
                     <td><span class="badge-pronto">100% Embalado</span></td>
                     <td>
-                        <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Enviar para o Financeiro</button>
+                        <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Enviar para a Expedição</button>
                     </td>
                     <td>
                         <button class="btn-mais" onclick="toggleSanfona(<?= $p['id'] ?>)">...</button>
@@ -146,8 +146,8 @@
         }
 
         function liberarPedido(id) {
-            if (confirm("Enviar pedido para o financeiro?")) {
-                fetch(`../Function/dar_baixa_posVenda.php?id=${id}`)
+            if (confirm("Enviar pedido para a Expedição?")) {
+                fetch(`../Function/dar_baixa_financeiro.php?id=${id}`)
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {

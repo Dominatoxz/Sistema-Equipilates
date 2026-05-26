@@ -28,16 +28,42 @@
 
         h1 {
             font-size: 2.5rem;
-            margin-bottom: 10px;
             color: #2c3e50;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
+        h2{
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #e67e22;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         p.subtitle {
-            font-size: 1.1rem;
+            font-size: 0.9rem;
+            color: #7f8c8d;  
+        }
+
+        p.sub-subtitle{
+            font-size: 0.7rem;
             color: #7f8c8d;
             margin-bottom: 40px;
+        }
+
+        .header-painel { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 25px; 
+            width: 1500px;
+            padding: 10px;
+        }
+
+        .header-painel a {
+            color: #e67e22;
+            text-decoration: none;
         }
 
         .grid-painel {
@@ -45,6 +71,7 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 25px;
             padding: 10px;
+            width: 900px;
         }
 
         .card-botao {
@@ -63,9 +90,6 @@
             cursor: pointer;
         }
 
-        /* Cores e Efeitos Individuais por Setor */
-        
-        /* 1. Quadro de Produção Padrão */
         .prod:hover {
             border-color: #3498db;
             transform: translateY(-5px);
@@ -73,7 +97,6 @@
         }
         .prod .icon-box { background-color: #eaf2f8; color: #3498db; }
 
-        /* 2. Equipamentos OS */
         .os-eq:hover {
             border-color: #e67e22;
             transform: translateY(-5px);
@@ -81,7 +104,6 @@
         }
         .os-eq .icon-box { background-color: #fdf2e9; color: #e67e22; }
 
-        /* 3. Acessórios OS */
         .os-ac:hover {
             border-color: #9b59b6;
             transform: translateY(-5px);
@@ -89,7 +111,6 @@
         }
         .os-ac .icon-box { background-color: #f5eef8; color: #9b59b6; }
 
-        /* 4. Pós-Venda */
         .pos-venda:hover {
             border-color: #2ecc71;
             transform: translateY(-5px);
@@ -128,25 +149,29 @@
             text-align: center;
         }
 
-        /* Rodapé simples */
         .footer {
-            margin-top: 50px;
+            margin-top: 20px;
+            margin-bottom: 20px;
             font-size: 0.85rem;
             color: #bdc3c7;
         }
     </style>
 </head>
 <body>
-
+    <div class="header-painel">
+        <img src="assets/logo_equipilates.png" alt="">
+        <a href="">Linha Clássica ></a>
+    </div>
     <div class="container">
-        <h1>Sistema Integrado de Fábrica</h1>
-        <p class="subtitle">Selecione o quadro operacional que deseja gerenciar ou monitorar</p>
+        <h1>Central de controle</h1>
+        <h2>Contemporâneo</h2>
+        <p class="subtitle">"A mente, quando habitualmente ocupada, esculpe o corpo, dita a postura e define os movimentos."</p>
+        <p class="sub-subtitle">- Joseph Pilates</p>
 
         <div class="grid-painel">
-            
             <a href="View/tabela.php" class="card-botao prod">
                 <div class="icon-box">📦</div>
-                <h3>Produção Geral</h3>
+                <h3>Equipamentos</h3>
                 <p>Equipamentos da linha conteporânea e pedidos normais</p>
             </a>
 
@@ -171,7 +196,19 @@
             <a href="View/tabela_posVenda.php" class="card-botao pos-venda">
                 <div class="icon-box">✅</div>
                 <h3>Pós-Venda</h3>
-                <p>Fila de expedição e faturamento</p>
+                <p>Fila de pedidos produzidos</p>
+            </a>
+
+            <a href="View/tabela_financeiro.php" class="card-botao pos-venda">
+                <div class="icon-box">💰</div>
+                <h3>Financeiro</h3>
+                <p>Fila para o controle do financeiro</p>
+            </a>
+            
+            <a href="View/tabela_expedição.php" class="card-botao pos-venda">
+                <div class="icon-box">✈️</div>
+                <h3>Expedição</h3>
+                <p>Fila de organização de pedidos para expedição</p>
             </a>
 
             <a href="imprimir_etiquetas.php" class="card-botao pos-venda">
@@ -184,7 +221,7 @@
     </div>
 
     <div class="footer">
-        Painel Operacional &copy; <?= date('Y'); ?>
+        Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>
     </div>
 
 </body>

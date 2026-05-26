@@ -134,13 +134,24 @@ class Sistema {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function darBaixaPosVenda($id){
-        $query = "UPDATE pedidos_prontos SET status_posvenda = 'Concluído' WHERE id = ?";
+    public function mostrarFilaFinanceiro(){
+        $query = "SELECT id, numero_pedido, prazo_producao, data_conclusao
+                  FROM pedidos_prontos
+                  WHERE status_posvenda = 'Financeiro'
+                  ORDER BY data_conclusao DESC";
         $stmt = $this->conn->prepare($query);
-        return $stmt->execute([$id]);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    
-
+    public function mostrarFilaExpedicao(){
+        $query = "SELECT id, numero_pedido, prazo_producao, data_conclusao
+                  FROM pedidos_prontos
+                  WHERE status_posvenda = 'Expedicao'
+                  ORDER BY data_conclusao DESC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>

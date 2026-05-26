@@ -19,6 +19,14 @@
                 overflow-x: auto;
             }
 
+            .sem-pedidos { 
+                text-align: center; 
+                padding: 50px; 
+                color: #7f8c8d; 
+                font-size: 18px; 
+                font-weight: 500; 
+            }
+
             table { 
                 width: 100%; 
                 table-layout: fixed; 
@@ -177,9 +185,15 @@
     $placeholders_acessorios = implode(',', array_fill(0, count($lista_acessorios), '?'));
 
     $database = new Database();
-    $db = $database->getConnection();
+    $db = $database->getConnection();?>
 
-    foreach ($pedidos_agrupados as $pedido): ?>
+    <?php if (empty($pedidos)): ?>
+            <tr>
+                <td colspan="12" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
+            </tr>
+    <?php else: ?>
+
+    <?php foreach ($pedidos_agrupados as $pedido): ?>
     <tr>
         <td><?= htmlspecialchars($pedido['numero'])?></td>
         
@@ -253,6 +267,7 @@
         </td>
     </tr>
     <?php endforeach; ?>
+    <?php endif; ?>
 </tbody>
     </table>
 
@@ -287,7 +302,7 @@
         });
 
  function atualizarStatusNoBanco(codigoCompleto) {
-    fetch(`../atualizar_etapa.php?id=${codigoCompleto}`)
+    fetch(`../Function/atualizar_etapa.php?id=${codigoCompleto}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -330,7 +345,7 @@
     if (pendentes.length === 0) {
         const numeroPedido = linha.cells[0].innerText.trim();
 
-        fetch(`../notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}`)
+        fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}`)
             .then(response => response.json())
             .then(data => {
                 if (data && data.success) {

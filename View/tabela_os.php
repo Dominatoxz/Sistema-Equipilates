@@ -30,6 +30,13 @@
                 border: 1px solid black;
                 border-radius: 20px;
             }
+            .sem-pedidos { 
+                text-align: center; 
+                padding: 50px; 
+                color: #7f8c8d !important;
+                font-size: 20px !important;
+                font-weight: 500; 
+            }
 
             th { 
                 background-color: #ffffff;
@@ -177,13 +184,20 @@
     $placeholders_acessorios = implode(',', array_fill(0, count($lista_acessorios), '?'));
 
     $database = new Database();
-    $db = $database->getConnection();
+    $db = $database->getConnection(); ?>
+         
+    <?php if (empty($pedidos)): ?>
+            <tr>
+                <td colspan="12" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
+            </tr>
+    <?php else: ?>
 
-    foreach ($pedidos_agrupados as $pedido): ?>
+    <?php foreach ($pedidos_agrupados as $pedido): ?>
     <tr>
         <td><?= htmlspecialchars($pedido['numero'])?></td>
         
         <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
+        
 
         <?php foreach ($equipamentos as $nome_equipamento): 
             $stmt = $db->prepare("SELECT id, status FROM itens_os WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido LIKE 'OS%'");
@@ -253,6 +267,7 @@
         </td>
     </tr>
     <?php endforeach; ?>
+    <?php endif;?>
 </tbody>
     </table>
 
@@ -287,7 +302,7 @@
         });
 
  function atualizarStatusNoBanco(codigoCompleto) {
-    fetch(`../atualizar_etapa.php?id=${codigoCompleto}`)
+    fetch(`../Function/atualizar_etapa.php?id=${codigoCompleto}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -330,7 +345,7 @@
     if (pendentes.length === 0) {
         const numeroPedido = linha.cells[0].innerText.trim();
 
-        fetch(`../notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}&tipo_tela=os_equipamentos`)
+        fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}&tipo_tela=os_equipamentos`)
             .then(response => response.json())
             .then(data => {
                 if (data && data.success) {
