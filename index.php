@@ -91,28 +91,28 @@
         }
 
         .prod:hover {
-            border-color: #3498db;
+            border-color: #e89e5d;
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
         }
         .prod .icon-box { background-color: #eaf2f8; color: #3498db; }
 
         .os-eq:hover {
-            border-color: #e67e22;
+            border-color: #e89e5d;
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(230, 126, 34, 0.2);
         }
         .os-eq .icon-box { background-color: #fdf2e9; color: #e67e22; }
 
         .os-ac:hover {
-            border-color: #9b59b6;
+            border-color: #e89e5d;
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(155, 89, 182, 0.2);
         }
         .os-ac .icon-box { background-color: #f5eef8; color: #9b59b6; }
 
         .pos-venda:hover {
-            border-color: #2ecc71;
+            border-color: #e89e5d;
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(46, 204, 113, 0.2);
         }
@@ -135,6 +135,17 @@
         .card-botao:hover .icon-box {
             transform: scale(1.1);
         }
+
+        .card-botao:hover {
+            background: #e89e5d;
+            
+        }
+
+        .card-botao:hover p {
+            color: #f4f7f6;
+        }
+
+        
 
         .card-botao h3 {
             margin: 10px 0 5px 0;
@@ -211,7 +222,7 @@
                 <p>Fila de organização de pedidos para expedição</p>
             </a>
 
-            <a href="imprimir_etiquetas.php" class="card-botao pos-venda">
+            <a href="Function/imprimir_etiquetas.php" class="card-botao pos-venda">
                 <div class="icon-box">🖨️</div>
                 <h3>Impressão</h3>
                 <p>Etiquetas organizadas</p>
@@ -223,6 +234,5 @@
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>
     </div>
-
 </body>
 </html>

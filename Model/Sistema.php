@@ -5,7 +5,6 @@ class Sistema {
     //instancia o banco de dados e a conexão para usar no model
     public function __construct($db){
         $this->conn = $db;
-
     }
 
     //função de mostrar a tabela com todos os seus dados

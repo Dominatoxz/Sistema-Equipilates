@@ -40,6 +40,12 @@
         
         .btn-mais { background: none; border: none; color: #2980b9; font-size: 22px; font-weight: bold; cursor: pointer; padding: 5px 10px; transition: transform 0.2s; }
         .btn-mais:hover { transform: translateY(-2px); }
+        .footer {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            color: #bdc3c7;
+        }
     </style>
 </head>
 <body>
@@ -182,11 +188,36 @@
             }
         }
 
-        setInterval(() => {
-            if (document.activeElement && document.activeElement.tagName !== 'INPUT') {
-                window.location.reload();
+         let idsAtuais = Array.from(document.querySelectorAll('tbody tr[id^="linha-"]'))
+                        .map(tr => tr.id.replace('linha-', ''));
+
+        function verificarAtualizacoesEmSegundoPlano() {
+            if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+                return; 
             }
-        }, 20000);
+
+            fetch('../Function/dados_tabelas.php?tela=expedicao')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const novosDados = data.dados;
+                        const novosIds = novosDados.map(p => p.id.toString());
+
+                        const temNovoItem = novosIds.some(id => !idsAtuais.includes(id));
+                        const itemSumiu = idsAtuais.some(id => !novosIds.includes(id));
+
+                        if (temNovoItem || itemSumiu) {
+                            window.location.reload();
+                            return
+                        }
+                    }
+                })
+                .catch(err => console.error("Erro na sincronização rápida:", err));
+        }
+        setInterval(verificarAtualizacoesEmSegundoPlano, 2000);
     </script>
+    <div class="footer">
+        Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>
+    </div>
 </body>
 </html>

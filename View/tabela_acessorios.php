@@ -115,6 +115,13 @@
                 animation: pulseFlash 0.2s ease-out; 
             }
 
+            .footer {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            color: #bdc3c7;
+            }
+
             @keyframes pulseFlash {
                 0% { opacity: 0; }
                 50% { opacity: 1; }
@@ -228,6 +235,35 @@
 
 
     <script>
+        let pedidosAtuais = Array.from(document.querySelectorAll('tbody tr[id^="linha-"]'))
+            .map(tr => tr.id.replace('linha-', ''));
+
+        function verificarAtualizacoesRapidas() {
+            fetch('../Function/dados_tabelas.php?tela=producao_acess')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const novosDados = data.dados;
+                        
+                        const novosPedidos = novosDados.map(p => {
+                        const valorPedido = p.numero_pedido || p.numero || '';
+                        return valorPedido.toString();
+                    });
+
+                        
+                        const temNovoItem = novosPedidos.some(num => !pedidosAtuais.includes(num));
+                        const itemSumiu = pedidosAtuais.some(num => !novosPedidos.includes(num));
+
+                        if (temNovoItem || itemSumiu) {
+                            window.location.reload();
+                        }
+                    }
+                })
+                .catch(err => console.error("Erro na sincronização rápida:", err));
+        }
+
+        setInterval(verificarAtualizacoesRapidas, 7000);
+
         (function() {
             const urlParams = new URLSearchParams(window.location.search);
             const tempoRefresh = urlParams.get('refresh') || null; 
@@ -328,5 +364,8 @@
         }
         window.onload = () => { if(scrollSpeed > 0) autoScroll(); };
     </script>
+    <div class="footer">
+        Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>
+    </div>
 </body>
 </html>
