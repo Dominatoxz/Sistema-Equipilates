@@ -34,14 +34,6 @@ if ($id) {
         $queryUpdate = "UPDATE pedidos_prontos SET status_posvenda = 'Expedido' WHERE id = ?";
         $stmtUpdate = $db->prepare($queryUpdate);
         $stmtUpdate->execute([$id]);
-
-        /* // OPÇÃO B: Se você preferir DELETAR o registro da tabela temporária em vez de dar UPDATE, 
-        // comente as linhas do UPDATE acima e use estas duas linhas abaixo:
-        $queryDelete = "DELETE FROM pedidos_prontos WHERE id = ?";
-        $stmtDelete = $db->prepare($queryDelete);
-        $stmtDelete->execute([$id]);
-        */
-
         $db->commit();
 
         echo json_encode(['success' => true]);

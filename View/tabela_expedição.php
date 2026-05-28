@@ -40,6 +40,10 @@
         
         .btn-mais { background: none; border: none; color: #2980b9; font-size: 22px; font-weight: bold; cursor: pointer; padding: 5px 10px; transition: transform 0.2s; }
         .btn-mais:hover { transform: translateY(-2px); }
+
+        .btn-etiqueta { background-color: #2788ae; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; font-size: 14px; text-decoration: none;}
+        .btn-etiqueta:hover { background-color: #216191; }
+
         .footer {
             margin-top: 20px;
             margin-bottom: 20px;
