@@ -1,50 +1,65 @@
 <?php
-require_once '../Model/Sistema.php';
 require_once '../config/Database.php';
+require_once '../Model/Sistema.php';
+require_once 'trava.php';
 
 header('Content-Type: application/json');
 
-$id = $_GET['id'] ?? null;
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'error' => 'Método de requisição inválido.']);
+    exit();
+}
 
-if ($id) {
-    try {
-        $database = new Database();
-        $db = $database->getConnection();
+$jsonRecebido = file_get_contents('php://input');
+$dados = json_decode($jsonRecebido, true);
 
-        $sqlBusca = "SELECT numero_pedido, prazo_producao FROM pedidos_prontos WHERE id = ?";
-        $stmtBusca = $db->prepare($sqlBusca);
-        $stmtBusca->execute([$id]);
-        $dadosPedido = $stmtBusca->fetch(PDO::FETCH_ASSOC);
+if (!isset($dados['id_pedido']) || empty($dados['id_pedido'])) {
+    echo json_encode(['success' => false, 'error' => 'ID do pedido não foi informado.']);
+    exit();
+}
 
-        if (!$dadosPedido) {
-            echo json_encode(['success' => false, 'error' => 'Pedido não encontrado ou já expedido.']);
-            exit;
-        }
+$idPedido = filter_var($dados['id_pedido'], FILTER_VALIDATE_INT);
 
-        $numeroPedidoReal = $dadosPedido['numero_pedido'];
-        $prazoProducao = $dadosPedido['prazo_producao'];
+if (!$idPedido) {
+    echo json_encode(['success' => false, 'error' => 'ID de pedido inválido.']);
+    exit();
+}
 
-        $db->beginTransaction();
+try {
+    $database = new Database();
+    $db = $database->getConnection();
 
-        $queryInsert = "INSERT INTO pedidos_expedidos (numero_pedido, prazo_producao, data_conclusao, status_posvenda)
-                        VALUES (?, ?, NOW(), 'Finalizado')";
-        $stmtInsert = $db->prepare($queryInsert);
-        $stmtInsert->execute([$numeroPedidoReal, $prazoProducao]);
+    $sqlBusca = "SELECT numero_pedido, prazo_producao FROM pedidos_prontos WHERE id = ?";
+    $stmtBusca = $db->prepare($sqlBusca);
+    $stmtBusca->execute([$idPedido]); 
+    $dadosPedido = $stmtBusca->fetch(PDO::FETCH_ASSOC);
 
-        $queryUpdate = "UPDATE pedidos_prontos SET status_posvenda = 'Expedido' WHERE id = ?";
-        $stmtUpdate = $db->prepare($queryUpdate);
-        $stmtUpdate->execute([$id]);
-        $db->commit();
-
-        echo json_encode(['success' => true]);
-
-    } catch (PDOException $e) {
-        if ($db->inTransaction()) {
-            $db->rollBack();
-        }
-        echo json_encode(['success' => false, 'error' => 'Erro no Banco: ' . $e->getMessage()]);
+    if (!$dadosPedido) {
+        echo json_encode(['success' => false, 'error' => 'Pedido não encontrado ou já expedido.']);
+        exit;
     }
-} else {
-    echo json_encode(['success' => false, 'error' => 'ID Inválido ou não enviado.']);
+
+    $numeroPedidoReal = $dadosPedido['numero_pedido'];
+    $prazoProducao = $dadosPedido['prazo_producao'];
+
+    $db->beginTransaction();
+
+    $queryInsert = "INSERT INTO pedidos_expedidos (numero_pedido, prazo_producao, data_conclusao, status_posvenda)
+                    VALUES (?, ?, NOW(), 'Finalizado')";
+    $stmtInsert = $db->prepare($queryInsert);
+    $stmtInsert->execute([$numeroPedidoReal, $prazoProducao]);
+
+    $queryUpdate = "UPDATE pedidos_prontos SET status_posvenda = 'Expedido' WHERE id = ?";
+    $stmtUpdate = $db->prepare($queryUpdate);
+    $stmtUpdate->execute([$idPedido]); 
+    $db->commit();
+
+    echo json_encode(['success' => true]);
+
+} catch (PDOException $e) {
+    if (isset($db) && $db->inTransaction()) {
+        $db->rollBack();
+    }
+    echo json_encode(['success' => false, 'error' => 'Erro no Banco: ' . $e->getMessage()]);
 }
 ?>

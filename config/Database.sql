@@ -3,7 +3,7 @@ USE planilha_db;
 CREATE TABLE IF NOT EXISTS itens_producao (
     id INT AUTO_INCREMENT PRIMARY KEY,
     numero_pedido VARCHAR(50) NOT NULL,
-    prazo_producao INT,
+    prazo_producao VARCHAR(255),
     equipamento VARCHAR(100) NOT NULL,
     posicao_no_pedido INT NOT NULL, 
     cor VARCHAR(100),
@@ -17,7 +17,7 @@ ALTER TABLE itens_producao ADD INDEX idx_pedidos_numero (numero_pedido);
 CREATE TABLE IF NOT EXISTS itens_os (
     id INT AUTO_INCREMENT PRIMARY KEY,
     numero_pedido VARCHAR(50) NOT NULL,
-    prazo_producao INT,
+    prazo_producao VARCHAR(255),
     equipamento VARCHAR(100) NOT NULL,
     posicao_no_pedido INT NOT NULL, 
     cor VARCHAR(100),
@@ -25,29 +25,30 @@ CREATE TABLE IF NOT EXISTS itens_os (
     data_inicio DATETIME DEFAULT NULL,
     data_fim DATETIME DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS itens_os_acess (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    numero_pedido VARCHAR(50) NOT NULL,
-    prazo_producao INT,
-    equipamento VARCHAR(100) NOT NULL,
-    posicao_no_pedido INT NOT NULL, 
-    cor VARCHAR(100),
-    status VARCHAR(50) DEFAULT 'Pendente',
-    data_inicio DATETIME DEFAULT NULL,
-    data_fim DATETIME DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-
-ALTER TABLE itens_os ADD INDEX idx_pedido_equipamento (numero_pedido, equipamento);
 
 CREATE TABLE IF NOT EXISTS pedidos_prontos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     numero_pedido VARCHAR(50) NOT NULL,
-    prazo_producao INT,
+    prazo_producao VARCHAR(255),
 	data_conclusao DATETIME DEFAULT CURRENT_TIMESTAMP,
     status_posvenda VARCHAR(50) DEFAULT 'Pendente'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS pedidos_expedidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    numero_pedido VARCHAR(50) NOT NULL,
+    prazo_producao VARCHAR(255),
+	data_conclusao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status_posvenda VARCHAR(50) DEFAULT 'Pendente'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario VARCHAR(50) NOT NULL UNIQUE,
+    senha_hash VARCHAR(255) NOT NULL,
+    nivel_acesso VARCHAR(20) DEFAULT 'operador',
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 DROP PROCEDURE IF EXISTS gerar_unidades_producao;
 
@@ -74,7 +75,6 @@ BEGIN
     DECLARE v_prazo VARCHAR(100);
     DECLARE i INT;
     DECLARE v_os INT;
-    DECLARE v_os_acess INT;
 
     DECLARE cur CURSOR FOR 
         SELECT 
@@ -114,10 +114,8 @@ BEGIN
         
         IF LOWER(TRIM(v_pedido)) LIKE 'os%' OR LOWER(TRIM(v_pedido)) LIKE '%os%' THEN
 			SET v_os = 1;
-            SET v_os_acess = 1;
 		ELSE
 			SET v_os = 0;
-            SET v_os_acess = 0;
 		END IF;
         
 	SET v_qtd_reformer = CAST(NULLIF(TRIM(v_qtd_reformer), '') AS UNSIGNED);
@@ -287,11 +285,11 @@ BEGIN
             IF v_qtd_mini > 0 THEN
             SET i = 1;
             WHILE i <= v_qtd_mini DO
-				IF v_os_acess = 1 THEN
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+				IF v_os = 1 THEN
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'Caixa Mini', i, v_cor_planilha, 'Pendente');
 					
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'Emb. Caixa Mini', i, v_cor_planilha, 'Pendente');
                 ELSE 
 					INSERT IGNORE INTO itens_producao (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
@@ -308,11 +306,11 @@ BEGIN
             IF v_qtd_caixa_ref > 0 THEN
             SET i = 1;
             WHILE i <= v_qtd_caixa_ref DO
-				IF v_os_acess = 1 THEN
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+				IF v_os = 1 THEN
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'Caixa do Reformer', i, v_cor_planilha, 'Pendente');
 					
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'Emb. Caixa do Reformer', i, v_cor_planilha, 'Pendente');
                 ELSE 
 					INSERT IGNORE INTO itens_producao (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
@@ -329,11 +327,11 @@ BEGIN
             IF v_qtd_pmb > 0 THEN
             SET i = 1;
             WHILE i <= v_qtd_pmb DO
-				IF v_os_acess = 1 THEN
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+				IF v_os = 1 THEN
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'P. de Molas - B R I N D E', i, v_cor_planilha, 'Pendente');
 					
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'Emb. P. de Molas - B R I N D E', i, v_cor_planilha, 'Pendente');
                 ELSE 
 					INSERT IGNORE INTO itens_producao (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
@@ -350,11 +348,11 @@ BEGIN
             IF v_qtd_pmc > 0 THEN
             SET i = 1;
             WHILE i <= v_qtd_pmc DO
-				IF v_os_acess = 1 THEN
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+				IF v_os = 1 THEN
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'P. de Molas - C O M P L E T A', i, v_cor_planilha, 'Pendente');
 					
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'Emb. P. de Molas - C O M P L E T A', i, v_cor_planilha, 'Pendente');
                 ELSE 
 					INSERT IGNORE INTO itens_producao (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
@@ -371,11 +369,11 @@ BEGIN
             IF v_qtd_pmp > 0 THEN
             SET i = 1;
             WHILE i <= v_qtd_pmp DO
-				IF v_os_acess = 1 THEN
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+				IF v_os = 1 THEN
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'P. de Molas - P u s h T h r u', i, v_cor_planilha, 'Pendente');
 					
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'Emb. P. de Molas - P u s h T h r u', i, v_cor_planilha, 'Pendente');
                 ELSE 
 					INSERT IGNORE INTO itens_producao (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
@@ -392,11 +390,11 @@ BEGIN
             IF v_qtd_caixa_cadeira > 0 THEN
             SET i = 1;
             WHILE i <= v_qtd_caixa_cadeira DO
-				IF v_os_acess = 1 THEN
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+				IF v_os = 1 THEN
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'Caixa da Cadeira', i, v_cor_planilha, 'Pendente');
 					
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'Emb. Caixa da Cadeira', i, v_cor_planilha, 'Pendente');
                 ELSE 
 					INSERT IGNORE INTO itens_producao (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
@@ -413,11 +411,11 @@ BEGIN
             IF v_qtd_prancha > 0 THEN
             SET i = 1;
             WHILE i <= v_qtd_prancha DO
-				IF v_os_acess = 1 THEN
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+				IF v_os = 1 THEN
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'Prancha de Alongamento', i, v_cor_planilha, 'Pendente');
 					
-					INSERT IGNORE INTO itens_os_acess (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
+					INSERT IGNORE INTO itens_os (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
 					VALUES (v_pedido, v_prazo, 'Emb. Prancha de Alongamento', i, v_cor_planilha, 'Pendente');
                 ELSE 
 					INSERT IGNORE INTO itens_producao (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status) 
@@ -440,10 +438,12 @@ END //
 DELIMITER ;
 
 TRUNCATE TABLE itens_os;
-TRUNCATE TABLE itens_os_acess;
 TRUNCATE TABLE itens_producao;
 TRUNCATE TABLE pedidos_prontos;
 
 CALL gerar_unidades_producao();
 
-SELECT * FROM itens_os_acess;
+TRUNCATE TABLE pedidos_expedidos;
+
+SELECT * FROM usuarios;
+SELECT *FROM pedidos_expedidos;

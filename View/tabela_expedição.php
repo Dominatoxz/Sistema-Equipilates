@@ -1,3 +1,7 @@
+<?php
+require_once '../Function/trava.php'; 
+?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -20,6 +24,8 @@
         
         .linha-observacao { background-color: #fcfcfc; display: none; }
         .linha-observacao td { text-align: left; padding: 0 25px; border-bottom: 1px solid #e0e0e0; }
+        .txt-historico-obs { font-size: 0.8rem; color: #868e96; margin: 0; padding-left: 5px; font-style: italic; }
+
         
         .wrapper-sanfona { 
             max-height: 0; 
@@ -108,6 +114,7 @@
                                        placeholder="Observações">
                                 <button class="btn-salvar-obs" onclick="salvarObservacaoLocal(<?= $p['id'] ?>)">Salvar Nota</button>
                             </div>
+                            <p class="txt-historico-obs" id="time-obs-<?= $p['id'] ?>"></p>
                         </div>
                     </td>
                 </tr>
@@ -129,16 +136,37 @@
             } else {
                 linhaObs.style.display = "table-row";
                 
-                setTimeout(() => {
-                    const inputObs = document.getElementById(`input-obs-${id}`);
-                    if (inputObs) {
-                        const notaSalva = localStorage.getItem(`obs_pedido_${id}`);
-                        inputObs.value = notaSalva ? notaSalva : "";
+               setTimeout(() => {
+            const inputObs = document.getElementById(`input-obs-${id}`);
+            const timeObs = document.getElementById(`time-obs-${id}`);
+            
+            if (inputObs) {
+                const rawData = localStorage.getItem(`obs_pedido_${id}`);
+                
+                if (rawData) {
+                    try {
+                        const pacoteNota = JSON.parse(rawData);
+                        
+                        inputObs.value = pacoteNota.texto || "";
+
+                        if (timeObs && pacoteNota.horario) {
+                            timeObs.innerHTML = `⏱️ Salvo em: <strong>${pacoteNota.horario}</strong>`;
+                        } else if (timeObs) {
+                            timeObs.innerText = "";
+                        }
+                    } catch (e) {
+                        inputObs.value = rawData;
+                        if (timeObs) timeObs.innerText = "";
                     }
-                    linhaObs.classList.add('aberta');
-                }, 20);
+                } else {
+                    inputObs.value = "";
+                    if (timeObs) timeObs.innerText = "";
+                }
             }
-        }
+            linhaObs.classList.add('aberta');
+        }, 20);
+    }
+}
 
         function salvarObservacaoLocal(id) {
             const elementoInput = document.getElementById(`input-obs-${id}`);
@@ -149,46 +177,65 @@
             }
 
             const txtObs = elementoInput.value;
-            localStorage.setItem(`obs_pedido_${id}`, txtObs);
+            const agora = new Date().toLocaleString('pt-BR');
+
+            const pacoteNota = {
+                texto: txtObs,
+                horario: agora
+            };
+            
+            localStorage.setItem(`obs_pedido_${id}`, JSON.stringify(pacoteNota));
+            
+            if (timeObs) {
+                timeObs.innerHTML = `⏱️ Última alteração salva em: <strong>${agora}</strong>`;
+            }
             
             alert("Observação guardada no navegador deste computador!");
             toggleSanfona(id);
         }
 
-        function liberarPedido(id) {
-            if (confirm("Confirmar que este pedido foi liberado?")) {
-                fetch(`../Function/dar_baixa_expedicao.php?id=${id}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            const linha = document.getElementById(`Linha-${id}`);
-                            const linhaObs = document.getElementById(`ObsRow-${id}`);
-                            
-                            localStorage.removeItem(`obs_pedido_${id}`);
-                            
-                            if(linha) {
-                                linha.style.transition = "all 0.5s ease";
-                                linha.style.opacity = "0";
-                                linha.style.background = "#e8f5e9";
-                            }
-                            if(linhaObs) {
-                                linhaObs.style.transition = "all 0.5s ease";
-                                linhaObs.style.opacity = "0";
-                            }
-                            
-                            setTimeout(() => {
-                                if(linha) linha.remove();
-                                if(linhaObs) linhaObs.remove();
-                                
-                                if (document.querySelectorAll('tbody tr:not(.linha-observacao)').length === 0) {
-                                    window.location.reload();
-                                }
-                            }, 500);
-                        } else {
-                            alert("Erro ao dar baixa no sistema: " + data.error);
+       function liberarPedido(id) {
+            if (confirm("Finalizar Pedido?")) {
+                
+                const dadosEnviar = { id_pedido: id };
+                fetch('../Function/dar_baixa_expedicao.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify(dadosEnviar) 
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const linha = document.getElementById(`Linha-${id}`);
+                        const linhaObs = document.getElementById(`ObsRow-${id}`);
+                        
+                        localStorage.removeItem(`obs_pedido_${id}`);
+                        
+                        if(linha) {
+                            linha.style.transition = "all 0.5s ease";
+                            linha.style.opacity = "0";
+                            linha.style.background = "#e8f5e9";
                         }
-                    })
-                    .catch(err => console.error("Erro na comunicação:", err));
+                        if(linhaObs) {
+                            linhaObs.style.transition = "all 0.5s ease";
+                            linhaObs.style.opacity = "0";
+                        }
+                        
+                        setTimeout(() => {
+                            if(linha) linha.remove();
+                            if(linhaObs) linhaObs.remove();
+                            
+                            if (document.querySelectorAll('tbody tr:not(.linha-observacao)').length === 0) {
+                                window.location.reload();
+                            }
+                        }, 500);
+                    } else {
+                        alert("Erro ao dar baixa no sistema: " + data.error);
+                    }
+                })
+                .catch(err => console.error("Erro na comunicação:", err));
             }
         }
 
@@ -218,7 +265,7 @@
                 })
                 .catch(err => console.error("Erro na sincronização rápida:", err));
         }
-        setInterval(verificarAtualizacoesEmSegundoPlano, 2000);
+        setInterval(verificarAtualizacoesEmSegundoPlano, 7000);
     </script>
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>

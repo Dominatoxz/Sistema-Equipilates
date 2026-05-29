@@ -1,3 +1,7 @@
+<?php
+require_once '../Function/trava.php'; 
+?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>

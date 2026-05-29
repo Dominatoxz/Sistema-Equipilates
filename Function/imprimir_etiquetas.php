@@ -55,10 +55,6 @@ if (!$itens) {
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .linha{
-            color: #db8534 !important;
-        }
-
         .btn-print {
             padding: 12px 30px;
             background: #53a340;
@@ -177,7 +173,6 @@ if (!$itens) {
 
     <div class="no-print">
         <h2>Gerador de Etiquetas Duplas (Produção + Embalagem)</h2>
-        <h2 class="linha">Contemporâneo</h2>
         <button class="btn-print" onclick="window.print()">Imprimir Todas as Etiquetas</button>
     </div>
 
