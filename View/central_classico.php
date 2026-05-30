@@ -209,16 +209,34 @@ require_once '../Function/trava.php';
         <p class="sub-subtitle">- Joseph Pilates</p>
 
         <div class="grid-painel">
-            <a href="tabela.php" class="card-botao prod">
+            <a href="tabela_classico.php" class="card-botao prod">
                 <div class="icon-box">📦</div>
                 <h3>Equipamentos</h3>
                 <p>Equipamentos da linha clássica e pedidos normais</p>
             </a>
 
-            <a href="tabela_acessorios.php" class="card-botao prod">
+            <a href="tabela_classico_segunda.php" class="card-botao prod">
+                <div class="icon-box">📦</div>
+                <h3>Equipamentos parte 2</h3>
+                <p>Equipamentos da linha clássica e pedidos normais</p>
+            </a>
+
+            <a href="tabela_acessorios_classico.php" class="card-botao prod">
                 <div class="icon-box">➕</div>
                 <h3>Acessórios</h3>
                 <p>Acessórios da linha clássica e pedidos normais</p>
+            </a>
+
+            <a href="tabela_acessorios_classico_segunda.php" class="card-botao prod">
+                <div class="icon-box">➕</div>
+                <h3>Acessórios</h3>
+                <p>Acessórios da linha clássica e pedidos normais Parte 2</p>
+            </a>
+
+            <a href="tabela_acessorios_classico_terceira.php" class="card-botao prod">
+                <div class="icon-box">➕</div>
+                <h3>Acessórios</h3>
+                <p>Acessórios da linha clássica e pedidos normais Parte 3</p>
             </a>
 
             <a href="tabela_os.php" class="card-botao os-eq">

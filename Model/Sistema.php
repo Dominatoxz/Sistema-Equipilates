@@ -152,5 +152,131 @@ class Sistema {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function mostrarTabelaClassico(){
+        $query = "SELECT `NUMERO PEDIDO` as numero, 
+                         `PRAZO DE PRODUÇÃO` as prazo_producao, 
+                         `REF. CLASSICO ALUMINIO`, 
+                         `REF. CLASSICO TORRE`, 
+                         `CAD. CLASSICO ALUMINIO`, 
+                         `REF. CLASSICO TAUARI`, 
+                         `CAD. CLASSICO TAUARI`,
+                         'REFORMER HIBRIDO',
+                         'WUNDA CHAIR',
+                         'ELECTRIC CHAIR',
+                         'ARM CHAIR',
+                         'LADDER BARREL CLÁSS.',
+                         'PEDI O POLE',
+                         'WALL UNIT CLÁSSICO',
+                         'MAT CLÁSSICO',
+                         'MAT PORTÁTIL',
+                         'BENCH MAT',
+                         'GUILHOTINA',
+                         'CARRINHO',
+                         'GAIOLA'
+                  FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
+                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
+                  AND (
+                        (NULLIF(TRIM(`REF. CLASSICO ALUMINIO`), '') IS NOT NULL AND TRIM(`REF. CLASSICO ALUMINIO`) != '0') OR
+                        (NULLIF(TRIM(`REF. CLASSICO TORRE`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TORRE`) != '0') OR
+                        (NULLIF(TRIM(`CAD. CLASSICO ALUMINIO`), '') IS NOT NULL AND TRIM(`CAD. CLASSICO ALUMINIO`) != '0') OR
+                        (NULLIF(TRIM(`REF. CLASSICO TAUARI`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TAUARI`) != '0') OR
+                        (NULLIF(TRIM(`CAD. CLASSICO TAUARI`), '') IS NOT NULL AND TRIM(`CAD. CLASSICO TAUARI`) != '0') OR
+                        (NULLIF(TRIM(`REFORMER HIBRIDO`), '') IS NOT NULL AND TRIM(`REFORMER HIBRIDO`) != '0') OR
+                        (NULLIF(TRIM(`WUNDA CHAIR`), '') IS NOT NULL AND TRIM(`WUNDA CHAIR`) != '0') OR
+                        (NULLIF(TRIM(`ELECTRIC CHAIR`), '') IS NOT NULL AND TRIM(`ELECTRIC CHAIR`) != '0') OR
+                        (NULLIF(TRIM(`ARM CHAIR`), '') IS NOT NULL AND TRIM(`ARM CHAIR`) != '0') OR
+                        (NULLIF(TRIM(`LADDER BARREL CLÁSS.`), '') IS NOT NULL AND TRIM(`LADDER BARREL CLÁSS.`) != '0') OR
+                        (NULLIF(TRIM(`PEDI O POLE`), '') IS NOT NULL AND TRIM(`PEDI O POLE`) != '0') OR
+                        (NULLIF(TRIM(`WALL UNIT CLÁSSICO`), '') IS NOT NULL AND TRIM(`WALL UNIT CLÁSSICO`) != '0') OR
+                        (NULLIF(TRIM(`MAT CLÁSSICO`), '') IS NOT NULL AND TRIM(`MAT CLÁSSICO`) != '0') OR
+                        (NULLIF(TRIM(`MAT PORTÁTIL`), '') IS NOT NULL AND TRIM(`MAT PORTÁTIL`) != '0') OR
+                        (NULLIF(TRIM(`BENCH MAT`), '') IS NOT NULL AND TRIM(`BENCH MAT`) != '0') OR
+                        (NULLIF(TRIM(`GUILHOTINA`), '') IS NOT NULL AND TRIM(`GUILHOTINA`) != '0') OR
+                        (NULLIF(TRIM(`REF. CLASSICO TAUARI`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TAUARI`) != '0')
+                    )
+                    ORDER BY STR_TO_DATE(`PRAZO DE PRODUÇÃO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function mostrarTabelaClassicoAcessorios(){
+        $query = "SELECT `NUMERO PEDIDO` as numero, 
+                         `PRAZO DE PRODUÇÃO` as prazo_producao, 
+                         `CAIXA DO REFORMER CLÁSSICA`, 
+                         `SMALL BARREL`, 
+                         `SUPORTE SPINE CORRECTOR`, 
+                         `MINI EXTENSÃO MOVE FLOW`, 
+                         `PLATAFORMA BARREL CLÁSSICO`,
+                         'BARRA PUSH TRUE (BALANÇO CLASSICO)',
+                         'SPACER BOX',
+                         '2 x 4 (TWO BY FOUR)',
+                         'KUNA BOARD',
+                         'TRAVESSEIRO BENCH MAT',
+                         'TRAVESSEIRO RÉGUA',
+                         'TRAVESSEIRO 1/2 LUA',
+                         'TRAV. CILINDRICO',
+                         'TRAV. OMBREIRA (PAR)',
+                         'TRAV. CABEC. 30 mm',
+                         'TRAV. CABEC. 40 mm',
+                         'CAPA PROT. BARREL CLÁSS.',
+                         'SHEEPSKIN COVER',
+                         'BASTÃO ALUMÍNIO 1,5 M',
+                         'PUXADOR DE ALUMINIO',
+                         'ANEL DE PILATES ARCHIVE AÇO',
+                         'MAGIC SQUARE',
+                         'FOOT CORREC. ALUM.',
+                         'BEAN BAG',
+                         'BREATH A CIZER',
+                         'NECK STRETCHER',
+                         'HAND TENS O METER',
+                         'TOE EXERCISER',
+                         'AIR PLANE BOARD',
+                         'FINGER EXERCISE',
+                         'PUSH UP DEVICE (PAR)',
+                         'MINI BARREL',
+                         'MINI SPINE'
+                  FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
+                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
+                  AND (
+                        (NULLIF(TRIM(`CAIXA DO REFORMER CLÁSSICA`), '') IS NOT NULL AND TRIM(`CAIXA DO REFORMER CLÁSSICA`) != '0') OR
+                        (NULLIF(TRIM(`SMALL BARREL`), '') IS NOT NULL AND TRIM(`SMALL BARREL`) != '0') OR
+                        (NULLIF(TRIM(`SUPORTE SPINE CORRECTOR`), '') IS NOT NULL AND TRIM(`SUPORTE SPINE CORRECTOR`) != '0') OR
+                        (NULLIF(TRIM(`MINI EXTENSÃO MOVE FLOW`), '') IS NOT NULL AND TRIM(`MINI EXTENSÃO MOVE FLOW`) != '0') OR
+                        (NULLIF(TRIM(`PLATAFORMA BARREL CLÁSSICO`), '') IS NOT NULL AND TRIM(`PLATAFORMA BARREL CLÁSSICO`) != '0') OR
+                        (NULLIF(TRIM(`BARRA PUSH TRUE (BALANÇO CLASSICO)`), '') IS NOT NULL AND TRIM(`BARRA PUSH TRUE (BALANÇO CLASSICO)`) != '0') OR
+                        (NULLIF(TRIM(`SPACER BOX`), '') IS NOT NULL AND TRIM(`SPACER BOX`) != '0') OR
+                        (NULLIF(TRIM(`2 x 4 (TWO BY FOUR)`), '') IS NOT NULL AND TRIM(`2 x 4 (TWO BY FOUR)`) != '0') OR
+                        (NULLIF(TRIM(`KUNA BOARD`), '') IS NOT NULL AND TRIM(`KUNA BOARD`) != '0') OR
+                        (NULLIF(TRIM(`TRAVESSEIRO BENCH MAT`), '') IS NOT NULL AND TRIM(`TRAVESSEIRO BENCH MAT`) != '0') OR
+                        (NULLIF(TRIM(`TRAVESSEIRO RÉGUA`), '') IS NOT NULL AND TRIM(`PEDI O POLE`) != '0') OR
+                        (NULLIF(TRIM(`TRAVESSEIRO 1/2 LUA`), '') IS NOT NULL AND TRIM(`WALL UNIT CLÁSSICO`) != '0') OR
+                        (NULLIF(TRIM(`TRAV. CILINDRICO`), '') IS NOT NULL AND TRIM(`TRAV. CILINDRICO`) != '0') OR
+                        (NULLIF(TRIM(`TRAV. OMBREIRA (PAR)`), '') IS NOT NULL AND TRIM(`TRAV. OMBREIRA (PAR)`) != '0') OR
+                        (NULLIF(TRIM(`TRAV. CABEC. 30 mm`), '') IS NOT NULL AND TRIM(`TRAV. CABEC. 30 mm`) != '0') OR
+                        (NULLIF(TRIM(`TRAV. CABEC. 40 mm`), '') IS NOT NULL AND TRIM(`TRAV. CABEC. 40 mm`) != '0') OR
+                        (NULLIF(TRIM(`CAPA PROT. BARREL CLÁSS.`), '') IS NOT NULL AND TRIM(`CAPA PROT. BARREL CLÁSS.`) != '0') OR 
+                        (NULLIF(TRIM(`SHEEPSKIN COVER`), '') IS NOT NULL AND TRIM(`SHEEPSKIN COVER`) != '0') OR
+                        (NULLIF(TRIM(`BASTÃO ALUMÍNIO 1,5 M`), '') IS NOT NULL AND TRIM(`BASTÃO ALUMÍNIO 1,5 M`) != '0') OR
+                        (NULLIF(TRIM(`PUXADOR DE ALUMINIO`), '') IS NOT NULL AND TRIM(`PUXADOR DE ALUMINIO`) != '0') OR
+                        (NULLIF(TRIM(`ANEL DE PILATES ARCHIVE AÇO`), '') IS NOT NULL AND TRIM(`ANEL DE PILATES ARCHIVE AÇO`) != '0') OR
+                        (NULLIF(TRIM(`MAGIC SQUARE`), '') IS NOT NULL AND TRIM(`MAGIC SQUARE`) != '0') OR
+                        (NULLIF(TRIM(`FOOT CORREC. ALUM.`), '') IS NOT NULL AND TRIM(`FOOT CORREC. ALUM.`) != '0') OR
+                        (NULLIF(TRIM(`BEAN BAG`), '') IS NOT NULL AND TRIM(`BEAN BAG`) != '0') OR
+                        (NULLIF(TRIM(`BREATH A CIZER`), '') IS NOT NULL AND TRIM(`BREATH A CIZER`) != '0') OR
+                        (NULLIF(TRIM(`NECK STRETCHER`), '') IS NOT NULL AND TRIM(`NECK STRETCHER`) != '0') OR
+                        (NULLIF(TRIM(`HAND TENS O METER`), '') IS NOT NULL AND TRIM(`HAND TENS O METER`) != '0') OR
+                        (NULLIF(TRIM(`TOE EXERCISER`), '') IS NOT NULL AND TRIM(`TOE EXERCISER`) != '0') OR
+                        (NULLIF(TRIM(`AIR PLANE BOARD`), '') IS NOT NULL AND TRIM(`AIR PLANE BOARD`) != '0') OR
+                        (NULLIF(TRIM(`PUSH UP DEVICE (PAR)`), '') IS NOT NULL AND TRIM(`PUSH UP DEVICE (PAR)`) != '0') OR
+                        (NULLIF(TRIM(`MINI BARREL`), '') IS NOT NULL AND TRIM(`MINI BARREL`) != '0') OR
+                        (NULLIF(TRIM(`MINI SPINE`), '') IS NOT NULL AND TRIM(`MINI SPINE`) != '0') 
+                    )
+                    ORDER BY STR_TO_DATE(`PRAZO DE PRODUÇÃO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>
