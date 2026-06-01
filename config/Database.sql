@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS pedidos_prontos (
     numero_pedido VARCHAR(50) NOT NULL,
     prazo_producao VARCHAR(255),
 	data_conclusao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status_posvenda VARCHAR(50) DEFAULT 'Pendente'
+    status_posvenda VARCHAR(50) DEFAULT 'Pós-venda'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS pedidos_expedidos (
@@ -1719,4 +1719,8 @@ DELIMITER ;
 
 CALL gerar_unidades_producao_classico();
 
-TRUNCATE TABLE pedidos_expedidos;
+TRUNCATE TABLE itens_producao;
+TRUNCATE TABLE itens_os;
+TRUNCATE TABLE pedidos_prontos;
+
+SELECT * FROM pedidos_prontos;

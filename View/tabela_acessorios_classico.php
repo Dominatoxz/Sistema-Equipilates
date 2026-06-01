@@ -158,7 +158,8 @@ require_once '../Function/trava.php';
             <tr>
                 <th>Pedido</th>
                 <th>Prazo</th>
-                <th>Caixa Reformer</th>
+                <th>Caixa Reformer Classic</th>
+                <th>Spine Corrector</th>
                 <th>Small Barrel</th>
                 <th>Suporte Spine</th>
                 <th>Mini Extensão</th>
@@ -177,6 +178,7 @@ require_once '../Function/trava.php';
     <?php 
     $equipamentos = [ 
         'CAIXA DO REFORMER CLÁSSICA', 
+        'SPINE CORRECTOR',
         'SMALL BARREL', 
         'SUPORTE SPINE CORRECTOR',
         'MINI EXTENSÃO MOVE FLOW', 

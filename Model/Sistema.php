@@ -126,7 +126,7 @@ class Sistema {
     public function mostrarFilaPosVenda(){
         $query = "SELECT id, numero_pedido, prazo_producao, data_conclusao
                   FROM pedidos_prontos
-                  WHERE status_posvenda = 'Pendente'
+                  WHERE status_posvenda = 'Pós-venda'
                   ORDER BY data_conclusao DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -204,7 +204,8 @@ class Sistema {
     public function mostrarTabelaClassicoAcessorios(){
         $query = "SELECT `NUMERO PEDIDO` as numero, 
                          `PRAZO DE PRODUÇÃO` as prazo_producao, 
-                         `CAIXA DO REFORMER CLÁSSICA`, 
+                         `CAIXA DO REFORMER CLÁSSICA`,
+                         `SPINE CORRECTOR`, 
                          `SMALL BARREL`, 
                          `SUPORTE SPINE CORRECTOR`, 
                          `MINI EXTENSÃO MOVE FLOW`, 
@@ -241,6 +242,7 @@ class Sistema {
                   AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND (
                         (NULLIF(TRIM(`CAIXA DO REFORMER CLÁSSICA`), '') IS NOT NULL AND TRIM(`CAIXA DO REFORMER CLÁSSICA`) != '0') OR
+                        (NULLIF(TRIM(`SPINE CORRECTOR`), '') IS NOT NULL AND TRIM(`SPINE CORRECTOR`) != '0') OR
                         (NULLIF(TRIM(`SMALL BARREL`), '') IS NOT NULL AND TRIM(`SMALL BARREL`) != '0') OR
                         (NULLIF(TRIM(`SUPORTE SPINE CORRECTOR`), '') IS NOT NULL AND TRIM(`SUPORTE SPINE CORRECTOR`) != '0') OR
                         (NULLIF(TRIM(`MINI EXTENSÃO MOVE FLOW`), '') IS NOT NULL AND TRIM(`MINI EXTENSÃO MOVE FLOW`) != '0') OR
@@ -278,5 +280,21 @@ class Sistema {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+        public function mostrarFilaControle(){
+        $query = "SELECT 
+                p.id, 
+                p.numero_pedido, 
+                p.prazo_producao, 
+                p.status_posvenda, 
+                MAX(i.status) AS status
+              FROM pedidos_prontos p
+              INNER JOIN itens_os i ON p.numero_pedido = i.numero_pedido
+              GROUP BY p.id, p.numero_pedido, p.prazo_producao, p.status_posvenda
+              ORDER BY p.prazo_producao ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 }
 ?>

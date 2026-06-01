@@ -251,6 +251,12 @@ require_once '../Function/trava.php';
                 <p>Fila de organização de pedidos para expedição</p>
             </a>
 
+            <a href="tabela_controle.php" class="card-botao pos-venda">
+                <div class="icon-box">🎮</div>
+                <h3>Controle</h3>
+                <p>Fila de controle de pedidos</p>
+            </a>
+
             <a href="../Function/imprimir_etiquetas.php" class="card-botao pos-venda">
                 <div class="icon-box">🖨️</div>
                 <h3>Impressão</h3>

@@ -28,7 +28,7 @@ if (!$idPedido) {
 try {
     $database = new Database();
     $db = $database->getConnection();
-    $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Expedicao', data_conclusao = NOW() WHERE id = :id");
+    $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Expedição', data_conclusao = NOW() WHERE id = :id");
     $resultado = $stmt->execute(['id' => $idPedido]);
 
     if ($resultado) {

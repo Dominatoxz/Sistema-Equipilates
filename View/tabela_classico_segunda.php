@@ -189,14 +189,42 @@ require_once '../Function/trava.php';
     ];
 
     $lista_acessorios = [ 
-        'Caixa Mini', 
-        'Caixa do Reformer', 
-        'P. de Molas - B R I N D E',
-        'P. de Molas - C O M P L E T A', 
-        'P. de Molas - P u s h T h r u',
-        'Caixa da Cadeira', 
-        'Prancha de Alongamento',
+        'CAIXA DO REFORMER CLÁSSICA', 
+        'SPINE CORRECTOR',
+        'SMALL BARREL', 
+        'SUPORTE SPINE CORRECTOR',
+        'MINI EXTENSÃO MOVE FLOW', 
+        'PLATAFORMA BARREL CLÁSSICO',
+        'BARRA PUSH TRUE (BALANÇO CLASSICO)', 
+        'SPACER BOX',
+        '2 x 4 (TWO BY FOUR)',
+        'KUNA BOARD',
+        'TRAVESSEIRO BENCH MAT',
+        'TRAVESSEIRO RÉGUA',
+        'TRAVESSEIRO 1/2 LUA',
+        'FOOT CORREC. ALUM.',
+        'BEAN BAG',
+        'BREATH A CIZER',
+        'NECK STRETCHER',
+        'HAND TENS O METER',
+        'TOE EXERCISER',
+        'AIR PLANE BOARD',
+        'FINGER EXERCISE',
+        'PUSH UP DEVICE (PAR)',
+        'MINI BARREL',
+        'MINI SPINE',
+        'TRAV. CILINDRICO',
+        'TRAV. OMBREIRA (PAR)',
+        'TRAV. CABEC. 30 mm',
+        'TRAV. CABEC. 40 mm',
+        'CAPA PROT. BARREL CLÁSS.',
+        'SHEEPSKIN COVER',
+        'BASTÃO ALUMÍNIO 1,5 M',
+        'PUXADOR DE ALUMINIO',
+        'ANEL DE PILATES ARCHIVE AÇO',
+        'MAGIC SQUARE'
     ];
+
     $placeholders_acessorios = implode(',', array_fill(0, count($lista_acessorios), '?'));
 
     $database = new Database();
@@ -390,7 +418,7 @@ require_once '../Function/trava.php';
     if (pendentes.length === 0) {
         const numeroPedido = linha.cells[0].innerText.trim();
 
-        fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}`)
+        fetch(`../Function/notificar_posVenda_classico.php?pedido=${encodeURIComponent(numeroPedido)}`)
             .then(response => response.json())
             .then(data => {
                 if (data && data.success) {

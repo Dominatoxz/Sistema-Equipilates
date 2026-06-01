@@ -217,8 +217,8 @@ require_once '../Function/trava.php';
 
             <a href="tabela_classico_segunda.php" class="card-botao prod">
                 <div class="icon-box">📦</div>
-                <h3>Equipamentos parte 2</h3>
-                <p>Equipamentos da linha clássica e pedidos normais</p>
+                <h3>Equipamentos</h3>
+                <p>Equipamentos da linha clássica e pedidos normais parte 2</p>
             </a>
 
             <a href="tabela_acessorios_classico.php" class="card-botao prod">
@@ -267,6 +267,12 @@ require_once '../Function/trava.php';
                 <div class="icon-box">✈️</div>
                 <h3>Expedição</h3>
                 <p>Fila de organização de pedidos para expedição</p>
+            </a>
+
+            <a href="tabela_controle.php" class="card-botao pos-venda">
+                <div class="icon-box">🎮</div>
+                <h3>Controle</h3>
+                <p>Fila de controle de pedidos</p>
             </a>
 
             <a href="../Function/imprimir_etiquetas.php" class="card-botao pos-venda">
