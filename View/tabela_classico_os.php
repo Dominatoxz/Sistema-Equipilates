@@ -49,7 +49,7 @@ require_once '../Function/trava.php';
                 color: black; 
                 padding: 10px 5px; 
                 text-transform: uppercase; 
-                font-size: 18px; 
+                font-size: 15px; 
                 word-wrap: break-word; 
             }
 
@@ -144,7 +144,7 @@ require_once '../Function/trava.php';
 
         $sistema = new Sistema($db);
 
-        $pedidos = $sistema->mostrarTabela(); 
+        $pedidos = $sistema->mostrarTabelaClassicoOs(); 
         ?>
         <?php
         if (!isset($pedidos)) {
@@ -157,41 +157,71 @@ require_once '../Function/trava.php';
             <tr>
                 <th>Pedido</th>
                 <th>Prazo</th>
-                <th>Reformer</th>
-                <th>Carrinho (Ref)</th>
-                <th>Torre</th>
+                <th>Reformer Alumin</th>
+                <th>Carrinho (A)</th>
+                <th>Reformer Torre</th>
                 <th>Carrinho (Tor)</th>
-                <th>Cadilac</th>
-                <th>Gaiola</th>
-                <th>Chair</th>
-                <th>Barrel</th>
-                <th>Wall Unit</th>
+                <th>Cadilac Alumin</th>
+                <th>Gaiola (A)</th>
+                <th>Reformer Tauari</th>
+                <th>Carrinho (T)</th>
+                <th>Cadilac Tauari</th>
+                <th>Gaiola (T)</th>
                 <th>Acessórios</th>
             </tr>   
         </thead>
         <tbody>
     <?php 
     $equipamentos = [
-        'Reformer Excellence', 
-        'Carrinho Excellence', 
-        'Reformer Torre', 
-        'Carrinho Torre',
-        'Cadilac Excelence', 
-        'Gaiola Cadilac',
-        'Step Chair Excelence', 
-        'Lader Barrel Excelence',
-        'Wall Unit',
+        'REF. CLASSICO ALUMINIO', 
+        'CARRINHO CLASSICO',
+        'REF. CLASSICO TORRE', 
+        'CARRINHO CLASSICO TORRE',
+        'CAD. CLASSICO ALUMINIO', 
+        'GAIOLA CLASSICO',
+        'REF. CLASSICO TAUARI',
+        'CARRINHO CLASSICO TAUARI',
+        'CAD. CLASSICO TAUARI', 
+        'GAIOLA CADILCAC TAUARI'
     ];
 
     $lista_acessorios = [ 
-        'Caixa Mini', 
-        'Caixa do Reformer', 
-        'P. de Molas - B R I N D E',
-        'P. de Molas - C O M P L E T A', 
-        'P. de Molas - P u s h T h r u',
-        'Caixa da Cadeira', 
-        'Prancha de Alongamento',
+        'CAIXA DO REFORMER CLÁSSICA', 
+        'SPINE CORRECTOR',
+        'SMALL BARREL', 
+        'SUPORTE SPINE CORRECTOR',
+        'MINI EXTENSÃO MOVE FLOW', 
+        'PLATAFORMA BARREL CLÁSSICO',
+        'BARRA PUSH TRUE (BALANÇO CLASSICO)', 
+        'SPACER BOX',
+        '2 x 4 (TWO BY FOUR)',
+        'KUNA BOARD',
+        'TRAVESSEIRO BENCH MAT',
+        'TRAVESSEIRO RÉGUA',
+        'TRAVESSEIRO 1/2 LUA',
+        'FOOT CORREC. ALUM.',
+        'BEAN BAG',
+        'BREATH A CIZER',
+        'NECK STRETCHER',
+        'HAND TENS O METER',
+        'TOE EXERCISER',
+        'AIR PLANE BOARD',
+        'FINGER EXERCISE',
+        'PUSH UP DEVICE (PAR)',
+        'MINI BARREL',
+        'MINI SPINE',
+        'TRAV. CILINDRICO',
+        'TRAV. OMBREIRA (PAR)',
+        'TRAV. CABEC. 30 mm',
+        'TRAV. CABEC. 40 mm',
+        'CAPA PROT. BARREL CLÁSS.',
+        'SHEEPSKIN COVER',
+        'BASTÃO ALUMÍNIO 1,5 M',
+        'PUXADOR DE ALUMINIO',
+        'ANEL DE PILATES ARCHIVE AÇO',
+        'MAGIC SQUARE'
     ];
+
     $placeholders_acessorios = implode(',', array_fill(0, count($lista_acessorios), '?'));
 
     $database = new Database();
@@ -210,7 +240,7 @@ require_once '../Function/trava.php';
         <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
 
         <?php foreach ($equipamentos as $nome_equipamento): 
-            $stmt = $db->prepare("SELECT id, status FROM itens_producao WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido NOT LIKE 'OS%'");
+            $stmt = $db->prepare("SELECT id, status FROM itens_os WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido LIKE 'OS%'");
             $stmt->execute([$pedido['numero'], $nome_equipamento]);
             $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC); 
         ?>
@@ -218,7 +248,7 @@ require_once '../Function/trava.php';
             <div style="display: flex; justify-content: center;">
             <?php if ($pecas && count($pecas) > 0): 
                 foreach ($pecas as $peca):
-                    $status = isset($peca['status']) ? $peca['status'] : 'Em Produção';
+                    $status = isset($peca['status']) ? $peca['status'] : 'Pendente';
                     $id_peca = isset($peca['id']) ? $peca['id'] : 0;
                     
                     $texto = '❌';
@@ -247,7 +277,7 @@ require_once '../Function/trava.php';
         <?php endforeach; ?>
         <td>
             <?php
-            $sqlAcess = "SELECT status FROM itens_producao WHERE numero_pedido = ? AND equipamento IN ($placeholders_acessorios)";
+            $sqlAcess = "SELECT status FROM itens_os WHERE numero_pedido = ? AND equipamento IN ($placeholders_acessorios)";
             $stmtAcess = $db->prepare($sqlAcess);
             $paramsAcess = array_merge([$pedido['numero']], $lista_acessorios);
             $stmtAcess->execute($paramsAcess);
@@ -385,7 +415,7 @@ require_once '../Function/trava.php';
     if (pendentes.length === 0) {
         const numeroPedido = linha.cells[0].innerText.trim();
 
-        fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}`)
+        fetch(`../Function/notificar_posVenda_classico.php?pedido=${encodeURIComponent(numeroPedido)}`)
             .then(response => response.json())
             .then(data => {
                 if (data && data.success) {

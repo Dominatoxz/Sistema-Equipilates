@@ -239,7 +239,7 @@ require_once '../Function/trava.php';
                 <p>Acessórios da linha clássica e pedidos normais Parte 3</p>
             </a>
 
-            <a href="tabela_os.php" class="card-botao os-eq">
+            <a href="tabela_classico_os.php" class="card-botao os-eq">
                 <div class="icon-box">🛠️</div>
                 <h3>Equipamentos OS</h3>
                 <p>Estruturas de Ordens de Serviço</p>

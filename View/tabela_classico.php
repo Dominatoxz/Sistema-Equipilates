@@ -167,6 +167,7 @@ require_once '../Function/trava.php';
                 <th>Carrinho (T)</th>
                 <th>Cadilac Tauari</th>
                 <th>Gaiola (T)</th>
+                <th>Acessórios</th>
             </tr>   
         </thead>
         <tbody>

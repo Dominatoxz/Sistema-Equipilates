@@ -169,6 +169,7 @@ require_once '../Function/trava.php';
                 <th>Mat (P)</th>
                 <th>Bench</th>
                 <th>Guilhotina</th>
+                <th>Acessórios</th>
             </tr>   
         </thead>
         <tbody>

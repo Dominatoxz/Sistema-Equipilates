@@ -233,6 +233,12 @@ require_once '../Function/trava.php';
                 <p>Molas, Caixas e Pranchas de OS</p>
             </a>
 
+            <a href="tabela_controle_producao.php" class="card-botao pos-venda">
+                <div class="icon-box">📋</div>
+                <h3>Controle da Produção</h3>
+                <p>Fila da produção dos pedidos</p>
+            </a>
+
             <a href="tabela_posVenda.php" class="card-botao pos-venda">
                 <div class="icon-box">✅</div>
                 <h3>Pós-Venda</h3>

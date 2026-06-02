@@ -281,6 +281,54 @@ class Sistema {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function mostrarTabelaClassicoOs(){
+        $query = "SELECT `NUMERO PEDIDO` as numero, 
+                         `PRAZO DE PRODUÇÃO` as prazo_producao, 
+                         `REF. CLASSICO ALUMINIO`, 
+                         `REF. CLASSICO TORRE`, 
+                         `CAD. CLASSICO ALUMINIO`, 
+                         `REF. CLASSICO TAUARI`, 
+                         `CAD. CLASSICO TAUARI`,
+                         'REFORMER HIBRIDO',
+                         'WUNDA CHAIR',
+                         'ELECTRIC CHAIR',
+                         'ARM CHAIR',
+                         'LADDER BARREL CLÁSS.',
+                         'PEDI O POLE',
+                         'WALL UNIT CLÁSSICO',
+                         'MAT CLÁSSICO',
+                         'MAT PORTÁTIL',
+                         'BENCH MAT',
+                         'GUILHOTINA',
+                         'CARRINHO',
+                         'GAIOLA'
+                  FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) LIKE '%os%'
+                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
+                  AND (
+                        (NULLIF(TRIM(`REF. CLASSICO ALUMINIO`), '') IS NOT NULL AND TRIM(`REF. CLASSICO ALUMINIO`) != '0') OR
+                        (NULLIF(TRIM(`REF. CLASSICO TORRE`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TORRE`) != '0') OR
+                        (NULLIF(TRIM(`CAD. CLASSICO ALUMINIO`), '') IS NOT NULL AND TRIM(`CAD. CLASSICO ALUMINIO`) != '0') OR
+                        (NULLIF(TRIM(`REF. CLASSICO TAUARI`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TAUARI`) != '0') OR
+                        (NULLIF(TRIM(`CAD. CLASSICO TAUARI`), '') IS NOT NULL AND TRIM(`CAD. CLASSICO TAUARI`) != '0') OR
+                        (NULLIF(TRIM(`REFORMER HIBRIDO`), '') IS NOT NULL AND TRIM(`REFORMER HIBRIDO`) != '0') OR
+                        (NULLIF(TRIM(`WUNDA CHAIR`), '') IS NOT NULL AND TRIM(`WUNDA CHAIR`) != '0') OR
+                        (NULLIF(TRIM(`ELECTRIC CHAIR`), '') IS NOT NULL AND TRIM(`ELECTRIC CHAIR`) != '0') OR
+                        (NULLIF(TRIM(`ARM CHAIR`), '') IS NOT NULL AND TRIM(`ARM CHAIR`) != '0') OR
+                        (NULLIF(TRIM(`LADDER BARREL CLÁSS.`), '') IS NOT NULL AND TRIM(`LADDER BARREL CLÁSS.`) != '0') OR
+                        (NULLIF(TRIM(`PEDI O POLE`), '') IS NOT NULL AND TRIM(`PEDI O POLE`) != '0') OR
+                        (NULLIF(TRIM(`WALL UNIT CLÁSSICO`), '') IS NOT NULL AND TRIM(`WALL UNIT CLÁSSICO`) != '0') OR
+                        (NULLIF(TRIM(`MAT CLÁSSICO`), '') IS NOT NULL AND TRIM(`MAT CLÁSSICO`) != '0') OR
+                        (NULLIF(TRIM(`MAT PORTÁTIL`), '') IS NOT NULL AND TRIM(`MAT PORTÁTIL`) != '0') OR
+                        (NULLIF(TRIM(`BENCH MAT`), '') IS NOT NULL AND TRIM(`BENCH MAT`) != '0') OR
+                        (NULLIF(TRIM(`GUILHOTINA`), '') IS NOT NULL AND TRIM(`GUILHOTINA`) != '0') OR
+                        (NULLIF(TRIM(`REF. CLASSICO TAUARI`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TAUARI`) != '0')
+                    )
+                    ORDER BY STR_TO_DATE(`PRAZO DE PRODUÇÃO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
         public function mostrarFilaControle(){
         $query = "SELECT 
                 p.id, 
@@ -292,6 +340,21 @@ class Sistema {
               INNER JOIN itens_os i ON p.numero_pedido = i.numero_pedido
               GROUP BY p.id, p.numero_pedido, p.prazo_producao, p.status_posvenda
               ORDER BY p.prazo_producao ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        public function mostrarFilaProducao(){
+        $query = "SELECT id, numero_pedido, prazo_producao, status
+                  FROM itens_producao
+                  ORDER BY prazo_producao ASC 
+                  
+                  UNION
+                  
+                  SELECT id, numero_pedido, prazo_producao, status
+                  FROM itens_os
+                  ORDER BY prazo_producao ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
