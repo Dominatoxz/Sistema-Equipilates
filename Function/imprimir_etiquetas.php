@@ -1,4 +1,5 @@
 <?php
+require_once '../Function/trava.php'; 
 require_once '../vendor/autoload.php';
 use Picqer\Barcode\BarcodeGeneratorPNG;
 require_once '../config/Database.php';
@@ -34,10 +35,10 @@ if (!$itens) {
 <head>
     <meta charset="UTF-8">
     <title>Impressão de Etiquetas Separadas (Fábrica / Embalagem)</title>
-    <style>
+   <style>
         @page {
-            size: A4;
-            margin: 10mm;
+            size: 100mm 50mm;
+            margin: 0; 
         }
 
         body {
@@ -45,6 +46,8 @@ if (!$itens) {
             margin: 0;
             padding: 0;
             background: #f4f4f4;
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact;
         }
 
         .no-print {
@@ -66,106 +69,108 @@ if (!$itens) {
             font-size: 16px;
         }
 
+        
         .container-gabarito {
-            max-width: 210mm;
-            margin: 20px auto;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 8mm;
+            display: block;
             padding: 10px;
         }
 
         .etiqueta {
             background: white;
             border: 1px dashed #333;
-            padding: 10px;
+            padding: 4mm 5mm;
             box-sizing: border-box;
-            page-break-inside: avoid;
             height: 50mm;
-            width: 90mm;
-            margin: auto;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            width: 100mm;
+            margin: 10px auto;
             position: relative;
+            overflow: hidden;
+            page-break-after: always;
+            page-break-inside: avoid;
         }
 
-        .tipo-etiqueta{
-            font-size: 20px;
-
-        }
         .etiqueta-fabrica {
-            border-left: 8px solid #000000;
+            border-left: 6mm solid #666666; 
         }
 
         .etiqueta-embalagem {
-            border-left: 8px solid #000000;
+            border-left: 6mm solid #000000; 
         }
 
         .etiqueta-header {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
-            font-weight: bold;
-            color: #555;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 3px;
+            align-items: flex-end;
+            border-bottom: 1px solid #000;
+            padding-bottom: 2px;
+            margin-bottom: 5px;
         }
 
-        .tipo-etiqueta {
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .etiqueta-titulo {
-            font-size: 14px;
+        .num-pedido {
+            font-size: 18px;
             font-weight: bold;
-            margin: 5px 0;
             color: #000;
         }
 
-        .num-pedido{
-            font-size: 20px;
-        }
-
-        .etiqueta-sub {
-            font-size: 12px;
-            color: #333;
-        }
-
-        .etiqueta-cor {
+        .tipo-etiqueta {
+            font-size: 18px;
             font-weight: bold;
-            font-size: 12px;
-            color: #333;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #000;
         }
 
-        .barcode {
-            width: 70%;
-            height: 40px;
-            margin: 4px 0;
+        .etiqueta-titulo {
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 4px;
+            color: #000;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .etiqueta-sub, .etiqueta-cor {
+            font-size: 11px;
+            color: #000;
+            line-height: 14px;
         }
 
         .barcodeSection {
+            position: absolute;
+            bottom: 5mm;
+            left: 15mm;
+            right: 5mm;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            margin-top: 5px;
-        }   
+            justify-content: center;
+        } 
+
+        .barcode {
+            width: 85%;
+            height: 10mm; 
+            object-fit: fill;
+        }
 
         .id-text {
             font-family: monospace;
             font-size: 10px;
             text-align: center;
             font-weight: bold;
+            margin-top: 2px;
         }
 
         @media print {
             .no-print { display: none; }
             body { background: white; }
-            .container-gabarito { margin: 0; padding: 0; }
-            .etiqueta { border: 1px solid #000; }
-            .etiqueta-fabrica { border-left: 8px solid #db8534; }
-            .etiqueta-embalagem { border-left: 8px solid #27ae60; }
+            .container-gabarito { padding: 0; margin: 0; }
+            .etiqueta { 
+                margin: 0; 
+                border: none; 
+            }
+            .etiqueta-fabrica { border-left: 6mm solid #db8534 !important; } 
+            .etiqueta-embalagem { border-left: 6mm solid #27ae60 !important; } 
         }
     </style>
 </head>

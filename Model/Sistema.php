@@ -349,8 +349,8 @@ class Sistema {
         $query = "SELECT id, numero_pedido, prazo_producao, status
                   FROM itens_producao
                   ORDER BY prazo_producao ASC 
-                  
-                  UNION
+                   
+                  UNION ALL
                   
                   SELECT id, numero_pedido, prazo_producao, status
                   FROM itens_os
