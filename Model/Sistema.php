@@ -339,7 +339,7 @@ class Sistema {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
-       public function mostrarFilaProducao(): array 
+      public function mostrarFilaProducao(): array 
         {
             $query = "SELECT id, numero_pedido, prazo_producao, status AS status_item, 'PRODUCAO' AS origem
                     FROM itens_producao
@@ -357,37 +357,41 @@ class Sistema {
                 $todosItens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 $pedidosAgrupados = [];
-                $itensProcessados = []; 
+                $itensProcessadosPorPedido = []; 
 
                 foreach ($todosItens as $item) {
+                    $numPedido = $item['numero_pedido'];
                     $idItem = $item['id'];
                     $origem = $item['origem'];
-                    
-                    $chaveItemUnico = $idItem . '-' . $origem;
 
-                    if (in_array($chaveItemUnico, $itensProcessados)) {
+                    if (empty($numPedido)) {
+                        continue;
+                    }
+
+                    if (!isset($itensProcessadosPorPedido[$numPedido])) {
+                        $itensProcessadosPorPedido[$numPedido] = [];
+                    }
+
+                    if (in_array($idItem, $itensProcessadosPorPedido[$numPedido])) {
                         continue;
                     }
                     
-                    $itensProcessados[] = $chaveItemUnico;
+                    $itensProcessadosPorPedido[$numPedido][] = $idItem;
 
-                    $numPedido = $item['numero_pedido'];
-                    $chaveGrupo = $numPedido . '-' . $origem;
-
-                    if (!isset($pedidosAgrupados[$chaveGrupo])) {
-                        $pedidosAgrupados[$chaveGrupo] = [
+                    if (!isset($pedidosAgrupados[$numPedido])) {
+                        $pedidosAgrupados[$numPedido] = [
                             'numero_pedido'   => $numPedido,
-                            'origem'          => $origem,
+                            'origem'          => $origem, 
                             'prazo_producao'  => $item['prazo_producao'],
                             'total_itens'     => 0,
                             'itens_concluidos'=> 0
                         ];
                     }
 
-                    $pedidosAgrupados[$chaveGrupo]['total_itens']++;
+                    $pedidosAgrupados[$numPedido]['total_itens']++;
 
                     if ($item['status_item'] === 'Produzido' || $item['status_item'] === '✅' || $item['status_item'] === 'Embalado') {
-                        $pedidosAgrupados[$chaveGrupo]['itens_concluidos']++;
+                        $pedidosAgrupados[$numPedido]['itens_concluidos']++;
                     }
                 }
 
