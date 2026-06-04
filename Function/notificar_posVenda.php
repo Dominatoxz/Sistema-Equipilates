@@ -46,29 +46,7 @@ try {
             'Lader Barrel Excelence',
             'Wall Unit',
             'Carrinho',
-            'Gaiola',
-            'REF. CLASSICO ALUMINIO', 
-            'CARRINHO CLASSICO',
-            'REF. CLASSICO TORRE', 
-            'CARRINHO CLASSICO TORRE',
-            'CAD. CLASSICO ALUMINIO', 
-            'GAIOLA CLASSICO',
-            'REF. CLASSICO TAUARI',
-            'CARRINHO CLASSICO TAUARI',
-            'CAD. CLASSICO TAUARI', 
-            'GAIOLA CADILCAC TAUARI',
-            'REFORMER HIBRIDO',
-            'CARRINHO CLASSICO HIBRIDO',
-            'WUNDA CHAIR', 
-            'ELECTRIC CHAIR',
-            'ARM CHAIR',
-            'LADDER BARREL CLÁSS.',
-            'PEDI O POLE',
-            'WALL UNIT CLÁSSICO',
-            'MAT CLÁSSICO',
-            'MAT PORTÁTIL',
-            'BENCH MAT',
-            'GUILHOTINA'
+            'Gaiola'
         ];
         
         $placeholders = implode(',', array_fill(0, count($equipamentosPrincipais), '?'));
@@ -101,7 +79,7 @@ try {
                 $prazo = $prazoOriginal ? trim($prazoOriginal) : 'Sem prazo';
 
             } else {
-                $stmtPrazo = $db->prepare("SELECT `PRAZO DE PRODUÇÃO` FROM tabela_adaptada WHERE `NUMERO PEDIDO` = ?");
+                $stmtPrazo = $db->prepare("SELECT `PRAZO DE PRODUCAO` FROM tabela_adaptada WHERE `NUMERO PEDIDO` = ?");
                 $stmtPrazo->execute([$pedido]);
                 $prazoOriginal = $stmtPrazo->fetchColumn();
 
@@ -109,7 +87,7 @@ try {
             }
 
             $sqlInsert = "INSERT INTO pedidos_prontos (numero_pedido, prazo_producao, data_conclusao, status_posvenda)
-                            VALUES (?, ?, NOW(), 'Pós-venda')";
+                            VALUES (?, ?, NOW(), 'Financeiro')";
             $stmtInsert = $db->prepare($sqlInsert);
             $stmtInsert->execute([$pedido, $prazo]);
         } 

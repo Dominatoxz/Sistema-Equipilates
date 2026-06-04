@@ -65,32 +65,65 @@ require_once '../Function/trava.php';
             <tr>
                 <th>Pedido / OS</th>
                 <th>Prazo de Produção</th>
+                <th>Andamento da Produção</th>
                 <th>Status Produção</th>
             </tr>
         </thead>
         <tbody>
             <?php
+
             require_once '../config/Database.php'; 
             require_once '../Model/Sistema.php'; 
 
             $database = new Database();
             $db = $database->getConnection();
             $sistema = new Sistema($db);
-
             $pedidos = $sistema->mostrarFilaProducao(); 
+
+            if (!empty($pedidos)): 
+                foreach($pedidos as $p): 
+                    $total = $p['total_itens'];
+                    $concluidos = $p['itens_concluidos'];
+
+                    if ($concluidos == 0) {
+                        $statusProducao = "Pendente";
+                        $classeClasse   = "status-pendente";
+                    } elseif ($concluidos > 0 && $concluidos < $total) {
+                        $statusProducao = "Em produção";
+                        $classeClasse   = "status-em-andamento";
+                    } else {
+                        $statusProducao = "Produzido";
+                        $classeClasse   = "status-concluido";
+                    }
+
+                    $statusPosProducao = ($statusProducao === "Produzido") ? "Pronto para Embalagem" : "Aguardando";
             ?>
-            <?php if (empty($pedidos)): ?>
                 <tr>
-                    <td colspan="6" class="sem-pedidos">Nenhum pedido aguardando liberação.</td>
-                </tr>
-            <?php else: ?>
-                <?php foreach($pedidos as $p): ?>
-                <tr id="Linha-<?= $p['id'] ?>">
-                    <td style="font-weight: bold; color: #2980b9; font-size: 18px;"><?= htmlspecialchars($p['numero_pedido']) ?></td>
+                    <td style="font-weight: bold; color: #2980b9;">
+                        <?= htmlspecialchars($p['numero_pedido'] ?? '') ?>
+                    </td>
+                    
                     <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10)) ?></td>
-                    <td><?= htmlspecialchars($p['status']) ?></td>
+                    
+                    <td>
+                        <span class="badge <?= $classeClasse ?>">
+                            <?= $statusProducao ?> (<?= $concluidos ?>/<?= $total ?>)
+                        </span>
+                    </td>
+                    
+                    <td>
+                        <span class="badge">
+                            <?= $statusPosProducao ?>
+                        </span>
+                    </td>
                 </tr>
-                <?php endforeach; ?>
+            <?php 
+                endforeach; 
+            else: 
+            ?>
+                <tr>
+                    <td colspan="4">Nenhum pedido em produção encontrado.</td>
+                </tr>
             <?php endif; ?>
         </tbody>
     </table>

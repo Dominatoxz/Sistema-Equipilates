@@ -37,7 +37,7 @@ if (!$itens) {
     <title>Impressão de Etiquetas Separadas (Fábrica / Embalagem)</title>
    <style>
         @page {
-            size: 100mm 50mm;
+            size: 101mm 50mm;
             margin: 0; 
         }
 
@@ -81,7 +81,7 @@ if (!$itens) {
             padding: 4mm 5mm;
             box-sizing: border-box;
             height: 50mm;
-            width: 100mm;
+            width: 101mm;
             margin: 10px auto;
             position: relative;
             overflow: hidden;

@@ -65,7 +65,6 @@ require_once '../Function/trava.php';
             <tr>
                 <th>Pedido / OS</th>
                 <th>Prazo de Produção</th>
-                <th>Status Produção</th>
                 <th>Status Pós-Produção</th>
             </tr>
         </thead>
@@ -86,10 +85,9 @@ require_once '../Function/trava.php';
                 </tr>
             <?php else: ?>
                 <?php foreach($pedidos as $p): ?>
-                <tr id="Linha-<?= $p['id'] ?>">
+                <tr>
                     <td style="font-weight: bold; color: #2980b9; font-size: 18px;"><?= htmlspecialchars($p['numero_pedido']) ?></td>
                     <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10)) ?></td>
-                    <td><?= htmlspecialchars($p['status']) ?></td>
                     <td><?= htmlspecialchars($p['status_posvenda']) ?></td>
                 </tr>
                 <?php endforeach; ?>
@@ -167,52 +165,6 @@ require_once '../Function/trava.php';
             alert("Observação guardada no navegador deste computador!");
             toggleSanfona(id);
         }
-
-        function liberarPedido(id) {
-            if (confirm("Enviar pedido para o financeiro?")) {
-                
-                const dadosEnviar = { id_pedido: id };
-                fetch('../Function/dar_baixa_posVenda.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json' 
-                    },
-                    body: JSON.stringify(dadosEnviar) 
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        const linha = document.getElementById(`Linha-${id}`);
-                        const linhaObs = document.getElementById(`ObsRow-${id}`);
-                        
-                        localStorage.removeItem(`obs_pedido_${id}`);
-                        
-                        if(linha) {
-                            linha.style.transition = "all 0.5s ease";
-                            linha.style.opacity = "0";
-                            linha.style.background = "#e8f5e9";
-                        }
-                        if(linhaObs) {
-                            linhaObs.style.transition = "all 0.5s ease";
-                            linhaObs.style.opacity = "0";
-                        }
-                        
-                        setTimeout(() => {
-                            if(linha) linha.remove();
-                            if(linhaObs) linhaObs.remove();
-                            
-                            if (document.querySelectorAll('tbody tr:not(.linha-observacao)').length === 0) {
-                                window.location.reload();
-                            }
-                        }, 500);
-                    } else {
-                        alert("Erro ao dar baixa no sistema: " + data.error);
-                    }
-                })
-                .catch(err => console.error("Erro na comunicação:", err));
-            }
-        }
-                
 
         
     let idsAtuais = Array.from(document.querySelectorAll('tbody tr[id^="linha-"]'))

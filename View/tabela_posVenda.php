@@ -94,7 +94,7 @@ require_once '../Function/trava.php';
                     <td><?= date('d/m/Y H:i', strtotime($p['data_conclusao'])) ?></td>
                     <td><span class="badge-pronto">100% Embalado</span></td>
                     <td>
-                        <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Enviar para o Financeiro</button>
+                        <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Enviar para a Expedição</button>
                     </td>
                     <td>
                         <button class="btn-mais" onclick="toggleSanfona(<?= $p['id'] ?>)">...</button>
@@ -191,7 +191,7 @@ require_once '../Function/trava.php';
         }
 
         function liberarPedido(id) {
-            if (confirm("Enviar pedido para o financeiro?")) {
+            if (confirm("Enviar pedido para a Expedição?")) {
                 
                 const dadosEnviar = { id_pedido: id };
                 fetch('../Function/dar_baixa_posVenda.php', {

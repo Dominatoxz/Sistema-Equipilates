@@ -239,16 +239,16 @@ require_once '../Function/trava.php';
                 <p>Fila da produção dos pedidos</p>
             </a>
 
-            <a href="tabela_posVenda.php" class="card-botao pos-venda">
-                <div class="icon-box">✅</div>
-                <h3>Pós-Venda</h3>
-                <p>Fila de pedidos produzidos</p>
-            </a>
-
             <a href="tabela_financeiro.php" class="card-botao pos-venda">
                 <div class="icon-box">💰</div>
                 <h3>Financeiro</h3>
                 <p>Fila para o controle do financeiro</p>
+            </a>
+
+            <a href="tabela_posVenda.php" class="card-botao pos-venda">
+                <div class="icon-box">✅</div>
+                <h3>Pós-Venda</h3>
+                <p>Fila de pedidos produzidos</p>
             </a>
             
             <a href="tabela_expedição.php" class="card-botao pos-venda">
