@@ -312,7 +312,7 @@ require_once '../Function/trava.php';
                 .catch(err => console.error("Erro na sincronização rápida:", err));
         }
 
-        setInterval(verificarAtualizacoesRapidas, 7000);
+        setInterval(verificarAtualizacoesRapidas, 20000);
 
         (function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -377,19 +377,44 @@ require_once '../Function/trava.php';
 }
 
     function verificarLinha(linha) {
-    const itensLista = linha.querySelectorAll('.item-check');
-    if (itensLista.length === 0) return;
-   
-    const pendentes = Array.from(itensLista).filter(i => i.innerText.trim() !== 'E');
+    const colunas = linha.querySelectorAll('td');
+    let tudoCerto = true;
 
-    if (pendentes.length === 0) {
-        const numeroPedido = linha.cells[0].innerText.trim();
+    colunas.forEach((td, index) => {
+        if (index === 0 || index === 1) return; 
 
-        fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}`)
-            .then(response => response.json())
+        const texto = td.innerText.trim();
+        if (texto === '' || texto === '0') return;
+
+        const tabela = linha.closest('table');
+        const ths = tabela.querySelectorAll('thead th');
+        const nomeEquipamento = ths[index] ? ths[index].innerText.trim() : '';
+
+        const apenasEmbalagem = (nomeEquipamento.toLowerCase() === 'carrinho' || nomeEquipamento.toLowerCase() === 'gaiola');
+
+        if (apenasEmbalagem) {
+            return; 
+        }
+
+        if (!texto.includes('✅') && !texto.includes('E')) {
+            tudoCerto = false;
+        }
+    });
+
+    if (tudoCerto) {
+        if (linha.id) {
+            const idPedido = linha.id.replace('linha-', '');
+            
+            fetch('../Function/notificar_posVenda.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${idPedido}`
+            })
+            .then(res => res.json())
             .then(data => {
-                if (data && data.success) {
-                    if (data.status_pedido === 'SUBIU_POS_VENDA') {
+                if (data.success) {
+                    dispararFeedbackCerto();
+                    if (scrollSpeed === 0) {
                         linha.style.transition = "opacity 0.8s, background 0.5s";
                         linha.style.background = "#d4edda";
                         setTimeout(() => linha.remove(), 1000);
@@ -402,6 +427,7 @@ require_once '../Function/trava.php';
                 }
             })
             .catch(err => console.error("Falha na comunicação com o servidor:", err));
+        }
     }
 }
 

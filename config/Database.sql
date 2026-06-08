@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS pedidos_prontos (
     numero_pedido VARCHAR(50) NOT NULL,
     prazo_producao VARCHAR(255),
 	data_conclusao DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status_posvenda VARCHAR(50) DEFAULT 'Pós-venda'
+    status_posvenda VARCHAR(50) DEFAULT 'Financeiro'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS pedidos_expedidos (
@@ -77,7 +77,7 @@ BEGIN
     DECLARE cur CURSOR FOR 
         SELECT 
             `NUMERO PEDIDO`, 
-            `PRAZO DE PRODUÇÃO`,
+            `PRAZO DE PRODUCAO`,
             CAST(NULLIF(`Reformer Excellence`, '') AS UNSIGNED), 
             CAST(NULLIF(`Reformer Torre`, '') AS UNSIGNED), 
             CAST(NULLIF(`Cadilac Excelence`, '') AS UNSIGNED), 
@@ -506,7 +506,7 @@ BEGIN
     DECLARE cur CURSOR FOR 
         SELECT 
             `NUMERO PEDIDO`, 
-            `PRAZO DE PRODUÇÃO`,
+            `PRAZO DE PRODUCAO`,
             CAST(NULLIF(`REF. CLASSICO ALUMINIO`, '') AS UNSIGNED), 
             CAST(NULLIF(`REF. CLASSICO TORRE`, '') AS UNSIGNED), 
             CAST(NULLIF(`CAD. CLASSICO ALUMINIO`, '') AS UNSIGNED), 
@@ -1719,8 +1719,12 @@ DELIMITER ;
 
 CALL gerar_unidades_producao_classico();
 
+
 TRUNCATE TABLE itens_producao;
 TRUNCATE TABLE itens_os;
 TRUNCATE TABLE pedidos_prontos;
 
-SELECT * FROM pedidos_prontos;
+TRUNCATE TABLE pedidos_expedidos;
+
+
+SELECT * FROM itens_producao;

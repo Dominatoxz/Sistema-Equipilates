@@ -1,6 +1,6 @@
 <?php
 require_once '../Function/trava.php'; 
-require_once '../vendor/autoload.php'; 
+require_once '../global.php';
 use Picqer\Barcode\BarcodeGeneratorPNG; 
 require_once '../config/Database.php'; 
 
@@ -59,7 +59,7 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Impressão de Etiquetas com Filtros</title> 
+    <title>Impressão de Etiquetas</title> 
    <style>
         @page {
             size: 101mm 50mm;
@@ -270,7 +270,10 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 $corExibir = (!empty($item['cor']) && $item['cor'] !== 'COD. COR') ? htmlspecialchars($item['cor']) : 'NÃO INFORMADA'; 
                 
-                if ($filtro_tipo_eti === 'todos' || $filtro_tipo_eti === 'producao'):
+                $nomeEquipamento = trim($item['equipamento']);
+                $apenasEmbalagem = (strcasecmp($nomeEquipamento, 'Carrinho') === 0 || strcasecmp($nomeEquipamento, 'Gaiola') === 0);
+
+                if (($filtro_tipo_eti === 'todos' || $filtro_tipo_eti === 'producao') && !$apenasEmbalagem):
         ?>
                     <div class="etiqueta etiqueta-fabrica">
                         <div class="etiqueta-header">

@@ -230,7 +230,7 @@ require_once '../Function/trava.php';
                             if (document.querySelectorAll('tbody tr:not(.linha-observacao)').length === 0) {
                                 window.location.reload();
                             }
-                        }, 500);
+                        }, 10000);
                     } else {
                         alert("Erro ao dar baixa no sistema: " + data.error);
                     }

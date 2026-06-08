@@ -151,7 +151,7 @@ require_once '../Function/trava.php';
             .catch(err => console.error("Erro na sincronização:", err));
     }
 
-    setInterval(verificarAtualizacoesEmSegundoPlano, 7000);
+    setInterval(verificarAtualizacoesEmSegundoPlano, 10000);
     </script>
     
     <div class="footer">
