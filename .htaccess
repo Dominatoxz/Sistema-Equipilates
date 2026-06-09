@@ -1,1 +1,11 @@
-Options -Indexes
+RewriteEngine On
+
+# Impede que o Apache tente adivinhar o arquivo se a URL não bater exato
+Options -MultiViews
+
+# Se o arquivo ou pasta requisitada existir fisicamente, acessa direto (ex: imagens, CSS, JS)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Caso contrário, joga tudo para o index.php lidar com a rota
+RewriteRule ^(.*)$ index.php [QSA,L]
