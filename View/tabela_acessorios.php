@@ -136,7 +136,7 @@ require_once '../Function/trava.php';
 <body>
     <input type="text" id="input-pistola" autofocus>
     <table>
-        <?php
+       <?php
         require_once '../config/Database.php'; 
         require_once '../Model/Sistema.php'; 
 
@@ -145,7 +145,23 @@ require_once '../Function/trava.php';
 
         $sistema = new Sistema($db);
 
-        $pedidos = $sistema->mostrarTabelaAcessorios(); 
+        $arquivo_cache = __DIR__ . '/../cache/dados_painelAcess.json';
+        $tempo_expiracao = 30; 
+
+        if (file_exists($arquivo_cache) && (time() - filemtime($arquivo_cache) < $tempo_expiracao)) {
+
+            $dados_tabela = json_decode(file_get_contents($arquivo_cache), true);
+        } else {
+            $dados_tabela = $sistema->mostrarTabelaAcessorios();
+            
+            if (!is_dir(__DIR__ . '/../cache')) {
+                mkdir(__DIR__ . '/../cache', 0777, true);
+            }
+            file_put_contents($arquivo_cache, json_encode($dados_tabela, JSON_UNESCAPED_UNICODE));
+        }
+
+        $pedidos = !empty($dados_tabela) ? $dados_tabela : [];
+        $pedidos_agrupados = $pedidos;
         ?>
         <?php
         if (!isset($pedidos)) {
@@ -243,7 +259,7 @@ require_once '../Function/trava.php';
             .map(tr => tr.id.replace('linha-', ''));
 
         function verificarAtualizacoesRapidas() {
-            fetch('../Function/dados_tabelas.php?tela=producao_acess')
+            fetch('/Function/dados_tabelas.php?tela=producao_acess')
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -266,7 +282,7 @@ require_once '../Function/trava.php';
                 .catch(err => console.error("Erro na sincronização rápida:", err));
         }
 
-        setInterval(verificarAtualizacoesRapidas, 0);
+        setInterval(verificarAtualizacoesRapidas, 20000);
 
         (function() {
             const urlParams = new URLSearchParams(window.location.search);

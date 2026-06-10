@@ -62,6 +62,11 @@ if ($codigoLido) {
             $stmt->bindParam(':id', $id);
             
             if ($stmt->execute()) {
+                $arquivo_cache = __DIR__ . '/../cache/dados_painel.json';
+                if (file_exists($arquivo_cache)) {
+                    @unlink($arquivo_cache);
+                }
+
                 echo json_encode([
                     'success' => true, 
                     'idReal' => $id, 

@@ -21,4 +21,7 @@ Class Database {
         return $this->conn;
     }
 }
+
+//$env:DB_HOST="localhost"; $env:DB_NAME="planilha_db"; $env:DB_USER="root"; $env:DB_PASSWORD="equipilates26"; php -S 0.0.0.0:8000
 ?>
+

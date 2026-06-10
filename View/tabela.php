@@ -144,7 +144,23 @@ require_once '../Function/trava.php';
 
         $sistema = new Sistema($db);
 
-        $pedidos = $sistema->mostrarTabela(); 
+        $arquivo_cache = __DIR__ . '/../cache/dados_painel.json';
+        $tempo_expiracao = 30; 
+
+        if (file_exists($arquivo_cache) && (time() - filemtime($arquivo_cache) < $tempo_expiracao)) {
+
+            $dados_tabela = json_decode(file_get_contents($arquivo_cache), true);
+        } else {
+            $dados_tabela = $sistema->mostrarTabela();
+            
+            if (!is_dir(__DIR__ . '/../cache')) {
+                mkdir(__DIR__ . '/../cache', 0777, true);
+            }
+            file_put_contents($arquivo_cache, json_encode($dados_tabela, JSON_UNESCAPED_UNICODE));
+        }
+
+        $pedidos = !empty($dados_tabela) ? $dados_tabela : [];
+        $pedidos_agrupados = $pedidos;
         ?>
         <?php
         if (!isset($pedidos)) {
