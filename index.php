@@ -9,16 +9,35 @@ require_once './global.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Central de Linhas</title>
-<style>
+    <style>
+        :root {
+            --bg-main: #040408;
+            --bg-gradient: radial-gradient(circle at 50% 30%, #0c0f1d 0%, #030306 100%);
+            --panel-bg: rgba(10, 11, 18, 0.6);
+            --border-tech: rgba(0, 240, 255, 0.05);
+            
+            --neon-blue: #00f0ff;
+            --neon-amber: #ff9d00;
+            --neon-purple: #bd00ff;
+            --text-primary: #ffffff;
+            --text-secondary: #7e8494;
+        }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: scale(0.98) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.4; }
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-            color: #343a40;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-main);
+            background: var(--bg-gradient);
+            color: var(--text-primary);
             margin: 0;
             padding: 0;
             display: flex;
@@ -26,140 +45,186 @@ require_once './global.php';
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            transition: opacity 0.25s ease-in-out;
+            transition: opacity 0.3s ease-in-out;
             opacity: 1;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
         }
 
         body.fade-out {
-        opacity: 0 !important;
+            opacity: 0 !important;
         }
 
         .container {
+            position: relative;
+            z-index: 1;
             text-align: center;
-            max-width: 950px;
+            max-width: 1000px;
             width: 100%;
-            padding: 20px;
+            padding: 40px 20px;
             box-sizing: border-box;
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .header-painel { 
             display: flex; 
-            justify-content: space-between; 
+            justify-content: center; 
             align-items: center; 
-            margin-bottom: 25px; 
+            margin-bottom: 40px; 
             width: 100%;
-            max-width: 910px;
-            padding: 10px 20px;
-            box-sizing: border-box;
         }
 
         .header-painel img {
-            max-height: 50px;
+            max-height: 40px;
             width: auto;
+            filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.2)) brightness(1.1);
         }
 
         h1 {
-            font-size: 2.3rem;
-            color: #212529;
+            font-size: 2.6rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 15px;
-            font-weight: 700;
+            letter-spacing: 8px;
+            margin-bottom: 8px;
+            font-weight: 900;
+            background: linear-gradient(180deg, #ffffff 30%, #5d667a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.8));
         }
 
         p.subtitle {
-            font-size: 0.95rem;
-            color: #495057;  
-            font-style: italic;
+            font-size: 1rem;
+            color: var(--neon-amber);
+            font-style: normal;
             max-width: 700px;
-            margin: 0 auto 5px auto;
-            line-height: 1.4;
+            margin: 0 auto 4px auto;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 500;
+            opacity: 0.8;
         }
 
         p.sub-subtitle {
-            font-size: 0.8rem;
-            color: #6c757d;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
             margin-top: 0;
-            margin-bottom: 40px;
-            font-weight: 600;
+            margin-bottom: 50px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 700;
         }
 
         .grid-painel {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 3, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
             padding: 10px;
             width: 100%;
-            max-width: 700px; 
+            max-width: 850px; 
             margin: 0 auto;
         }
 
         .card-botao {
-            background: #ffffff;
+            background: var(--panel-bg);
             border-radius: 12px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            padding: 40px 20px;
+            border: 1px solid var(--border-tech);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 45px 25px;
             text-decoration: none;
-            color: inherit;
+            color: var(--text-primary);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .card-botao::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 10px; height: 10px;
+            border-top: 2px solid transparent;
+            border-right: 2px solid transparent;
+            transition: all 0.4s ease;
         }
 
         .card-botao h3 {
-            margin: 15px 0 0 0;
-            font-size: 1.4rem;
-            color: #212529;
-            transition: color 0.3s ease;
-            font-weight: 600;
+            margin: 20px 0 0 0;
+            font-size: 1.15rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            font-weight: 700;
+            color: #e2e8f0;
         }
 
         .icon-box {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
+            width: 65px;
+            height: 65px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
-            transition: transform 0.3s ease;
+            font-size: 28px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .card-botao:hover {
-            transform: translateY(-5px);
-            background: #ffffff;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            transform: translateY(-4px);
+            background: rgba(16, 19, 35, 0.8);
         }
 
         .card-botao:hover .icon-box {
             transform: scale(1.1);
+            background: transparent;
         }
 
-        .linha-contemporanea .icon-box { background-color: #eaf2f8; color: #3498db; }
-        .linha-contemporanea:hover { border-color: #3498db; }
-        .linha-contemporanea:hover h3 { color: #3498db; }
+        .linha-contemporanea .icon-box { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0,240,255,0.5); }
+        .linha-contemporanea:hover { border-color: rgba(0, 240, 255, 0.4); box-shadow: 0 0 30px rgba(0, 240, 255, 0.15); }
+        .linha-contemporanea:hover h3 { color: var(--neon-blue); text-shadow: 0 0 8px rgba(0,240,255,0.3); }
+        .linha-contemporanea:hover::after { border-color: var(--neon-blue); }
 
-        .linha-classica .icon-box { background-color: #fdf2e9; color: #e67e22; }
-        .linha-classica:hover { border-color: #e67e22; }
-        .linha-classica:hover h3 { color: #e67e22; }
+        .linha-classica .icon-box { color: var(--neon-amber); text-shadow: 0 0 10px rgba(255,157,0,0.5); }
+        .linha-classica:hover { border-color: rgba(255, 157, 0, 0.4); box-shadow: 0 0 30px rgba(255, 157, 0, 0.15); }
+        .linha-classica:hover h3 { color: var(--neon-amber); text-shadow: 0 0 8px rgba(255,157,0,0.3); }
+        .linha-classica:hover::after { border-color: var(--neon-amber); }
 
+        .linha-cadastro .icon-box { color: var(--neon-purple); text-shadow: 0 0 10px rgba(189,0,255,0.5); }
+        .linha-cadastro:hover { border-color: rgba(189, 0, 255, 0.4); box-shadow: 0 0 30px rgba(189, 0, 255, 0.15); }
+        .linha-cadastro:hover h3 { color: var(--neon-purple); text-shadow: 0 0 8px rgba(189,0,255,0.3); }
+        .linha-cadastro:hover::after { border-color: var(--neon-purple); }
 
         .footer {
-            margin-top: 50px;
-            margin-bottom: 20px;
-            font-size: 0.85rem;
-            color: #adb5bd;
-            letter-spacing: 0.5px;
+            margin-top: 60px;
+            margin-bottom: 25px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
     <div class="header-painel">
-        <img src="assets/logo_equipilates.png" alt="">
+        <img src="assets/logo_equipilates.png" alt="Equipilates">
     </div>
     <div class="container">
         <h1>Linhas</h1>
@@ -169,16 +234,17 @@ require_once './global.php';
         <div class="grid-painel">
             <a href="View/central_contemporaneo.php" class="card-botao linha-contemporanea">
                 <div class="icon-box">🧬</div>
-                <h3>Linha Contemporânea</h3>
+                <h3>Contemporânea</h3>
             </a>
 
             <a href="View/central_classico.php" class="card-botao linha-classica">
                 <div class="icon-box">🏛️</div>
-                <h3>Linha Clássica</h3>
+                <h3>Clássica</h3>
             </a>
-            <a href="View/cadastro.php" class="card-botao linha-classica">
+
+            <a href="View/cadastro.php" class="card-botao linha-cadastro">
                 <div class="icon-box">📋</div>
-                <h3>Cadastrar Usuário</h3>
+                <h3>Novo Usuário</h3>
             </a>
         </div>
     </div>

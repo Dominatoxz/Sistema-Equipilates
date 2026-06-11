@@ -8,53 +8,252 @@ require_once '../Function/trava.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expedição</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; color: #333; margin: 25px; }
-        .header-painel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        h1 { color: #2c3e50; margin: 0; font-size: 28px; }
-        table { width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; }
-        th { background-color: #2c3e50; color: white; padding: 15px; text-align: center; font-size: 16px; text-transform: uppercase; }
-        td { padding: 15px; border-bottom: 1px solid #eef2f5; font-size: 16px; text-align: center; vertical-align: middle; }
-        tr:hover { background-color: #f8fafc; }
-        
-        .btn-baixa { background-color: #27ae60; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; font-size: 14px; }
-        .btn-baixa:hover { background-color: #219150; }
-        .badge-pronto { background-color: #d4edda; color: #155724; padding: 6px 12px; border-radius: 5px; font-size: 14px; font-weight: bold; border: 1px solid #c3e6cb; }
-        .sem-pedidos { text-align: center; padding: 50px; color: #7f8c8d; font-size: 18px; font-weight: 500; }
-        
-        .linha-observacao { background-color: #fcfcfc; display: none; }
-        .linha-observacao td { text-align: left; padding: 0 25px; border-bottom: 1px solid #e0e0e0; }
-        .txt-historico-obs { font-size: 0.8rem; color: #868e96; margin: 0; padding-left: 5px; font-style: italic; }
+  <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-gradient: radial-gradient(circle at 50% 0%, #ffffff 0%, #f1f5f9 100%);
+            --panel-bg: #ffffff;
+            --border-tech: rgba(15, 23, 42, 0.06);
+            
+            /* Cores de Identidade Light Tech */
+            --tech-blue: #2563eb;
+            --tech-blue-hover: #1d4ed8;
+            --tech-green: #10b981;
+            --tech-green-hover: #059669;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-light: #94a3b8;
+        }
 
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background: var(--bg-main); 
+            background: var(--bg-gradient);
+            color: var(--text-primary); 
+            margin: 0;
+            padding: 30px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .header-painel { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 30px; 
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+        }
+
+        h1 { 
+            color: var(--text-primary); 
+            margin: 0; 
+            font-size: 1.6rem; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 800;
+        }
+
+        .status-tag {
+            font-size: 0.8rem;
+            font-weight: 700; 
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            background: rgba(15, 23, 42, 0.04);
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0;
+            background: var(--panel-bg); 
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.03), 0 1px 3px rgba(15, 23, 42, 0.02); 
+            border-radius: 12px; 
+            overflow: hidden; 
+            border: 1px solid var(--border-tech);
+        }
+
+        th { 
+            background-color: #0f172a; 
+            color: #ffffff; 
+            padding: 16px; 
+            text-align: center; 
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px;
+            font-weight: 700;
+        }
+
+        td { 
+            padding: 16px; 
+            border-bottom: 1px solid rgba(15, 23, 42, 0.04); 
+            font-size: 0.95rem; 
+            color: var(--text-primary);
+            text-align: center; 
+            vertical-align: middle; 
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover { 
+            background-color: #f8fafc; 
+        }
         
+        .pedido-numero {
+            font-weight: 800; 
+            color: var(--tech-blue); 
+            font-size: 1.05rem;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-baixa { 
+            background: linear-gradient(135deg, #10b981, #059669); 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            transition: all 0.2s ease; 
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15);
+        }
+
+        .btn-baixa:hover { 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            filter: brightness(1.05);
+        }
+
+        .badge-pronto { 
+            background-color: #ecfdf5; 
+            color: #065f46; 
+            padding: 6px 14px; 
+            border-radius: 6px; 
+            font-size: 0.8rem; 
+            font-weight: 700; 
+            border: 1px solid #a7f3d0; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sem-pedidos { 
+            text-align: center; 
+            padding: 60px; 
+            color: var(--text-secondary); 
+            font-size: 1.1rem; 
+            font-weight: 500; 
+        }
+        
+        .linha-observacao { 
+            background-color: #fdfefe; 
+            display: none; 
+        }
+
+        .linha-observacao td { 
+            text-align: left; 
+            padding: 0 30px; 
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06); 
+            background: #fafbfe;
+        }
+
+        .txt-historico-obs { 
+            font-size: 0.75rem; 
+            color: var(--text-secondary); 
+            margin: 8px 0 0 5px; 
+            font-style: normal; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .wrapper-sanfona { 
             max-height: 0; 
             overflow: hidden; 
-            transition: max-height 0.4s ease-out, padding 0.4s ease; 
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s ease; 
             padding: 0;
         }
+
         .linha-observacao.aberta .wrapper-sanfona { 
             max-height: 200px; 
             padding: 20px 0;
         }
-        .container-obs { display: flex; gap: 15px; align-items: center; width: 100%; }
-        .input-obs { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
-        .input-obs:focus { border-color: #2980b9; outline: none; box-shadow: 0 0 5px rgba(41,128,185,0.2); }
-        
-        .btn-salvar-obs { background-color: #2980b9; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-        .btn-salvar-obs:hover { background-color: #216b9b; }
-        
-        .btn-mais { background: none; border: none; color: #2980b9; font-size: 22px; font-weight: bold; cursor: pointer; padding: 5px 10px; transition: transform 0.2s; }
-        .btn-mais:hover { transform: translateY(-2px); }
 
-        .btn-etiqueta { background-color: #2788ae; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; font-size: 14px; text-decoration: none;}
-        .btn-etiqueta:hover { background-color: #216191; }
+        .container-obs { 
+            display: flex; 
+            gap: 15px; 
+            align-items: center; 
+            width: 100%; 
+        }
+
+        .input-obs { 
+            flex: 1; 
+            padding: 12px 16px; 
+            border: 1px solid #e2e8f0; 
+            background-color: #ffffff;
+            border-radius: 8px; 
+            font-size: 0.95rem; 
+            color: var(--text-primary);
+            box-sizing: border-box; 
+            transition: all 0.2s ease;
+        }
+
+        .input-obs:focus { 
+            border-color: var(--tech-blue); 
+            outline: none; 
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); 
+        }
+        
+        .btn-salvar-obs { 
+            background-color: #0f172a; 
+            color: white; 
+            border: none; 
+            padding: 12px 22px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease; 
+        }
+
+        .btn-salvar-obs:hover { 
+            background-color: #1e293b; 
+            transform: translateY(-1px);
+        }
+        
+        .btn-mais { 
+            background: rgba(37, 99, 235, 0.05); 
+            border: 1px solid rgba(37, 99, 235, 0.1); 
+            color: var(--tech-blue); 
+            font-size: 16px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            padding: 6px 14px; 
+            border-radius: 6px;
+            transition: all 0.2s ease; 
+        }
+
+        .btn-mais:hover { 
+            background: var(--tech-blue);
+            color: #ffffff;
+            transform: translateY(-1px); 
+        }
 
         .footer {
-            margin-top: 20px;
-            margin-bottom: 20px;
-            font-size: 0.85rem;
-            color: #bdc3c7;
+            margin-top: 30px;
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
         }
     </style>
 </head>

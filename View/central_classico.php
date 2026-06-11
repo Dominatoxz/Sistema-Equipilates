@@ -9,15 +9,31 @@ require_once '../Function/trava.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Central de Produção</title>
     <style>
+        :root {
+            --bg-color: #08080c;
+            --bg-gradient: radial-gradient(circle at 50% 50%, #111218 0%, #060609 100%);
+            --card-bg: rgba(18, 18, 26, 0.65);
+            --card-border: rgba(255, 255, 255, 0.04);
+            --text-main: #f0f0f5;
+            --text-muted: #8a8a9e;
+            
+            --color-gold: #f39c12;
+            --color-prod: #00b0ff;
+            --color-oseq: #ff9100;
+            --color-osac: #d500f9;
+            --color-pos: #00e676;
+        }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121214;
-            color: #e1e1e6;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-color);
+            background: var(--bg-gradient);
+            color: var(--text-main);
             margin: 0;
             padding: 0;
             display: flex;
@@ -25,182 +41,223 @@ require_once '../Function/trava.php';
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            transition: opacity 0.25s ease-in-out;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 1;
+            overflow-x: hidden;
         }
 
         body.fade-out {
-        opacity: 0 !important;
+            opacity: 0 !important;
         }
 
         .container {
             text-align: center;
-            max-width: 950px;
+            max-width: 1100px;
             width: 100%;
-            padding: 20px;
+            padding: 40px 20px;
             box-sizing: border-box;
+            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .header-painel { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            margin-bottom: 25px; 
+            margin-bottom: 40px; 
             width: 100%;
-            max-width: 910px;
-            padding: 10px 20px;
+            max-width: 1060px;
+            padding: 0 10px;
             box-sizing: border-box;
         }
 
         .header-painel img {
-            max-height: 50px;
+            max-height: 45px;
             width: auto;
+            filter: drop-shadow(0 0 8px rgba(255,255,255,0.1));
         }
 
-        .header-painel a {
-            color: #f39c12;
+        .header-painel a.btn-voltar {
+            color: var(--text-main);
             text-decoration: none;
-            font-weight: bold;
-            font-size: 1.05rem;
-            border: 1px solid #f39c12;
-            padding: 8px 16px;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-            background-color: rgba(243, 156, 18, 0.05);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 10px 20px;
+            border-radius: 30px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(5px);
         }
 
-        .header-painel a:hover {
-            background-color: #f39c12;
-            color: #121214;
-            box-shadow: 0 0 15px rgba(243, 156, 18, 0.3);
+        .header-painel a.btn-voltar:hover {
+            background: #ffffff;
+            color: #000000;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+            transform: scale(1.05);
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             color: #ffffff;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 4px;
             margin-bottom: 5px;
+            font-weight: 800;
+            background: linear-gradient(180deg, #ffffff 0%, #a2a2bc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5));
         }
 
         h2 {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             margin-top: 0;
-            margin-bottom: 15px;
-            color: #f39c12;
+            margin-bottom: 25px;
+            color: var(--color-gold);
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 6px;
+            font-weight: 600;
+            text-shadow: 0 0 12px rgba(243, 156, 18, 0.3);
         }
 
         p.subtitle {
-            font-size: 1rem;
-            color: #a9a9b3;  
-            font-style: italic;
-            max-width: 700px;
-            margin: 0 auto 5px auto;
-            line-height: 1.4;
+            font-size: 1.05rem;
+            color: var(--text-muted); 
+            max-width: 650px;
+            margin: 0 auto 8px auto;
+            line-height: 1.6;
+            font-weight: 300;
+            letter-spacing: 0.5px;
         }
 
         p.sub-subtitle {
-            font-size: 0.8rem;
-            color: #7f8c8d;
+            font-size: 0.75rem;
+            color: #52526b;
+            text-transform: uppercase;
+            letter-spacing: 3px;
             margin-top: 0;
-            margin-bottom: 40px;
-            font-weight: bold;
+            margin-bottom: 50px;
+            font-weight: 700;
         }
 
         .grid-painel {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 25px;
-            padding: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 10px 0;
             width: 100%;
         }
 
         .card-botao {
-            background: #1e1e24;
-            border-radius: 12px;
-            border: 1px solid #2a2a35;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            padding: 30px 20px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 35px 25px;
             text-decoration: none;
-            color: #e1e1e6;
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-botao::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.03), transparent);
+            transform: skewX(-25deg);
+            transition: 0.75s;
+        }
+
+        .card-botao:hover::before {
+            left: 125%;
         }
 
         .card-botao h3 {
-            margin: 15px 0 8px 0;
-            font-size: 1.3rem;
+            margin: 18px 0 8px 0;
+            font-size: 1.25rem;
             color: #ffffff;
+            font-weight: 600;
+            letter-spacing: 0.5px;
             transition: color 0.3s ease;
         }
 
         .card-botao p {
             margin: 0;
-            font-size: 0.9rem;
-            color: #a9a9b3;
+            font-size: 0.85rem;
+            color: var(--text-muted);
             text-align: center;
-            line-height: 1.3;
-            transition: color 0.3s ease;
+            line-height: 1.5;
+            font-weight: 400;
         }
 
         .icon-box {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
-            margin-bottom: 5px;
-            transition: all 0.3s ease;
-            background-color: #2a2a35;
+            font-size: 24px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.02);
         }
 
         .card-botao:hover {
             transform: translateY(-5px);
-            background: #25252e;
+            background: rgba(25, 25, 35, 0.85);
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .card-botao:hover .icon-box {
-            transform: scale(1.1);
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
-        
-        .prod .icon-box { color: #3498db; background-color: rgba(52, 152, 219, 0.1); }
-        .prod:hover { border-color: #3498db; box-shadow: 0 8px 25px rgba(52, 152, 219, 0.25); }
-        .prod:hover h3 { color: #3498db; }
+    
+        .prod .icon-box { color: var(--color-prod); background: rgba(0, 176, 255, 0.06); border-color: rgba(0, 176, 255, 0.15); }
+        .prod:hover { box-shadow: 0 10px 30px rgba(0, 176, 255, 0.15); border-color: rgba(0, 176, 255, 0.4); }
+        .prod:hover h3 { color: var(--color-prod); }
 
-        .os-eq .icon-box { color: #e67e22; background-color: rgba(230, 126, 34, 0.1); }
-        .os-eq:hover { border-color: #e67e22; box-shadow: 0 8px 25px rgba(230, 126, 34, 0.25); }
-        .os-eq:hover h3 { color: #e67e22; }
+        .os-eq .icon-box { color: var(--color-oseq); background: rgba(ff, 145, 0, 0.06); border-color: rgba(ff, 145, 0, 0.15); }
+        .os-eq:hover { box-shadow: 0 10px 30px rgba(ff, 145, 0, 0.15); border-color: rgba(ff, 145, 0, 0.4); }
+        .os-eq:hover h3 { color: var(--color-oseq); }
 
-        .os-ac .icon-box { color: #9b59b6; background-color: rgba(155, 89, 182, 0.1); }
-        .os-ac:hover { border-color: #9b59b6; box-shadow: 0 8px 25px rgba(155, 89, 182, 0.25); }
-        .os-ac:hover h3 { color: #9b59b6; }
+        .os-ac .icon-box { color: var(--color-osac); background: rgba(213, 0, 249, 0.06); border-color: rgba(213, 0, 249, 0.15); }
+        .os-ac:hover { box-shadow: 0 10px 30px rgba(213, 0, 249, 0.15); border-color: rgba(213, 0, 249, 0.4); }
+        .os-ac:hover h3 { color: var(--color-osac); }
 
-        .pos-venda .icon-box { color: #2ecc71; background-color: rgba(46, 204, 113, 0.1); }
-        .pos-venda:hover { border-color: #2ecc71; box-shadow: 0 8px 25px rgba(46, 204, 113, 0.25); }
-        .pos-venda:hover h3 { color: #2ecc71; }
+        .pos-venda .icon-box { color: var(--color-pos); background: rgba(0, 230, 118, 0.06); border-color: rgba(0, 230, 118, 0.15); }
+        .pos-venda:hover { box-shadow: 0 10px 30px rgba(0, 230, 118, 0.15); border-color: rgba(0, 230, 118, 0.4); }
+        .pos-venda:hover h3 { color: var(--color-pos); }
 
         .footer {
-            margin-top: 40px;
-            margin-bottom: 20px;
-            font-size: 0.85rem;
-            color: #57606f;
-            letter-spacing: 0.5px;
+            margin-top: 60px;
+            margin-bottom: 30px;
+            font-size: 0.75rem;
+            color: #424254;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
     <div class="header-painel">
         <img src="../assets/logo_equipilates.png" alt="">
-        <a href="../index.php">Central ></a>
+        <a class="btn-voltar" href="../index.php">Central ></a>
     </div>
     <div class="container">
         <h1>Central de controle</h1>

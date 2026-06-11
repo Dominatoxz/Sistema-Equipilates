@@ -8,16 +8,32 @@ require_once '../Function/trava.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Central de Produção</title>
-    <style>
+<style>
+        :root {
+            --bg-color: #f4f6f9;
+            --bg-gradient: radial-gradient(circle at 50% 50%, #ffffff 0%, #e9edf3 100%);
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-border: rgba(0, 0, 0, 0.05);
+            --text-main: #1e1e26;
+            --text-muted: #62627a;
+            
+            --color-gold: #d97706;
+            --color-prod: #0088cc;
+            --color-oseq: #e65100;
+            --color-osac: #9c27b0;
+            --color-pos: #10b981;
+        }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #fafaf8;
-            color: #343a40;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-color);
+            background: var(--bg-gradient);
+            color: var(--text-main);
             margin: 0;
             padding: 0;
             display: flex;
@@ -25,182 +41,222 @@ require_once '../Function/trava.php';
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            transition: opacity 0.25s ease-in-out;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 1;
+            overflow-x: hidden;
         }
 
         body.fade-out {
-        opacity: 0 !important;
+            opacity: 0 !important;
         }
 
         .container {
             text-align: center;
-            max-width: 950px;
+            max-width: 1100px;
             width: 100%;
-            padding: 20px;
+            padding: 40px 20px;
             box-sizing: border-box;
+            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .header-painel { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            margin-bottom: 25px; 
+            margin-bottom: 40px; 
             width: 100%;
-            max-width: 910px;
-            padding: 10px 20px;
+            max-width: 1060px;
+            padding: 0 10px;
             box-sizing: border-box;
         }
 
         .header-painel img {
-            max-height: 50px;
+            max-height: 45px;
             width: auto;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
         }
 
-        .header-painel a {
-            color: #e67e22;
+        .header-painel a.btn-voltar {
+            color: var(--text-main);
             text-decoration: none;
-            font-weight: bold;
-            font-size: 0.95rem;
-            border: 1px solid #e67e22;
-            padding: 8px 16px;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-            background-color: rgba(230, 126, 34, 0.03);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 10px 20px;
+            border-radius: 30px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
 
-        .header-painel a:hover {
-            background-color: #e67e22;
+        .header-painel a.btn-voltar:hover {
+            background: #1e1e26;
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(230, 126, 34, 0.15);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            transform: scale(1.05);
+            border-color: #1e1e26;
         }
 
         h1 {
-            font-size: 2.3rem;
-            color: #212529;
+            font-size: 2.8rem;
+            color: #1e1e26;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 4px;
             margin-bottom: 5px;
+            font-weight: 800;
+            background: linear-gradient(180deg, #111115 0%, #4a4a6a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         h2 {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             margin-top: 0;
-            margin-bottom: 12px;
-            color: #e67e22;
+            margin-bottom: 25px;
+            color: var(--color-gold);
             text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 600;
+            letter-spacing: 6px;
+            font-weight: 700;
         }
 
         p.subtitle {
-            font-size: 0.95rem;
-            color: #495057;  
-            font-style: italic;
-            max-width: 700px;
-            margin: 0 auto 5px auto;
-            line-height: 1.4;
+            font-size: 1.05rem;
+            color: var(--text-muted); 
+            max-width: 650px;
+            margin: 0 auto 8px auto;
+            line-height: 1.6;
+            font-weight: 400;
+            letter-spacing: 0.5px;
         }
 
         p.sub-subtitle {
-            font-size: 0.8rem;
-            color: #6c757d;
+            font-size: 0.75rem;
+            color: #9292a6;
+            text-transform: uppercase;
+            letter-spacing: 3px;
             margin-top: 0;
-            margin-bottom: 40px;
-            font-weight: 600;
+            margin-bottom: 50px;
+            font-weight: 700;
         }
 
         .grid-painel {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 25px;
-            padding: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 10px 0;
             width: 100%;
         }
 
         .card-botao {
-            background: #ffffff;
-            border-radius: 12px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            padding: 30px 20px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 35px 25px;
             text-decoration: none;
-            color: inherit;
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02), inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+
+        .card-botao::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent);
+            transform: skewX(-25deg);
+            transition: 0.75s;
+        }
+
+        .card-botao:hover::before {
+            left: 125%;
         }
 
         .card-botao h3 {
-            margin: 15px 0 8px 0;
+            margin: 18px 0 8px 0;
             font-size: 1.25rem;
-            color: #212529;
+            color: #1e1e26;
+            font-weight: 700;
+            letter-spacing: 0.5px;
             transition: color 0.3s ease;
         }
 
         .card-botao p {
             margin: 0;
-            font-size: 0.9rem;
-            color: #6c757d;
+            font-size: 0.85rem;
+            color: var(--text-muted);
             text-align: center;
-            line-height: 1.4;
+            line-height: 1.5;
+            font-weight: 500;
         }
 
         .icon-box {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 24px;
-            margin-bottom: 5px;
-            transition: transform 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.03);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
         }
 
         .card-botao:hover {
             transform: translateY(-5px);
             background: #ffffff;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            border-color: rgba(0, 0, 0, 0.08);
         }
 
         .card-botao:hover .icon-box {
-            transform: scale(1.1);
+            transform: scale(1.1) translateY(-2px);
         }
 
-   
-        .prod .icon-box { background-color: #eaf2f8; color: #3498db; }
-        .prod:hover { border-color: #3498db; }
-        .prod:hover h3 { color: #3498db; }
+        .prod .icon-box { color: var(--color-prod); background: rgba(0, 136, 204, 0.06); }
+        .prod:hover { box-shadow: 0 15px 30px rgba(0, 136, 204, 0.12); border-color: rgba(0, 136, 204, 0.3); }
+        .prod:hover h3 { color: var(--color-prod); }
 
-        .os-eq .icon-box { background-color: #fdf2e9; color: #e67e22; }
-        .os-eq:hover { border-color: #e67e22; }
-        .os-eq:hover h3 { color: #e67e22; }
+        .os-eq .icon-box { color: var(--color-oseq); background: rgba(230, 81, 0, 0.06); }
+        .os-eq:hover { box-shadow: 0 15px 30px rgba(230, 81, 0, 0.12); border-color: rgba(230, 81, 0, 0.3); }
+        .os-eq:hover h3 { color: var(--color-oseq); }
 
-        .os-ac .icon-box { background-color: #f5eef8; color: #9b59b6; }
-        .os-ac:hover { border-color: #9b59b6; }
-        .os-ac:hover h3 { color: #9b59b6; }
+        .os-ac .icon-box { color: var(--color-osac); background: rgba(156, 39, 176, 0.06); }
+        .os-ac:hover { box-shadow: 0 15px 30px rgba(156, 39, 176, 0.12); border-color: rgba(156, 39, 176, 0.3); }
+        .os-ac:hover h3 { color: var(--color-osac); }
 
-        .pos-venda .icon-box { background-color: #e8f8f5; color: #2ecc71; }
-        .pos-venda:hover { border-color: #2ecc71; }
-        .pos-venda:hover h3 { color: #2ecc71; }
+        .pos-venda .icon-box { color: var(--color-pos); background: rgba(16, 185, 129, 0.06); }
+        .pos-venda:hover { box-shadow: 0 15px 30px rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.3); }
+        .pos-venda:hover h3 { color: var(--color-pos); }
 
         .footer {
-            margin-top: 40px;
-            margin-bottom: 20px;
-            font-size: 0.85rem;
-            color: #adb5bd;
-            letter-spacing: 0.5px;
+            margin-top: 60px;
+            margin-bottom: 30px;
+            font-size: 0.75rem;
+            color: #8c8c9e;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 600;
         }
     </style>
-</head>
+    </head>
 <body>
     <div class="header-painel">
         <img src="../assets/logo_equipilates.png" alt="">
-        <a href="../index.php">Central ></a>
+        <a class="btn-voltar" href="../index.php">Central ></a>
     </div>
     <div class="container">
         <h1>Central de controle</h1>
