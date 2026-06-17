@@ -51,7 +51,10 @@ require_once '../Function/trava.php';
                 text-transform: uppercase; 
                 font-size: 18px; 
                 word-wrap: break-word; 
-            }
+                position: sticky;
+                top: 0;
+                z-index: 2;
+            }   
 
             td { 
                 padding: 8px 4px; 
@@ -251,7 +254,7 @@ require_once '../Function/trava.php';
                 <span class="item-check" 
                     data-id="<?= $peca['id'] ?>" 
                     <?= $estilo ?> 
-                    style="font-size: 25px;">
+                    style="font-size: 24px;">
                     <?= $texto ?>
                 </span>
                 <?php endforeach;?>
@@ -393,44 +396,19 @@ require_once '../Function/trava.php';
 }
 
     function verificarLinha(linha) {
-    const colunas = linha.querySelectorAll('td');
-    let tudoCerto = true;
+    const itensLista = linha.querySelectorAll('.item-check');
+    if (itensLista.length === 0) return;
+   
+    const pendentes = Array.from(itensLista).filter(i => i.innerText.trim() !== 'E');
 
-    colunas.forEach((td, index) => {
-        if (index === 0 || index === 1) return; 
+    if (pendentes.length === 0) {
+        const numeroPedido = linha.cells[0].innerText.trim();
 
-        const texto = td.innerText.trim();
-        if (texto === '' || texto === '0') return;
-
-        const tabela = linha.closest('table');
-        const ths = tabela.querySelectorAll('thead th');
-        const nomeEquipamento = ths[index] ? ths[index].innerText.trim() : '';
-
-        const apenasEmbalagem = (nomeEquipamento.toLowerCase() === 'carrinho' || nomeEquipamento.toLowerCase() === 'gaiola');
-
-        if (apenasEmbalagem) {
-            return; 
-        }
-
-        if (!texto.includes('✅') && !texto.includes('E')) {
-            tudoCerto = false;
-        }
-    });
-
-    if (tudoCerto) {
-        if (linha.id) {
-            const idPedido = linha.id.replace('linha-', '');
-            
-            fetch('../Function/notificar_posVenda.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `id=${idPedido}`
-            })
-            .then(res => res.json())
+        fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}&tipo_tela=os_equipamentos`)
+            .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    dispararFeedbackCerto();
-                    if (scrollSpeed === 0) {
+                if (data && data.success) {
+                    if (data.status_pedido === 'SUBIU_POS_VENDA') {
                         linha.style.transition = "opacity 0.8s, background 0.5s";
                         linha.style.background = "#d4edda";
                         setTimeout(() => linha.remove(), 1000);
@@ -443,11 +421,12 @@ require_once '../Function/trava.php';
                 }
             })
             .catch(err => console.error("Falha na comunicação com o servidor:", err));
-        }
     }
 }
+        
 
-        document.querySelectorAll('tbody tr').forEach(tr => verificarLinha(tr));
+
+    document.querySelectorAll('tbody tr').forEach(tr => verificarLinha(tr));
 
         function dispararFeedbackCerto() {
             const flash = document.getElementById('flash-effect');

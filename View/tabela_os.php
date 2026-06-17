@@ -66,7 +66,7 @@ require_once '../Function/trava.php';
             td:first-child, th:first-child { 
                 font-weight: bold; 
                 color: blue; 
-                width: 60px; 
+                width: 80px; 
                 font-size: 16px;
             } 
 

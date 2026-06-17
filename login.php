@@ -235,7 +235,7 @@
                 <input type="password" id="senha" name="senha" placeholder="Digite sua senha" required>
             </div>
 
-            <button type="submit" class="btn-login">Autenticar Sistema</button>
+            <button type="submit" class="btn-login">Entrar</button>
         </form>
 
         <div class="footer-login">

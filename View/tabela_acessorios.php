@@ -235,7 +235,7 @@ require_once '../Function/trava.php';
                     <span class="item-check" 
                         data-id="<?= $peca['id'] ?>" 
                         <?= $estilo ?> 
-                        style="font-size: 25px;">
+                        style="font-size: 20px;">
                         <?= $texto ?>
                     </span>
                     <?php endforeach;?>
