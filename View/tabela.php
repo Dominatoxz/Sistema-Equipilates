@@ -70,7 +70,7 @@ require_once '../Function/trava.php';
                 font-weight: bold; 
                 color: blue; 
                 width: 60px; 
-                font-size: 16px;
+                font-size: 22px;
             } 
 
             .column-data{

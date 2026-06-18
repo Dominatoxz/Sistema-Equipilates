@@ -1,6 +1,5 @@
 <?php
 require_once './Function/trava.php'; 
-require_once './global.php';
 ?>
 
 <!DOCTYPE html>

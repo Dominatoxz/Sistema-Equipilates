@@ -1,6 +1,6 @@
 <?php
 require_once '../Function/trava.php'; 
-require_once '../global.php';
+require_once '../vendor/autoload.php';
 use Picqer\Barcode\BarcodeGeneratorPNG; 
 require_once '../config/Database.php'; 
 

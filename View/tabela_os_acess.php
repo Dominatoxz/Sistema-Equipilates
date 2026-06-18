@@ -211,7 +211,7 @@ require_once '../Function/trava.php';
         <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
         
         <?php foreach ($equipamentos as $nome_equipamento): 
-            $stmt = $db->prepare("SELECT id, status FROM itens_os WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido");
+            $stmt = $db->prepare("SELECT id, status FROM itens_os WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido LIKE 'OS%'");
             $stmt->execute([$pedido['numero'], $nome_equipamento]);
             $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC); 
         ?>
@@ -259,7 +259,7 @@ require_once '../Function/trava.php';
             .map(tr => tr.id.replace('linha-', ''));
 
         function verificarAtualizacoesRapidas() {
-            fetch('../Function/dados_tabelas.php?tela=producao_acess_os')
+            fetch('../Function/dados_tabelas.php?tela=producao_os')
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -284,14 +284,13 @@ require_once '../Function/trava.php';
 
         setInterval(verificarAtualizacoesRapidas, 20000);
 
-
         (function() {
             const urlParams = new URLSearchParams(window.location.search);
             const tempoRefresh = urlParams.get('refresh') || null; 
             if (tempoRefresh) {
                 setTimeout(() => {
-                    window.location.href = `index.php?refresh=${tempoRefresh}`;
-                }, tempoRefresh * 1000);
+                    window.location.href = `index.php?&refresh=${tempoRefresh}`;
+                }, tempoRefresh * 500);
             }
         })();
 
@@ -311,66 +310,74 @@ require_once '../Function/trava.php';
             }
         });
 
-        function atualizarStatusNoBanco(codigoCompleto) {
-            fetch(`../Function/atualizar_etapa.php?id=${codigoCompleto}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const icon = document.querySelector(`.item-check[data-id="${data.idReal}"]`);
-                        
-                        if (icon) {
-                            if (data.statusGerado === 'Finalizado') {
-                                icon.innerText = '✅';
-                                icon.style.color = ''; 
-                                icon.style.fontWeight = 'normal';
-                            } else if (data.statusGerado === 'Embalado') {
-                                icon.innerText = 'E';
-                                icon.style.color = '#27ae60'; 
-                                icon.style.fontWeight = 'bold';
-                                icon.style.fontSize = '30px';
-                            }
-                            
-                            dispararFeedbackCerto(); 
-                            verificarLinha(icon.closest('tr'));
-                        }
-                    } else {
-                        console.error("Erro no servidor:", data.error);
+ function atualizarStatusNoBanco(codigoCompleto) {
+    fetch(`../Function/atualizar_etapa.php?id=${codigoCompleto}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const icon = document.querySelector(`.item-check[data-id="${data.idReal}"]`);
+                
+                if (icon) {
+                    if (data.statusGerado === 'Finalizado') {
+                        icon.innerText = '✅';
+                        icon.style.color = ''; 
+                        icon.style.fontWeight = 'normal';
+                    } else if (data.statusGerado === 'Embalado') {
+                        icon.innerText = 'E';
+                        icon.style.color = '#27ae60'; 
+                        icon.style.fontWeight = 'bold';
+                        icon.style.fontSize = '30px';
                     }
-                })
-                .catch(err => console.error("Erro na requisição:", err));
-        }
+                    
+                    dispararFeedbackCerto(); 
 
-        function verificarLinha(linha) {
-            const itensLista = linha.querySelectorAll('.item-check');
+                } else{
+                    dispararFeedbackCerto(); 
+                    window.location.reload();
+                }
             
-            if (itensLista.length === 0) return;
-           
-            const pendentes = Array.from(itensLista).filter(function(i) {
-                return i.innerText.trim() !== 'E';
-            });
-
-            if (pendentes.length === 0) {
-                const numeroPedido = linha.cells[0].innerText.trim();
-
-                fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}&tipo_tela=os_acessorios`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            console.log(`Sucesso: Pedido ${numeroPedido} enviado para a fila do Pós-Venda.`);
-                        }
-                    })
-                    .catch(err => console.error("Falha na comunicação com o servidor:", err));
-
-                    linha.style.transition = "opacity 0.8s";
-                    linha.style.background = "#d4edda";
-                    setTimeout(() => linha.remove(), 1000);
+            } else {
+                console.error("Erro no servidor:", data.error);
             }
-        }
+        })
+        .catch(err => console.error("Erro na requisição:", err));
+}
+
+    function verificarLinha(linha) {
+    const itensLista = linha.querySelectorAll('.item-check');
+    if (itensLista.length === 0) return;
+   
+    const pendentes = Array.from(itensLista).filter(i => i.innerText.trim() !== 'E');
+
+    if (pendentes.length === 0) {
+        const numeroPedido = linha.cells[0].innerText.trim();
+
+        fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}&tipo_tela=os_equipamentos`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.success) {
+                    if (data.status_pedido === 'SUBIU_POS_VENDA') {
+                        linha.style.transition = "opacity 0.8s, background 0.5s";
+                        linha.style.background = "#d4edda";
+                        setTimeout(() => linha.remove(), 1000);
+                    } else {
+                        linha.style.transition = "background 0.5s";
+                        linha.style.background = "#ffeaa7"; 
+                    }
+                } else {
+                    console.error("O banco recusou a inserção:", data.error);
+                }
+            })
+            .catch(err => console.error("Falha na comunicação com o servidor:", err));
+    }
+}
+
+        document.querySelectorAll('tbody tr').forEach(tr => verificarLinha(tr));
 
         function dispararFeedbackCerto() {
             const flash = document.getElementById('flash-effect');
             flash.classList.add('flash-active');
-            setTimeout(() => flash.classList.remove('flash-active'), 150);
+            setTimeout(() => flash.classList.remove('flash-active'), 150);;
         }
 
         let scrollSpeed = 0; 
