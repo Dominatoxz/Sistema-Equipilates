@@ -282,7 +282,7 @@ require_once '../Function/trava.php';
                 .catch(err => console.error("Erro na sincronização rápida:", err));
         }
 
-        setInterval(verificarAtualizacoesRapidas, 20000);
+        setInterval(verificarAtualizacoesRapidas, 8000);
 
         (function() {
             const urlParams = new URLSearchParams(window.location.search);
