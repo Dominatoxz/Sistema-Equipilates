@@ -71,8 +71,8 @@ require_once '../Function/trava.php';
         }
 
         .header-painel img {
-            max-height: 45px;
-            width: auto;
+            max-height: 120px;
+            width: 180px;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
         }
 
@@ -268,13 +268,13 @@ require_once '../Function/trava.php';
             <a href="tabela.php" class="card-botao prod">
                 <div class="icon-box">📦</div>
                 <h3>Equipamentos</h3>
-                <p>Equipamentos da linha conteporânea e pedidos normais</p>
+                <p>Equipamentos da linha contemporânea e pedidos normais</p>
             </a>
 
             <a href="tabela_acessorios.php" class="card-botao prod">
                 <div class="icon-box">➕</div>
                 <h3>Acessórios</h3>
-                <p>Acessórios da linha conteporânea e pedidos normais</p>
+                <p>Acessórios da linha contemporânea e pedidos normais</p>
             </a>
 
             <a href="tabela_os.php" class="card-botao os-eq">

@@ -71,8 +71,8 @@ require_once '../Function/trava.php';
         }
 
         .header-painel img {
-            max-height: 45px;
-            width: auto;
+            max-height: 120px;
+            width: 180px;
             filter: drop-shadow(0 0 8px rgba(255,255,255,0.1));
         }
 

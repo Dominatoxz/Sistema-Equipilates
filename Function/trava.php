@@ -16,7 +16,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['usuario_logado'])) {
 
 if (!isset($_SESSION['criado_em'])) {
     $_SESSION['criado_em'] = time();
-} else if (time() - $_SESSION['criado_em'] > 1800) { 
+} else if (time() - $_SESSION['criado_em'] > 604800) { 
     session_unset();
     session_destroy();
     header("Location: ../login.php?erro=restrito");

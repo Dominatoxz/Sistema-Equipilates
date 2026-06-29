@@ -77,9 +77,8 @@
         }
 
         .login-container img {
-            max-height: 45px;
-            margin-bottom: 30px;
-            width: auto;
+            max-height: 120px;
+            width: 180px;
             filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.25)) brightness(1.1);
         }
 

@@ -84,8 +84,8 @@ require_once './Function/trava.php';
         }
 
         .header-painel img {
-            max-height: 40px;
-            width: auto;
+            max-height: 160px;
+            width: 200px;
             filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.2)) brightness(1.1);
         }
 
@@ -228,7 +228,7 @@ require_once './Function/trava.php';
     <div class="container">
         <h1>Linhas</h1>
         <p class="subtitle">"Olhos e Mente na Tarefa."</p>
-        <p class="sub-subtitle">- Luiz Kelly</p>
+        <p class="sub-subtitle">- LK</p>
 
         <div class="grid-painel">
             <a href="View/central_contemporaneo.php" class="card-botao linha-contemporanea">

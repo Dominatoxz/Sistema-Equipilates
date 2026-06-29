@@ -78,19 +78,6 @@ require_once '../Function/trava.php';
                 font-size: 20px;
                 color: #bb4242;
             }
-
-            .qr-link { 
-                background: #2ecc71; 
-                color: white; 
-                padding: 2px 4px; 
-                border-radius: 4px; 
-                font-size: 10px; 
-                text-decoration: none; 
-                font-weight: bold; 
-                display: block; 
-                margin: 2px 0;
-            }
-
            
             input#input-pistola {
                 position: fixed; 
@@ -106,32 +93,49 @@ require_once '../Function/trava.php';
                 z-index: -1;          
             }
 
-            #flash-effect { 
+            #feedback-box { 
                 position: fixed; 
                 top: 0; 
                 left: 0; 
                 width: 100vw; 
                 height: 100vh; 
-                background: rgba(46, 204, 113, 0.6);
-                opacity: 0; 
-                pointer-events: none; 
+                display: table;
+                text-align: center;
                 z-index: 9999; 
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.4s ease;
+                backdrop-filter: blur(5px);
             }
             
-            .flash-active { 
-                animation: pulseFlash 0.2s ease-out; 
-            }
-            .footer {
-            margin-top: 20px;
-            margin-bottom: 20px;
-            font-size: 0.85rem;
-            color: #bdc3c7;
+            #feedback-box.active { 
+                opacity: 1;
             }
 
-            @keyframes pulseFlash {
-                0% { opacity: 0; }
-                50% { opacity: 1; }
-                100% { opacity: 0; }
+            #feedback-content {
+                display: table-cell;
+                text-align: center;
+                vertical-align: middle;
+                color: white;
+                font-size: 45px; 
+                font-weight: bold;
+                padding: 20px;
+            }
+
+            #feedback-content .sub-item {
+                font-size: 45px;
+                margin-top: 25px;
+                background: rgba(0, 0, 0, 0.2);
+                display: inline-block;
+                padding: 15px 40px;
+                border-radius: 50px;
+            }
+
+            .footer {
+                margin-top: 20px;
+                margin-bottom: 20px;
+                font-size: 0.85rem;
+                color: #bdc3c7;
             }
     </style>
 </head>
@@ -151,7 +155,6 @@ require_once '../Function/trava.php';
         $tempo_expiracao = 30; 
 
         if (file_exists($arquivo_cache) && (time() - filemtime($arquivo_cache) < $tempo_expiracao)) {
-
             $dados_tabela = json_decode(file_get_contents($arquivo_cache), true);
         } else {
             $dados_tabela = $sistema->mostrarTabela();
@@ -164,13 +167,6 @@ require_once '../Function/trava.php';
 
         $pedidos = !empty($dados_tabela) ? $dados_tabela : [];
         $pedidos_agrupados = $pedidos;
-        ?>
-        <?php
-        if (!isset($pedidos)) {
-            $pedidos = [];
-        }
-
-        $pedidos_agrupados = $pedidos; 
         ?>
         <thead>
             <tr>
@@ -212,9 +208,7 @@ require_once '../Function/trava.php';
         'Prancha de Alongamento',
     ];
     $placeholders_acessorios = implode(',', array_fill(0, count($lista_acessorios), '?'));
-
-    $database = new Database();
-    $db = $database->getConnection();?>
+    ?>
 
     <?php if (empty($pedidos)): ?>
             <tr>
@@ -223,7 +217,7 @@ require_once '../Function/trava.php';
     <?php else: ?>
 
     <?php foreach ($pedidos_agrupados as $pedido): ?>
-    <tr>
+    <tr id="linha-<?= htmlspecialchars($pedido['numero']) ?>">
         <td><?= htmlspecialchars($pedido['numero'])?></td>
         
         <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
@@ -243,16 +237,17 @@ require_once '../Function/trava.php';
                     $texto = '❌';
                     $estilo = '';
 
-                    if ($peca['status'] === 'Finalizado') {
+                    if ($peca['status'] === 'Produzido') {
                         $texto = '✅';
                     } elseif ($peca['status'] === 'Embalado') {
                         $texto = 'E';
                         $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
                     }
-                
             ?>
                 <span class="item-check" 
                     data-id="<?= $peca['id'] ?>" 
+                    data-pedido="<?= htmlspecialchars($pedido['numero']) ?>"
+                    data-equipamento="<?= htmlspecialchars($nome_equipamento) ?>"
                     <?= $estilo ?> 
                     style="font-size: 24px;">
                     <?= $texto ?>
@@ -281,15 +276,15 @@ require_once '../Function/trava.php';
 
                 foreach ($status_acessorios as $st) {
                     if ($st === 'Embalado') $totalEmbalados++;
-                    if ($st === 'Finalizado') $totalFinalizados++;
+                    if ($st === 'Produzido') $totalFinalizados++;
                 }
 
                 if ($totalEmbalados === $totalAcess) {
-                    echo '<span class="item-check status-acessorio-coletivo" style="color: #27ae60; font-weight: bold; font-size: 30px;">E</span>';
+                    echo '<span class="item-check status-acessorio-coletivo" data-pedido="'.htmlspecialchars($pedido['numero']).'" data-equipamento="Acessórios" style="color: #27ae60; font-weight: bold; font-size: 30px;">E</span>';
                 } elseif (($totalEmbalados + $totalFinalizados) === $totalAcess) {
-                    echo '<span class="item-check status-acessorio-coletivo" style="font-size: 25px;">✅</span>';
+                    echo '<span class="item-check status-acessorio-coletivo" data-pedido="'.htmlspecialchars($pedido['numero']).'" data-equipamento="Acessórios" style="font-size: 25px;">✅</span>';
                 } else {
-                    echo '<span class="item-check status-acessorio-coletivo" style="font-size: 25px;">❌</span>';
+                    echo '<span class="item-check status-acessorio-coletivo" data-pedido="'.htmlspecialchars($pedido['numero']).'" data-equipamento="Acessórios" style="font-size: 25px;">❌</span>';
                 }
             }
             ?>
@@ -300,8 +295,9 @@ require_once '../Function/trava.php';
 </tbody>
     </table>
 
-    <div id="flash-effect"></div>
-
+    <div id="feedback-box">
+        <div id="feedback-content"></div>
+    </div>
 
     <script>
         let pedidosAtuais = Array.from(document.querySelectorAll('tbody tr[id^="linha-"]'))
@@ -315,11 +311,10 @@ require_once '../Function/trava.php';
                         const novosDados = data.dados;
                         
                         const novosPedidos = novosDados.map(p => {
-                        const valorPedido = p.numero_pedido || p.numero || '';
-                        return valorPedido.toString();
-                    });
+                            const valorPedido = p.numero_pedido || p.numero || '';
+                            return valorPedido.toString();
+                        });
 
-                        
                         const temNovoItem = novosPedidos.some(num => !pedidosAtuais.includes(num));
                         const itemSumiu = pedidosAtuais.some(num => !novosPedidos.includes(num));
 
@@ -331,7 +326,7 @@ require_once '../Function/trava.php';
                 .catch(err => console.error("Erro na sincronização rápida:", err));
         }
 
-        setInterval(verificarAtualizacoesRapidas, 20000);
+        setInterval(verificarAtualizacoesRapidas, 30000);
 
         (function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -359,15 +354,18 @@ require_once '../Function/trava.php';
             }
         });
 
- function atualizarStatusNoBanco(codigoCompleto) {
+function atualizarStatusNoBanco(codigoCompleto) {
     fetch(`../Function/atualizar_etapa.php?id=${codigoCompleto}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 const icon = document.querySelector(`.item-check[data-id="${data.idReal}"]`);
                 
+                let nrPedido = data.pedidoReal || "Desconhecido";
+                let nmItem = data.equipamentoReal || "Equipamento";
+
                 if (icon) {
-                    if (data.statusGerado === 'Finalizado') {
+                    if (data.statusGerado === 'Produzido') {
                         icon.innerText = '✅';
                         icon.style.color = ''; 
                         icon.style.fontWeight = 'normal';
@@ -377,73 +375,83 @@ require_once '../Function/trava.php';
                         icon.style.fontWeight = 'bold';
                         icon.style.fontSize = '30px';
                     }
-                    
-                    dispararFeedbackCerto(); 
-                    setTimeout(() => {
-                        window.location.reload()
-                    }, 200)
-                } else{
-                    dispararFeedbackCerto(); 
-                    window.location.reload();
                 }
+                
+                dispararFeedbackCerto(nrPedido, nmItem, data.statusGerado); 
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 8500);
 
-            
             } else {
                 console.error("Erro no servidor:", data.error);
+                alert("Erro: " + data.error); 
             }
         })
         .catch(err => console.error("Erro na requisição:", err));
 }
 
     function verificarLinha(linha) {
-    const itensLista = linha.querySelectorAll('.item-check');
-    if (itensLista.length === 0) return;
-   
-    const pendentes = Array.from(itensLista).filter(i => i.innerText.trim() !== 'E');
+        const itensLista = linha.querySelectorAll('.item-check');
+        if (itensLista.length === 0) return;
+       
+        const pendentes = Array.from(itensLista).filter(i => i.innerText.trim() !== 'E');
 
-    if (pendentes.length === 0) {
-        const numeroPedido = linha.cells[0].innerText.trim();
+        if (pendentes.length === 0) {
+            const numeroPedido = linha.cells[0].innerText.trim();
 
-        fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}&tipo_tela=os_equipamentos`)
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.success) {
-                    if (data.status_pedido === 'SUBIU_POS_VENDA') {
-                        linha.style.transition = "opacity 0.8s, background 0.5s";
-                        linha.style.background = "#d4edda";
-                        setTimeout(() => linha.remove(), 1000);
+            fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}&tipo_tela=os_equipamentos`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.success) {
+                        if (data.status_pedido === 'SUBIU_POS_VENDA') {
+                            linha.style.transition = "opacity 0.8s, background 0.5s";
+                            linha.style.background = "#d4edda";
+                            setTimeout(() => linha.remove(), 1000);
+                        } else {
+                            linha.style.transition = "background 0.5s";
+                            linha.style.background = "#ffeaa7"; 
+                        }
                     } else {
-                        linha.style.transition = "background 0.5s";
-                        linha.style.background = "#ffeaa7"; 
+                        console.error("O banco recusou a inserção:", data.error);
                     }
-                } else {
-                    console.error("O banco recusou a inserção:", data.error);
-                }
-            })
-            .catch(err => console.error("Falha na comunicação com o servidor:", err));
+                })
+                .catch(err => console.error("Falha na comunicação com o servidor:", err));
+        }
     }
-}
         
-
-
     document.querySelectorAll('tbody tr').forEach(tr => verificarLinha(tr));
 
-        function dispararFeedbackCerto() {
-            const flash = document.getElementById('flash-effect');
-            flash.classList.add('flash-active');
-            setTimeout(() => flash.classList.remove('flash-active'), 150);;
+    function dispararFeedbackCerto(pedido, item, status) {
+        const box = document.getElementById('feedback-box');
+        const content = document.getElementById('feedback-content');
+        
+        if (status === 'Embalado') {
+            box.style.backgroundColor = 'rgba(39, 174, 96, 0.85)'; 
+        } else {
+            box.style.backgroundColor = 'rgba(46, 196, 182, 0.85)'; 
         }
 
-        let scrollSpeed = 0; 
-        function autoScroll() {
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-                setTimeout(() => window.scrollTo(0, 0), 3000);
-            } else {
-                window.scrollBy(0, scrollSpeed);
-            }
-            requestAnimationFrame(autoScroll);
+        content.innerHTML = `<div>PEDIDO: <strong>#${pedido}</strong></div>
+                             <div class="sub-item">${item} &rarr; <u>${status.toUpperCase()}</u></div>`;
+        
+        box.classList.add('active');
+        
+        setTimeout(() => {
+            box.classList.remove('active');
+        }, 3000);
+    }
+
+    let scrollSpeed = 0; 
+    function autoScroll() {
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+            setTimeout(() => window.scrollTo(0, 0), 3000);
+        } else {
+            window.scrollBy(0, scrollSpeed);
         }
-        window.onload = () => { if(scrollSpeed > 0) autoScroll(); };
+        requestAnimationFrame(autoScroll);
+    }
+    window.onload = () => { if(scrollSpeed > 0) autoScroll(); };
     </script>
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>

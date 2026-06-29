@@ -103,21 +103,44 @@ require_once '../Function/trava.php';
                 z-index: -1;          
             }
 
-            #flash-effect { 
+                        #feedback-box { 
                 position: fixed; 
                 top: 0; 
                 left: 0; 
                 width: 100vw; 
                 height: 100vh; 
-                background: rgba(46, 204, 113, 0.6);
-                opacity: 0; 
-                pointer-events: none; 
+                display: table;
+                text-align: center;
                 z-index: 9999; 
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.4s ease;
+                backdrop-filter: blur(5px);
             }
             
-            .flash-active { 
-                animation: pulseFlash 0.2s ease-out; 
+            #feedback-box.active { 
+                opacity: 1;
             }
+
+            #feedback-content {
+                display: table-cell;
+                text-align: center;
+                vertical-align: middle;
+                color: white;
+                font-size: 45px; 
+                font-weight: bold;
+                padding: 20px;
+            }
+
+            #feedback-content .sub-item {
+                font-size: 45px;
+                margin-top: 25px;
+                background: rgba(0, 0, 0, 0.2);
+                display: inline-block;
+                padding: 15px 40px;
+                border-radius: 50px;
+            }
+
 
             .footer {
             margin-top: 20px;
@@ -225,7 +248,7 @@ require_once '../Function/trava.php';
                         $texto = '❌';
                         $estilo = '';
 
-                    if ($peca['status'] === 'Finalizado') {
+                    if ($peca['status'] === 'Produzido') {
                         $texto = '✅';
                     } elseif ($peca['status'] === 'Embalado') {
                         $texto = 'E';
@@ -233,7 +256,9 @@ require_once '../Function/trava.php';
                     }
                 ?>
                     <span class="item-check" 
-                        data-id="<?= $peca['id'] ?>" 
+                        data-id="OS<?= $peca['id'] ?>"
+                        data-pedido="<?= htmlspecialchars($pedido['numero']) ?>"
+                        data-equipamento="<?= htmlspecialchars($nome_equipamento) ?>" 
                         <?= $estilo ?> 
                         style="font-size: 25px;">
                         <?= $texto ?>
@@ -250,10 +275,9 @@ require_once '../Function/trava.php';
     <?php endif; ?>
 </tbody>
     </table>
-
-    <div id="flash-effect"></div>
-
-
+    <div id="feedback-box">
+        <div id="feedback-content"></div>
+    </div>
     <script>
         let pedidosAtuais = Array.from(document.querySelectorAll('tbody tr[id^="linha-"]'))
             .map(tr => tr.id.replace('linha-', ''));
@@ -317,8 +341,14 @@ require_once '../Function/trava.php';
             if (data.success) {
                 const icon = document.querySelector(`.item-check[data-id="${data.idReal}"]`);
                 
+                let nrPedido = "Desconhecido";
+                let nmItem = "Equipamento";
+
                 if (icon) {
-                    if (data.statusGerado === 'Finalizado') {
+                    nrPedido = icon.getAttribute('data-pedido') || nrPedido;
+                    nmItem = icon.getAttribute('data-equipamento') || nmItem;
+
+                    if (data.statusGerado === 'Produzido') {
                         icon.innerText = '✅';
                         icon.style.color = ''; 
                         icon.style.fontWeight = 'normal';
@@ -328,57 +358,75 @@ require_once '../Function/trava.php';
                         icon.style.fontWeight = 'bold';
                         icon.style.fontSize = '30px';
                     }
-                    
-                    dispararFeedbackCerto(); 
-
-                } else{
-                    dispararFeedbackCerto(); 
-                    window.location.reload();
+                } else {
+                    const partes = codigoCompleto.split('-');
+                    if (partes[0]) nrPedido = partes[0];
                 }
-            
+                
+                dispararFeedbackCerto(nrPedido, nmItem, data.statusGerado); 
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 5000);
+
             } else {
                 console.error("Erro no servidor:", data.error);
+                alert("Erro: " + data.error); 
             }
         })
         .catch(err => console.error("Erro na requisição:", err));
 }
 
     function verificarLinha(linha) {
-    const itensLista = linha.querySelectorAll('.item-check');
-    if (itensLista.length === 0) return;
-   
-    const pendentes = Array.from(itensLista).filter(i => i.innerText.trim() !== 'E');
+        const itensLista = linha.querySelectorAll('.item-check');
+        if (itensLista.length === 0) return;
+       
+        const pendentes = Array.from(itensLista).filter(i => i.innerText.trim() !== 'E');
 
-    if (pendentes.length === 0) {
-        const numeroPedido = linha.cells[0].innerText.trim();
+        if (pendentes.length === 0) {
+            const numeroPedido = linha.cells[0].innerText.trim();
 
-        fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}&tipo_tela=os_equipamentos`)
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.success) {
-                    if (data.status_pedido === 'SUBIU_POS_VENDA') {
-                        linha.style.transition = "opacity 0.8s, background 0.5s";
-                        linha.style.background = "#d4edda";
-                        setTimeout(() => linha.remove(), 1000);
+            fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}&tipo_tela=os_equipamentos`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.success) {
+                        if (data.status_pedido === 'SUBIU_POS_VENDA') {
+                            linha.style.transition = "opacity 0.8s, background 0.5s";
+                            linha.style.background = "#d4edda";
+                            setTimeout(() => linha.remove(), 1000);
+                        } else {
+                            linha.style.transition = "background 0.5s";
+                            linha.style.background = "#ffeaa7"; 
+                        }
                     } else {
-                        linha.style.transition = "background 0.5s";
-                        linha.style.background = "#ffeaa7"; 
+                        console.error("O banco recusou a inserção:", data.error);
                     }
-                } else {
-                    console.error("O banco recusou a inserção:", data.error);
-                }
-            })
-            .catch(err => console.error("Falha na comunicação com o servidor:", err));
-    }
-}
-
-        document.querySelectorAll('tbody tr').forEach(tr => verificarLinha(tr));
-
-        function dispararFeedbackCerto() {
-            const flash = document.getElementById('flash-effect');
-            flash.classList.add('flash-active');
-            setTimeout(() => flash.classList.remove('flash-active'), 150);;
+                })
+                .catch(err => console.error("Falha na comunicação com o servidor:", err));
         }
+    }
+        
+    document.querySelectorAll('tbody tr').forEach(tr => verificarLinha(tr));
+
+    function dispararFeedbackCerto(pedido, item, status) {
+        const box = document.getElementById('feedback-box');
+        const content = document.getElementById('feedback-content');
+        
+        if (status === 'Embalado') {
+            box.style.backgroundColor = 'rgba(39, 174, 96, 0.85)'; 
+        } else {
+            box.style.backgroundColor = 'rgba(46, 196, 182, 0.85)'; 
+        }
+
+        content.innerHTML = `<div>PEDIDO: <strong>#${pedido}</strong></div>
+                             <div class="sub-item">${item} &rarr; <u>${status.toUpperCase()}</u></div>`;
+        
+        box.classList.add('active');
+        
+        setTimeout(() => {
+            box.classList.remove('active');
+        }, 2800);
+    }
 
         let scrollSpeed = 0; 
         function autoScroll() {

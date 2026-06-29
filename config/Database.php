@@ -2,11 +2,10 @@
 Class Database {
     public $conn;
     private $db_host = 'localhost';
-    private $db_name = 'u109029190_db_GN6XeAZr';
-    private $db_user = 'u109029190_usr_GN6XeAZr';
-    private $db_password = 'Equipilates26';
+    private $db_name = 'u109029190_db_GN6XeAZr'; //u109029190_db_GN6XeAZr
+    private $db_user = 'u109029190_usr_GN6XeAZr'; //u109029190_usr_GN6XeAZr
+    private $db_password = 'Equipilates26'; //Equipilates26
 
-    //função para fazer a conexão com o banco de dados (fazer amanhã o link da planilha com o banco de dados)
     public function getConnection() {
         
         $this->conn = null;
