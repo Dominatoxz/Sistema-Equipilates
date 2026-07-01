@@ -341,13 +341,15 @@ class Sistema {
 
       public function mostrarFilaProducao(): array 
         {
-            $query = "SELECT id, numero_pedido, prazo_producao, status AS status_item, 'PRODUCAO' AS origem
-                    FROM itens_producao
+            $query = "SELECT id, numero_pedido, prazo_producao, status AS status_item, 'NORMAL' AS origem
+                    FROM itens_producao 
+                    WHERE equipamento NOT LIKE '%Emb.%'
                     
                     UNION ALL
                     
                     SELECT id, numero_pedido, prazo_producao, status AS status_item, 'OS' AS origem
                     FROM itens_os
+                    WHERE equipamento NOT LIKE '%Emb.%'
                     
                     ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC";
 
@@ -390,7 +392,7 @@ class Sistema {
 
                     $pedidosAgrupados[$numPedido]['total_itens']++;
 
-                    if ($item['status_item'] === 'Produzido' || $item['status_item'] === '✅' || $item['status_item'] === 'Embalado') {
+                    if ($item['status_item'] === 'Embalado' || $item['status_item'] === 'E') {
                         $pedidosAgrupados[$numPedido]['itens_concluidos']++;
                     }
                 }
