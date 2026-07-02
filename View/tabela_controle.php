@@ -22,6 +22,51 @@ require_once '../Function/trava.php';
         .badge-pronto { background-color: #d4edda; color: #155724; padding: 6px 12px; border-radius: 5px; font-size: 14px; font-weight: bold; border: 1px solid #c3e6cb; }
         .sem-pedidos { text-align: center; padding: 50px; color: #7f8c8d; font-size: 18px; font-weight: 500; }
         
+        .badge-origem { padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .origem-normal { background-color: #e2e3e5; color: #383d41; }
+        .origem-os { background-color: #f8d7da; color: #721c24; }
+
+        .filtros-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .btn-filtro {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border: 1px solid #cbd5e1;
+            background-color: #fff;
+            color: #475569;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .btn-filtro:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+        }
+        .btn-filtro.active {
+            background-color: #2c3e50;
+            color: #fff;
+            border-color: #2c3e50;
+        }
+        .btn-filtro span {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 15px;
+            text-align: center;
+        }
+        .btn-filtro.active span {
+            outline: 1px solid rgba(255,255,255,0.4);
+        }
+
         .linha-observacao { background-color: #fcfcfc; display: none; }
         .linha-observacao td { text-align: left; padding: 0 25px; border-bottom: 1px solid #e0e0e0; }
 
@@ -60,15 +105,28 @@ require_once '../Function/trava.php';
         <div style="font-weight: bold; color: #7f8c8d;">Status de Saídas</div>
     </div>
     
+    <div class="filtros-container">
+        <button class="btn-filtro active" data-filter="todos">
+            Todos <span id="qtd-todos" style="background: #e2e8f0; color: #334155;">0</span>
+        </button>
+        <button class="btn-filtro" data-filter="normal">
+            Pedidos Normais <span id="qtd-normal" style="background: #e2e3e5; color: #383d41;">0</span>
+        </button>
+        <button class="btn-filtro" data-filter="os">
+            Ordens de Serviço (OS) <span id="qtd-os" style="background: #f8d7da; color: #721c24;">0</span>
+        </button>
+    </div>
+
     <table>
         <thead>
             <tr>
                 <th>Pedido / OS</th>
+                <th>Tipo</th>
                 <th>Prazo de Produção</th>
                 <th>Status Pós-Produção</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="tabela-controle-body">
             <?php
             require_once '../config/Database.php'; 
             require_once '../Model/Sistema.php'; 
@@ -80,13 +138,25 @@ require_once '../Function/trava.php';
             $pedidos = $sistema->mostrarFilaControle(); 
             ?>
             <?php if (empty($pedidos)): ?>
-                <tr>
-                    <td colspan="6" class="sem-pedidos">Nenhum pedido aguardando liberação.</td>
+                <tr class="linha-sem-registro">
+                    <td colspan="4" class="sem-pedidos">Nenhum pedido aguardando liberação.</td>
                 </tr>
             <?php else: ?>
-                <?php foreach($pedidos as $p): ?>
-                <tr>
-                    <td style="font-weight: bold; color: #2980b9; font-size: 18px;"><?= htmlspecialchars($p['numero_pedido']) ?></td>
+                <?php foreach($pedidos as $p): 
+                    $numPedido = $p['numero_pedido'] ?? '';
+                    
+                    $tipoOrigem = (strpos(strtoupper($numPedido), 'OS') !== false) ? 'OS' : 'Normal';
+                    $classeOrigem = ($tipoOrigem === 'OS') ? 'origem-os' : 'origem-normal';
+                ?>
+                <tr id="linha-<?= $p['id'] ?>" data-tipo="<?= strtolower($tipoOrigem) ?>">
+                    <td style="font-weight: bold; color: #2980b9; font-size: 18px;">
+                        <?= htmlspecialchars($numPedido) ?>
+                    </td>
+                    <td>
+                        <span class="badge-origem <?= $classeOrigem ?>">
+                            <?= $tipoOrigem ?>
+                        </span>
+                    </td>
                     <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10)) ?></td>
                     <td><?= htmlspecialchars($p['status_posvenda']) ?></td>
                 </tr>
@@ -96,79 +166,68 @@ require_once '../Function/trava.php';
     </table>
 
     <script>
-        function toggleSanfona(id) {
-            const linhaObs = document.getElementById(`ObsRow-${id}`);
-            if (!linhaObs) return;
-            
-            if (linhaObs.style.display === "table-row") {
-                linhaObs.classList.remove('aberta');
-                setTimeout(() => {
-                    linhaObs.style.display = "none";
-                }, 400); 
-            } else {
-                linhaObs.style.display = "table-row";
-                
-               setTimeout(() => {
-            const inputObs = document.getElementById(`input-obs-${id}`);
-            const timeObs = document.getElementById(`time-obs-${id}`);
-            
-            if (inputObs) {
-                const rawData = localStorage.getItem(`obs_pedido_${id}`);
-                
-                if (rawData) {
-                    try {
-                        const pacoteNota = JSON.parse(rawData);
-                        
-                        inputObs.value = pacoteNota.texto || "";
+    const botoesFiltro = document.querySelectorAll('.btn-filtro');
+    const linhasTabela = document.querySelectorAll('#tabela-controle-body tr[id^="linha-"]');
+    
+    function atualizarContadores() {
+        const linhasTabela = document.querySelectorAll('#tabela-controle-body tr[id^="linha-"]');
+        let todos = 0, normal = 0, os = 0;
 
-                        if (timeObs && pacoteNota.horario) {
-                            timeObs.innerHTML = `⏱️ Salvo em: <strong>${pacoteNota.horario}</strong>`;
-                        } else if (timeObs) {
-                            timeObs.innerText = "";
-                        }
-                    } catch (e) {
-                        inputObs.value = rawData;
-                        if (timeObs) timeObs.innerText = "";
-                    }
-                } else {
-                    inputObs.value = "";
-                    if (timeObs) timeObs.innerText = "";
-                }
-            }
-            linhaObs.classList.add('aberta');
-        }, 20);
+        linhasTabela.forEach(tr => {
+            todos++;
+            const tipo = tr.getAttribute('data-tipo');
+
+            if (tipo === 'normal') normal++;
+            if (tipo === 'os') os++;
+        });
+
+        document.getElementById('qtd-todos').textContent = todos;
+        document.getElementById('qtd-normal').textContent = normal;
+        document.getElementById('qtd-os').textContent = os;
     }
-}
 
-        function salvarObservacaoLocal(id) {
-            const elementoInput = document.getElementById(`input-obs-${id}`);
-            
-            if (!elementoInput) {
-                alert("Erro ao identificar o campo de digitação.");
-                return;
+    botoesFiltro.forEach(botao => {
+        botao.addEventListener('click', function() {
+            botoesFiltro.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const filtroSelecionado = this.getAttribute('data-filter');
+            const linhasTabela = document.querySelectorAll('#tabela-controle-body tr[id^="linha-"]');
+            let encontrouAlgum = false;
+
+            linhasTabela.forEach(tr => {
+                const tipoLinha = tr.getAttribute('data-tipo');
+
+                if (filtroSelecionado === 'todos') {
+                    tr.style.display = '';
+                    encontrouAlgum = true;
+                } else {
+                    if (tipoLinha === filtroSelecionado) {
+                        tr.style.display = '';
+                        encontrouAlgum = true;
+                    } else {
+                        tr.style.display = 'none';
+                    }
+                }
+            });
+
+            const avisoExistente = document.querySelector('.aviso-filtro-vazio');
+            if (avisoExistente) avisoExistente.remove();
+
+            if (!encontrouAlgum && linhasTabela.length > 0) {
+                const tbody = document.getElementById('tabela-controle-body');
+                const trAviso = document.createElement('tr');
+                trAviso.className = 'aviso-filtro-vazio';
+                trAviso.innerHTML = `<td colspan="4" class="sem-pedidos">Nenhum registro encontrado para este filtro.</td>`;
+                tbody.appendChild(trAviso);
             }
+        });
+    });
 
-            const txtObs = elementoInput.value;
-            const agora = new Date().toLocaleString('pt-BR');
+    document.addEventListener("DOMContentLoaded", atualizarContadores);
 
-            const pacoteNota = {
-                texto: txtObs,
-                horario: agora
-            };
-            
-            localStorage.setItem(`obs_pedido_${id}`, JSON.stringify(pacoteNota));
-            
-            if (timeObs) {
-                timeObs.innerHTML = `⏱️ Última alteração salva em: <strong>${agora}</strong>`;
-            }
-            
-            alert("Observação guardada no navegador deste computador!");
-            toggleSanfona(id);
-        }
-
-        
     let idsAtuais = Array.from(document.querySelectorAll('tbody tr[id^="linha-"]'))
-                        .map(tr => tr.id.replace('linha-', ''));
+                         .map(tr => tr.id.replace('linha-', ''));
 
     function verificarAtualizacoesEmSegundoPlano() {
         if (document.activeElement && document.activeElement.tagName === 'INPUT') {
@@ -193,8 +252,9 @@ require_once '../Function/trava.php';
             .catch(err => console.error("Erro na sincronização rápida:", err));
     }
 
-    setInterval(verificarAtualizacoesEmSegundoPlano, 10000);
+    setInterval(verificarAtualizacoesEmSegundoPlano, 30000);
     </script>
+    
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>
     </div>

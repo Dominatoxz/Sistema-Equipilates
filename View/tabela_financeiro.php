@@ -14,8 +14,7 @@ require_once '../Function/trava.php';
             --bg-gradient: radial-gradient(circle at 50% 0%, #ffffff 0%, #f1f5f9 100%);
             --panel-bg: #ffffff;
             --border-tech: rgba(15, 23, 42, 0.06);
-            
-            /* Cores de Identidade Light Tech */
+        
             --tech-blue: #2563eb;
             --tech-blue-hover: #1d4ed8;
             --tech-green: #10b981;
@@ -290,7 +289,19 @@ require_once '../Function/trava.php';
                     <td colspan="6" class="sem-pedidos">Nenhum pedido aguardando liberação.</td>
                 </tr>
             <?php else: ?>
-                <?php foreach($pedidos as $p): ?>
+                <?php foreach($pedidos as $p): 
+                    $stmtObs = $db->prepare("SELECT observacao, DATE_FORMAT(data_criacao, '%d/%m/%Y %H:%i') as data_obs 
+                                             FROM observacoes_financeiro 
+                                             WHERE id_pedido = :id 
+                                             ORDER BY data_criacao DESC 
+                                             LIMIT 1");
+                    $stmtObs->bindParam(':id', $p['id']);
+                    $stmtObs->execute();
+                    $notaExistente = $stmtObs->fetch(PDO::FETCH_ASSOC);
+                    
+                    $textoNota = $notaExistente ? $notaExistente['observacao'] : '';
+                    $dataNota = $notaExistente ? "⏱️ Última alteração: <strong>" . $notaExistente['data_obs'] . "</strong>" : '';
+                ?>
                 <tr id="Linha-<?= $p['id'] ?>">
                     <td style="font-weight: bold; color: #2980b9; font-size: 18px;"><?= htmlspecialchars($p['numero_pedido']) ?></td>
                     <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10)) ?></td>
@@ -310,10 +321,11 @@ require_once '../Function/trava.php';
                                 <input type="text" 
                                        id="input-obs-<?= $p['id'] ?>" 
                                        class="input-obs" 
-                                       placeholder="Observações">
-                                <button class="btn-salvar-obs" onclick="salvarObservacaoLocal(<?= $p['id'] ?>)">Salvar Nota</button>
+                                       placeholder="Observações"
+                                       value="<?= htmlspecialchars($textoNota) ?>">
+                                <button class="btn-salvar-obs" onclick="salvarObservacaoBanco(<?= $p['id'] ?>, '<?= htmlspecialchars($p['numero_pedido']) ?>')">Salvar Nota</button>
                             </div>
-                            <p class="txt-historico-obs" id="time-obs-<?= $p['id'] ?>"></p>
+                            <p class="txt-historico-obs" id="time-obs-<?= $p['id'] ?>"><?= $dataNota ?></p>
                         </div>
                     </td>
                 </tr>
@@ -334,41 +346,15 @@ require_once '../Function/trava.php';
                 }, 400); 
             } else {
                 linhaObs.style.display = "table-row";
-                
-               setTimeout(() => {
-            const inputObs = document.getElementById(`input-obs-${id}`);
-            const timeObs = document.getElementById(`time-obs-${id}`);
-            
-            if (inputObs) {
-                const rawData = localStorage.getItem(`obs_pedido_${id}`);
-                
-                if (rawData) {
-                    try {
-                        const pacoteNota = JSON.parse(rawData);
-                        
-                        inputObs.value = pacoteNota.texto || "";
-
-                        if (timeObs && pacoteNota.horario) {
-                            timeObs.innerHTML = `⏱️ Salvo em: <strong>${pacoteNota.horario}</strong>`;
-                        } else if (timeObs) {
-                            timeObs.innerText = "";
-                        }
-                    } catch (e) {
-                        inputObs.value = rawData;
-                        if (timeObs) timeObs.innerText = "";
-                    }
-                } else {
-                    inputObs.value = "";
-                    if (timeObs) timeObs.innerText = "";
-                }
+                setTimeout(() => {
+                    linhaObs.classList.add('aberta');
+                }, 20);
             }
-            linhaObs.classList.add('aberta');
-        }, 20);
-    }
-}
+        }
 
-        function salvarObservacaoLocal(id) {
+        function salvarObservacaoBanco(id, numPedido) {
             const elementoInput = document.getElementById(`input-obs-${id}`);
+            const timeObs = document.getElementById(`time-obs-${id}`);
             
             if (!elementoInput) {
                 alert("Erro ao identificar o campo de digitação.");
@@ -376,23 +362,32 @@ require_once '../Function/trava.php';
             }
 
             const txtObs = elementoInput.value;
-            const agora = new Date().toLocaleString('pt-BR');
 
-            const pacoteNota = {
-                texto: txtObs,
-                horario: agora
-            };
-            
-            localStorage.setItem(`obs_pedido_${id}`, JSON.stringify(pacoteNota));
-            
-            if (timeObs) {
-                timeObs.innerHTML = `⏱️ Última alteração salva em: <strong>${agora}</strong>`;
-            }
-            
-            alert("Observação guardada no navegador deste computador!");
-            toggleSanfona(id);
+            fetch('../Function/salvar_obs_financeiro.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    id_pedido: id, 
+                    numero_pedido: numPedido, 
+                    observacao: txtObs 
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const agora = new Date().toLocaleString('pt-BR');
+                    if (timeObs) {
+                        timeObs.innerHTML = `⏱️ Última alteração salva em: <strong>${agora}</strong>`;
+                    }
+                    alert("Observação guardada com sucesso no banco de dados!");
+                    toggleSanfona(id);
+                } else {
+                    alert("Erro ao salvar nota: " + data.error);
+                }
+            })
+            .catch(err => console.error("Erro na comunicação:", err));
         }
-
+        
         function liberarPedido(id) {
             if (confirm("Enviar pedido para o Pós-venda?")) {
                 
@@ -463,7 +458,7 @@ require_once '../Function/trava.php';
                 })
                 .catch(err => console.error("Erro na sincronização rápida:", err));
         }
-        setInterval(verificarAtualizacoesEmSegundoPlano, 7000);
+        setInterval(verificarAtualizacoesEmSegundoPlano, 30000);
     </script>
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>

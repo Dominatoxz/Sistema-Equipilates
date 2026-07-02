@@ -16,10 +16,10 @@ try {
 
     if ($origem === 'OS') {
         $tabela = 'itens_os';
-        $query = "SELECT equipamento AS nome_produto, status FROM $tabela WHERE numero_pedido = :pedido";
+        $query = "SELECT equipamento AS nome_produto, status FROM $tabela WHERE numero_pedido = :pedido AND equipamento NOT LIKE '%Emb.%'";
     } else {
         $tabela = 'itens_producao';
-        $query = "SELECT equipamento AS nome_produto, status FROM $tabela WHERE numero_pedido = :pedido";
+        $query = "SELECT equipamento AS nome_produto, status FROM $tabela WHERE numero_pedido = :pedido AND equipamento NOT LIKE '%Emb.%'";
     }
 
     $stmt = $db->prepare($query);

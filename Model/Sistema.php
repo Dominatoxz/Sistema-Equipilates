@@ -331,7 +331,7 @@ class Sistema {
     }
 
         public function mostrarFilaControle(){
-        $query = "SELECT numero_pedido, prazo_producao, status_posvenda
+        $query = "SELECT id, numero_pedido, prazo_producao, status_posvenda
                   FROM pedidos_prontos
                   ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC";
         $stmt = $this->conn->prepare($query);

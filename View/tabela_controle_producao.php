@@ -39,6 +39,48 @@ require_once '../Function/trava.php';
             box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
         }
 
+        .filtros-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .btn-filtro {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border: 1px solid #cbd5e1;
+            background-color: #fff;
+            color: #475569;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .btn-filtro:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+        }
+        .btn-filtro.active {
+            background-color: #2c3e50;
+            color: #fff;
+            border-color: #2c3e50;
+        }
+
+        .btn-filtro span {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 15px;
+            text-align: center;
+        }
+        .btn-filtro.active span {
+            outline: 1px solid rgba(255,255,255,0.4);
+        }
+
         .tooltip-itens {
             display: none;
             position: absolute;
@@ -50,7 +92,6 @@ require_once '../Function/trava.php';
             z-index: 9999;
             min-width: 280px;
             max-width: 400px;
-            
             max-height: 250px; 
             overflow-y: auto;
         }
@@ -70,8 +111,26 @@ require_once '../Function/trava.php';
 </head>
 <body>
     <div class="header-painel">
-        <h1>Painel de Controle da Production</h1>
+        <h1>Painel de Controle da Produção</h1>
         <div style="font-weight: bold; color: #7f8c8d;">Status de Saídas</div>
+    </div>
+
+    <div class="filtros-container">
+        <button class="btn-filtro active" data-filter="todos">
+            Todos <span id="qtd-todos" style="background: #e2e8f0; color: #334155;">0</span>
+        </button>
+        <button class="btn-filtro" data-filter="atrasado">
+            Atrasados <span id="qtd-atrasado" style="background: #e2606d; color: white;">0</span>
+        </button>
+        <button class="btn-filtro" data-filter="Pendente">
+            Pendentes <span id="qtd-pendente" style="background: #ffeeba; color: #856404;">0</span>
+        </button>
+        <button class="btn-filtro" data-filter="Em produção">
+            Em Produção <span id="qtd-producao" style="background: #b8daff; color: #004085;">0</span>
+        </button>
+        <button class="btn-filtro" data-filter="Embalado">
+            Embalados <span id="qtd-embalado" style="background: #c3e6cb; color: #155724;">0</span>
+        </button>
     </div>
     
     <table>
@@ -80,10 +139,10 @@ require_once '../Function/trava.php';
                 <th>Pedido / OS</th>
                 <th>Tipo</th>
                 <th>Prazo de Produção</th>
-                <th>Andamento da Production</th>
+                <th>Andamento da Produção</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="tabela-pedidos-body">
             <?php
             require_once '../config/Database.php'; 
             require_once '../Model/Sistema.php'; 
@@ -115,7 +174,7 @@ require_once '../Function/trava.php';
 
                     $classeOrigem = ($origem === 'OS') ? 'origem-os' : 'origem-producao';
             ?>
-                <tr id="Linha-<?= $idUnicoLinha ?>" data-id="<?= $idUnicoLinha ?>">
+                <tr id="Linha-<?= $idUnicoLinha ?>" data-id="<?= $idUnicoLinha ?>" data-status="<?= $statusProducao ?>">
                     <td style="font-weight: bold; color: #2980b9;">
                         <?= htmlspecialchars($numPedido ?? '') ?>
                     </td>
@@ -170,7 +229,7 @@ require_once '../Function/trava.php';
                 endforeach; 
             else: 
             ?>
-                <tr>
+                <tr class="linha-sem-registro">
                     <td colspan="4" class="sem-pedidos">Nenhum pedido em produção encontrado.</td>
                 </tr>
             <?php endif; ?>
@@ -208,15 +267,86 @@ require_once '../Function/trava.php';
             .catch(err => console.error("Erro na sincronização:", err));
     }
 
-    setInterval(verificarAtualizacoesEmSegundoPlano, 10000);
+    setInterval(verificarAtualizacoesEmSegundoPlano, 60000);
+
+    const botoesFiltro = document.querySelectorAll('.btn-filtro');
+    const linhasTabela = document.querySelectorAll('#tabela-pedidos-body tr[data-id]');
+
+    function atualizarContadores() {
+        let todos = 0, atrasados = 0, pendentes = 0, producao = 0, embalados = 0;
+
+        linhasTabela.forEach(tr => {
+            todos++;
+            const status = tr.getAttribute('data-status');
+            const temBadgeAtrasado = tr.querySelector('.badge-atrasado') !== null;
+
+            if (temBadgeAtrasado) atrasados++;
+            if (status === 'Pendente') pendentes++;
+            if (status === 'Em produção') producao++;
+            if (status === 'Embalado') embalados++;
+        });
+
+        document.getElementById('qtd-todos').textContent = todos;
+        document.getElementById('qtd-atrasado').textContent = atrasados;
+        document.getElementById('qtd-pendente').textContent = pendentes;
+        document.getElementById('qtd-producao').textContent = producao;
+        document.getElementById('qtd-embalado').textContent = embalados;
+    }
+
+    botoesFiltro.forEach(botao => {
+        botao.addEventListener('click', function() {
+            botoesFiltro.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const filtroSelecionado = this.getAttribute('data-filter');
+            let encontrouAlgum = false;
+
+            linhasTabela.forEach(tr => {
+                const statusLinha = tr.getAttribute('data-status');
+                const temBadgeAtrasado = tr.querySelector('.badge-atrasado') !== null;
+
+                if (filtroSelecionado === 'todos') {
+                    tr.style.display = '';
+                    encontrouAlgum = true;
+                } else if (filtroSelecionado === 'atrasado') {
+                    if (temBadgeAtrasado) {
+                        tr.style.display = '';
+                        encontrouAlgum = true;
+                    } else {
+                        tr.style.display = 'none';
+                    }
+                } else {
+                    if (statusLinha === filtroSelecionado) {
+                        tr.style.display = '';
+                        encontrouAlgum = true;
+                    } else {
+                        tr.style.display = 'none';
+                    }
+                }
+            });
+
+            const avisoExistente = document.querySelector('.aviso-filtro-vazio');
+            if (avisoExistente) avisoExistente.remove();
+
+            if (!encontrouAlgum && linhasTabela.length > 0) {
+                const tbody = document.getElementById('tabela-pedidos-body');
+                const trAviso = document.createElement('tr');
+                trAviso.className = 'aviso-filtro-vazio';
+                trAviso.innerHTML = `<td colspan="4" class="sem-pedidos">Nenhum pedido com este status no momento.</td>`;
+                tbody.appendChild(trAviso);
+            }
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", atualizarContadores);
 
     const tooltip = document.getElementById('tooltip-itens-pedido');
     const conteudoTooltip = document.getElementById('conteudo-tooltip-itens');
     let abortController = null;
-    let tempoEsperaFechar = null; 
+    let tempoEsperaFechar = null;
 
     function abrirTooltip(badge) {
-        clearTimeout(tempoEsperaFechar); 
+        clearTimeout(tempoEsperaFechar);
 
         const pedido = badge.getAttribute('data-pedido');
         const origem = badge.getAttribute('data-origem');
@@ -243,7 +373,8 @@ require_once '../Function/trava.php';
                     conteudoTooltip.innerHTML = data.itens.map(item => {
                         let corStatus = '#ffeeba; color: #856404;'; 
                         if(item.status === 'Em produção' || item.status === 'Produzindo') corStatus = '#b8daff; color: #004085;';
-                        if(item.status === 'Embalado' || item.status === 'Produzido') corStatus = '#c3e6cb; color: #155724;';
+                        if(item.status === 'Embalado') corStatus = '#c3e6cb; color: #155724;';
+                        if(item.status === 'Produzido') corStatus = '#b8daff; color: #004085;';
 
                         return `<li>
                             <span style="font-weight:600; color:#34495e; padding-right: 15px;">${item.nome}</span>
@@ -266,7 +397,7 @@ require_once '../Function/trava.php';
             tooltip.style.display = 'none';
             tooltip.removeAttribute('data-aberto-agora');
             if (abortController) abortController.abort();
-        }, 300); 
+        }, 300);
     }
 
     document.addEventListener('mouseover', function(e) {
