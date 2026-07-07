@@ -18,6 +18,7 @@ require_once './Function/trava.php';
             --neon-blue: #00f0ff;
             --neon-amber: #ff9d00;
             --neon-purple: #bd00ff;
+            --neon-red: #ff3b30; 
             --text-primary: #ffffff;
             --text-secondary: #7e8494;
         }
@@ -25,11 +26,6 @@ require_once './Function/trava.php';
         @keyframes fadeIn {
             from { opacity: 0; transform: scale(0.98) translateY(10px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        @keyframes pulseGlow {
-            0%, 100% { opacity: 0.2; }
-            50% { opacity: 0.4; }
         }
 
         body {
@@ -81,6 +77,8 @@ require_once './Function/trava.php';
             align-items: center; 
             margin-bottom: 40px; 
             width: 100%;
+            max-width: 850px;
+            position: relative; 
         }
 
         .header-painel img {
@@ -89,6 +87,43 @@ require_once './Function/trava.php';
             filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.2)) brightness(1.1);
         }
 
+    @keyframes glowSair {
+        0%, 100% { 
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.3); 
+            border-color: rgba(255, 59, 48, 0.3);
+        }
+        50% { 
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.6); 
+            border-color: rgba(255, 59, 48, 0.7);
+        }
+    }
+
+    .header-painel a.btn-sair {
+        position: absolute;
+        right: 10px;
+        color: #ff3b30; 
+        text-decoration: none;
+        font-weight: 700; 
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        border: 1px solid rgba(255, 59, 48, 0.3);
+        background: rgba(255, 59, 48, 0.05); 
+        padding: 10px 20px; 
+        border-radius: 6px;
+        backdrop-filter: blur(8px);
+        animation: glowSair 2s infinite ease-in-out;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .header-painel a.btn-sair:hover {
+        color: #ffffff;
+        background: #ff3b30; 
+        box-shadow: 0 0 25px #ff3b30;
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+        transform: translateY(-2px) scale(1.05);
+        animation: none; 
+    }
         h1 {
             font-size: 2.6rem;
             text-transform: uppercase;
@@ -152,16 +187,6 @@ require_once './Function/trava.php';
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .card-botao::after {
-            content: '';
-            position: absolute;
-            top: 0; right: 0;
-            width: 10px; height: 10px;
-            border-top: 2px solid transparent;
-            border-right: 2px solid transparent;
-            transition: all 0.4s ease;
-        }
-
         .card-botao h3 {
             margin: 20px 0 0 0;
             font-size: 1.15rem;
@@ -198,17 +223,10 @@ require_once './Function/trava.php';
         .linha-contemporanea .icon-box { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0,240,255,0.5); }
         .linha-contemporanea:hover { border-color: rgba(0, 240, 255, 0.4); box-shadow: 0 0 30px rgba(0, 240, 255, 0.15); }
         .linha-contemporanea:hover h3 { color: var(--neon-blue); text-shadow: 0 0 8px rgba(0,240,255,0.3); }
-        .linha-contemporanea:hover::after { border-color: var(--neon-blue); }
-
-        .linha-classica .icon-box { color: var(--neon-amber); text-shadow: 0 0 10px rgba(255,157,0,0.5); }
-        .linha-classica:hover { border-color: rgba(255, 157, 0, 0.4); box-shadow: 0 0 30px rgba(255, 157, 0, 0.15); }
-        .linha-classica:hover h3 { color: var(--neon-amber); text-shadow: 0 0 8px rgba(255,157,0,0.3); }
-        .linha-classica:hover::after { border-color: var(--neon-amber); }
 
         .linha-cadastro .icon-box { color: var(--neon-purple); text-shadow: 0 0 10px rgba(189,0,255,0.5); }
         .linha-cadastro:hover { border-color: rgba(189, 0, 255, 0.4); box-shadow: 0 0 30px rgba(189, 0, 255, 0.15); }
         .linha-cadastro:hover h3 { color: var(--neon-purple); text-shadow: 0 0 8px rgba(189,0,255,0.3); }
-        .linha-cadastro:hover::after { border-color: var(--neon-purple); }
 
         .footer {
             margin-top: 60px;
@@ -224,7 +242,9 @@ require_once './Function/trava.php';
 <body>
     <div class="header-painel">
         <img src="assets/logo_equipilates.png" alt="Equipilates">
+        <a class="btn-sair" href="Function/logout.php">Sair 🚪</a>
     </div>
+    
     <div class="container">
         <h1>Linhas</h1>
         <p class="subtitle">"Olhos e Mente na Tarefa."</p>
@@ -248,7 +268,7 @@ require_once './Function/trava.php';
     </div>
 
     <script>
-        document.querySelectorAll('.card-botao').forEach(link => {
+        document.querySelectorAll('.card-botao, .btn-sair').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault(); 
                 const destino = this.getAttribute('href');
