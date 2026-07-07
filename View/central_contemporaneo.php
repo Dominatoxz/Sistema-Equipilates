@@ -295,23 +295,29 @@ require_once '../Function/trava.php';
                 <p>Fila da produção dos pedidos</p>
             </a>
 
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Financeiro', 'Gerente', 'CEO', 'Desenvolvedor'])): ?>
             <a href="tabela_financeiro.php" class="card-botao pos-venda">
                 <div class="icon-box">💰</div>
                 <h3>Financeiro</h3>
                 <p>Fila para o controle do financeiro</p>
             </a>
-
+            <?php endif; ?>
+            
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Pos-venda', 'Gerente', 'CEO', 'Desenvolvedor'])): ?>
             <a href="tabela_posVenda.php" class="card-botao pos-venda">
                 <div class="icon-box">✅</div>
                 <h3>Pós-Venda</h3>
                 <p>Fila de pedidos produzidos</p>
             </a>
+            <?php endif; ?>
             
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Expedicao', 'Gerente', 'CEO', 'Desenvolvedor'])): ?>
             <a href="tabela_expedição.php" class="card-botao pos-venda">
                 <div class="icon-box">✈️</div>
                 <h3>Expedição</h3>
                 <p>Fila de organização de pedidos para expedição</p>
             </a>
+            <?php endif; ?>
 
             <a href="tabela_controle.php" class="card-botao pos-venda">
                 <div class="icon-box">🎮</div>
@@ -319,12 +325,13 @@ require_once '../Function/trava.php';
                 <p>Fila de controle de pedidos</p>
             </a>
 
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Desenvolvedor', 'gerente', 'CEO', 'Estagio'])): ?>
             <a href="../Function/imprimir_etiquetas.php" class="card-botao pos-venda">
                 <div class="icon-box">🖨️</div>
                 <h3>Impressão</h3>
                 <p>Etiquetas organizadas</p>
             </a>
-
+            <?php endif; ?>
         </div>
     </div>
 

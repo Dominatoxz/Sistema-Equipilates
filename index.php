@@ -228,23 +228,18 @@ require_once './Function/trava.php';
     <div class="container">
         <h1>Linhas</h1>
         <p class="subtitle">"Olhos e Mente na Tarefa."</p>
-        <p class="sub-subtitle">- LK</p>
-
         <div class="grid-painel">
             <a href="View/central_contemporaneo.php" class="card-botao linha-contemporanea">
                 <div class="icon-box">🧬</div>
                 <h3>Contemporânea</h3>
             </a>
-
-            <a href="View/central_classico.php" class="card-botao linha-classica">
-                <div class="icon-box">🏛️</div>
-                <h3>Clássica</h3>
-            </a>
-
+            
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Gerente', 'CEO', 'Desenvolvedor'])): ?>
             <a href="View/cadastro.php" class="card-botao linha-cadastro">
                 <div class="icon-box">📋</div>
                 <h3>Novo Usuário</h3>
             </a>
+            <?php endif; ?>
         </div>
     </div>
 

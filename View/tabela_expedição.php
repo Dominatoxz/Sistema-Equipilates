@@ -309,7 +309,7 @@ require_once '../Function/trava.php';
                     <td><?= date('d/m/Y H:i', strtotime($p['data_conclusao'])) ?></td>
                     <td><span class="badge-pronto">100% Embalado</span></td>
                     <td>
-                        <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Enviar para o Pós-venda</button>
+                        <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Finalizar Pedido</button>
                     </td>
                     <td>
                         <button class="btn-mais" onclick="toggleSanfona(<?= $p['id'] ?>)">...</button>

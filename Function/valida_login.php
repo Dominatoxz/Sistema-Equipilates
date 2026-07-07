@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $senha = $_POST['senha'];
 
     if (!empty($usuario) && !empty($senha)) {
-        $stmt = $pdo->prepare("SELECT id, usuario, senha_hash FROM usuarios WHERE usuario = :usuario LIMIT 1");
+        $stmt = $pdo->prepare("SELECT id, usuario, senha_hash, nivel_acesso FROM usuarios WHERE usuario = :usuario LIMIT 1");
         $stmt->execute(['usuario' => $usuario]);
         $dados_usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -22,15 +22,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             session_regenerate_id(true);
             
-            $_SESSION['usuario_id'] = $dados_usuario['id'];
+            $_SESSION['usuario_id']     = $dados_usuario['id'];
             $_SESSION['usuario_logado'] = $dados_usuario['usuario'];
-            $_SESSION['criado_em'] = time();
-
+            $_SESSION['nivel_acesso']   = $dados_usuario['nivel_acesso']; 
+            $_SESSION['criado_em']      = time();
+            
             header("Location: ../index.php");
             exit();
+        }
         } else {
             header("Location: ../login.php?erro=dados_invalidos");
             exit();
-        }
     }
 }

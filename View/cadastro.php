@@ -1,5 +1,4 @@
 <?php
-require_once '../Function/trava.php';
 require_once '../config/Database.php';
 
 $database = new Database();
