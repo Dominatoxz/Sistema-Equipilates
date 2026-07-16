@@ -2,9 +2,9 @@
 Class Database {
     public $conn;
     private $db_host = 'localhost';
-    private $db_name = 'planilha_db'; //u109029190_db_GN6XeAZr
-    private $db_user = 'root'; //u109029190_usr_GN6XeAZr
-    private $db_password = 'equipilates26'; //Equipilates26
+    private $db_name = 'u109029190_db_GN6XeAZr'; //u109029190_db_GN6XeAZr
+    private $db_user = 'u109029190_usr_GN6XeAZr'; //u109029190_usr_GN6XeAZr
+    private $db_password = 'Equipilates2026@#'; //Equipilates26
 
     public function getConnection() {
         
