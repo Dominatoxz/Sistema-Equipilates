@@ -5,13 +5,14 @@ header('Content-Type: application/json');
 
 $dados = json_decode(file_get_contents("php://input"), true);
 
-if (!isset($dados['id_pedido']) || !isset($dados['observacao'])) {
+if (!isset($dados['id_pedido']) || !isset($dados['numero_pedido']) || !isset($dados['observacao'])) {
     echo json_encode(['success' => false, 'error' => 'Dados incompletos.']);
     exit;
 }
 
-$id_pedido  = (int)$dados['id_pedido'];
-$observacao = trim($dados['observacao']);
+$id_pedido     = (int)$dados['id_pedido'];
+$numero_pedido = trim($dados['numero_pedido']);
+$observacao    = trim($dados['observacao']);
 
 if (empty($observacao)) {
     echo json_encode(['success' => true]);
@@ -22,8 +23,9 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
-    $stmtIns = $db->prepare("INSERT INTO observacoes_financeiro (id_pedido, observacao) VALUES (:id_pedido, :observacao)");
+    $stmtIns = $db->prepare("INSERT INTO observacoes_financeiro (id_pedido, numero_pedido, observacao) VALUES (:id_pedido, :numero_pedido, :observacao)");
     $stmtIns->bindParam(':id_pedido', $id_pedido);
+    $stmtIns->bindParam(':numero_pedido', $numero_pedido);
     $stmtIns->bindParam(':observacao', $observacao);
     $stmtIns->execute();
 
@@ -31,4 +33,3 @@ try {
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>
