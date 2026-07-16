@@ -26,10 +26,17 @@ if (!$idPedido) {
 }
 
 try {
+    date_default_timezone_set('America/Sao_Paulo'); 
+    $dataConclusaoPHP = date('Y-m-d H:i:s'); 
+
     $database = new Database();
     $db = $database->getConnection();
-    $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Pós-venda', data_conclusao = NOW() WHERE id = :id");
-    $resultado = $stmt->execute(['id' => $idPedido]);
+
+    $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Pós-venda', data_conclusao = :data_conclusao WHERE id = :id");
+    $resultado = $stmt->execute([
+        'data_conclusao' => $dataConclusaoPHP,
+        'id' => $idPedido
+    ]);
 
     if ($resultado) {
         echo json_encode(['success' => true]);

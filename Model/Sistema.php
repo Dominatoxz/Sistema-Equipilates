@@ -1,5 +1,6 @@
 <?php
 require_once '../Function/trava.php'; 
+date_default_timezone_set('America/Sao_Paulo');
 class Sistema {
     private $conn;
 
@@ -333,6 +334,17 @@ class Sistema {
         public function mostrarFilaControle(){
         $query = "SELECT id, numero_pedido, prazo_producao, status_posvenda
                   FROM pedidos_prontos
+                  WHERE status_posvenda NOT LIKE 'Finalizado'
+                  ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        public function mostrarFilaExpedidos(){
+        $query = "SELECT id, numero_pedido, prazo_producao, status_posvenda, data_conclusao
+                  FROM pedidos_expedidos
+                  WHERE status_posvenda LIKE 'Finalizado' 
                   ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();

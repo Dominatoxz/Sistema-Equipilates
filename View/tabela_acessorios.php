@@ -10,18 +10,30 @@ require_once '../Function/trava.php';
     <title>Acessórios</title>
     <style>
             body { 
-                font-family: 'Segoe UI', sans-serif; 
-                background-color: #f4f7f6; 
-                color: #333; 
-                margin: 10px; 
-                max-width: 100vw;
-                overflow-x: hidden; 
-            }
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #f4f7f6; 
+            color: #333; 
+            margin: 10px; 
+            max-width: 100vw;
+            min-height: calc(100vh - 20px); 
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            overflow-y: auto; 
+        }
 
-            .table-container {
-                width: 100%;
-                overflow-x: auto;
-            }
+        .table-container {
+            width: 100%;
+            height: calc(100vh - 120px); 
+            max-height: calc(100vh - 120px);
+            overflow-y: auto; 
+            overflow-x: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            border: 1px solid #1c1c1c;
+            border-radius: 20px; 
+            background: #fff;
+        }
 
             .sem-pedidos { 
                 text-align: center; 
@@ -34,13 +46,9 @@ require_once '../Function/trava.php';
             table { 
                 width: 100%; 
                 table-layout: fixed; 
-                border-collapse: collapse; 
+                border-collapse: separate;
+                border-spacing: 0;
                 background: #fff; 
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
-                border-radius: 8px; 
-                overflow: hidden; 
-                border: 1px solid black;
-                border-radius: 20px;
             }
 
             th { 
@@ -51,11 +59,17 @@ require_once '../Function/trava.php';
                 text-transform: uppercase; 
                 font-size: 18px; 
                 word-wrap: break-word; 
-            }
+                position: -webkit-sticky; 
+                position: sticky;
+                top: 0; 
+                z-index: 10; 
+                box-shadow: inset 0 -2px 0 #1c1c1c; 
+            }   
 
             td { 
                 padding: 8px 4px; 
-                border: 1px solid #1c1c1c; 
+                border-right: 1px solid #1c1c1c; 
+                border-bottom: 1px solid #1c1c1c; 
                 text-align: center; 
                 font-size: 22px; 
                 overflow: hidden;
@@ -63,14 +77,22 @@ require_once '../Function/trava.php';
                 white-space: nowrap; 
             }
 
+            td:last-child, th:last-child {
+                border-right: none;
+            }
+
+            tr:last-child td {
+                border-bottom: none;
+            }
+
             td:first-child, th:first-child { 
                 font-weight: bold; 
                 color: blue; 
                 width: 60px; 
-                font-size: 16px;
+                font-size: 22px;
             } 
 
-            .column-data{
+            .column-data {
                 font-weight: bold;
                 font-size: 20px;
                 color: #bb4242;
@@ -88,7 +110,6 @@ require_once '../Function/trava.php';
                 margin: 2px 0;
             }
 
-           
             input#input-pistola {
                 position: fixed; 
                 top: 0;
@@ -142,10 +163,11 @@ require_once '../Function/trava.php';
             }
 
             .footer {
-            margin-top: 20px;
-            margin-bottom: 20px;
-            font-size: 0.85rem;
-            color: #bdc3c7;
+                margin-top: 10px;
+                margin-bottom: 5px;
+                font-size: 0.85rem;
+                color: #bdc3c7;
+                flex-shrink: 0; 
             }
 
             @keyframes pulseFlash {
@@ -157,123 +179,116 @@ require_once '../Function/trava.php';
 </head>
 <body>
     <input type="text" id="input-pistola" autofocus>
-    <table>
-       <?php
-        require_once '../config/Database.php'; 
-        require_once '../Model/Sistema.php'; 
+    
+    <div class="table-container">
+        <table>
+           <?php
+            require_once '../config/Database.php'; 
+            require_once '../Model/Sistema.php'; 
 
-        $database = new Database();
-        $db = $database->getConnection();
+            $database = new Database();
+            $db = $database->getConnection();
 
-        $sistema = new Sistema($db);
+            $sistema = new Sistema($db);
 
-        $arquivo_cache = __DIR__ . '/../cache/dados_painelAcess.json';
-        $tempo_expiracao = 30; 
+            $arquivo_cache = __DIR__ . '/../cache/dados_painelAcess.json';
+            $tempo_expiracao = 30; 
 
-        if (file_exists($arquivo_cache) && (time() - filemtime($arquivo_cache) < $tempo_expiracao)) {
-
-            $dados_tabela = json_decode(file_get_contents($arquivo_cache), true);
-        } else {
-            $dados_tabela = $sistema->mostrarTabelaAcessorios();
-            
-            if (!is_dir(__DIR__ . '/../cache')) {
-                mkdir(__DIR__ . '/../cache', 0777, true);
+            if (file_exists($arquivo_cache) && (time() - filemtime($arquivo_cache) < $tempo_expiracao)) {
+                $dados_tabela = json_decode(file_get_contents($arquivo_cache), true);
+            } else {
+                $dados_tabela = $sistema->mostrarTabelaAcessorios();
+                
+                if (!is_dir(__DIR__ . '/../cache')) {
+                    mkdir(__DIR__ . '/../cache', 0777, true);
+                }
+                file_put_contents($arquivo_cache, json_encode($dados_tabela, JSON_UNESCAPED_UNICODE));
             }
-            file_put_contents($arquivo_cache, json_encode($dados_tabela, JSON_UNESCAPED_UNICODE));
-        }
 
-        $pedidos = !empty($dados_tabela) ? $dados_tabela : [];
-        $pedidos_agrupados = $pedidos;
+            $pedidos = !empty($dados_tabela) ? $dados_tabela : [];
+            $pedidos_agrupados = $pedidos;
+            ?>
+            <thead>
+                <tr>
+                    <th>Pedido</th>
+                    <th>Prazo</th>
+                    <th>Caixa Mini</th>
+                    <th>Caixa do Reformer</th>
+                    <th>P. de Molas - B</th>
+                    <th>P. de Molas - C</th>
+                    <th>P. de Molas - PT</th>
+                    <th>Caixa da Cadeira</th>
+                    <th>Prancha de Alongamento</th>
+                </tr>
+            </thead>
+            <tbody>
+        <?php 
+        $equipamentos = [ 
+            'Caixa Mini', 
+            'Caixa do Reformer', 
+            'P. de Molas - B R I N D E',
+            'P. de Molas - C O M P L E T A', 
+            'P. de Molas - P u s h T h r u',
+            'Caixa da Cadeira', 
+            'Prancha de Alongamento',
+        ];
         ?>
-        <?php
-        if (!isset($pedidos)) {
-            $pedidos = [];
-        }
 
-        $pedidos_agrupados = $pedidos; 
-        ?>
-        <thead>
-            <tr>
-                <th>Pedido</th>
-                <th>Prazo</th>
-                <th>Caixa Mini</th>
-                <th>Caixa do Reformer</th>
-                <th>P. de Molas - B</th>
-                <th>P. de Molas - C</th>
-                <th>P. de Molas - PT</th>
-                <th>Caixa da Cadeira</th>
-                <th>Prancha de Alongamento</th>
-            </tr>
-        </thead>
-        <tbody>
-    <?php 
-    $equipamentos = [ 
-        'Caixa Mini', 
-        'Caixa do Reformer', 
-        'P. de Molas - B R I N D E',
-        'P. de Molas - C O M P L E T A', 
-        'P. de Molas - P u s h T h r u',
-        'Caixa da Cadeira', 
-        'Prancha de Alongamento',
-    ];
+        <?php if (empty($pedidos)): ?>
+                <tr>
+                    <td colspan="9" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
+                </tr>
+        <?php else: ?>
 
-    $database = new Database();
-    $db = $database->getConnection(); ?>
+        <?php foreach ($pedidos_agrupados as $pedido): ?>
+        <tr id="linha-<?= htmlspecialchars($pedido['numero']) ?>">
+            <td class="num-column"><?= htmlspecialchars($pedido['numero'])?></td>
+            
+            <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
+            
+            <?php foreach ($equipamentos as $nome_equipamento): 
+                $stmt = $db->prepare("SELECT id, status FROM itens_producao WHERE numero_pedido = ? AND equipamento = ?");
+                $stmt->execute([$pedido['numero'], $nome_equipamento]);
+                $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC); 
+            ?>
+                <td>
+                    <div style="display: flex; justify-content: center;">
+                    <?php if ($pecas && count($pecas) > 0): 
+                        foreach ($pecas as $peca):
+                            $status = isset($peca['status']) ? $peca['status'] : 'Pendente';
+                            $id_peca = isset($peca['id']) ? $peca['id'] : 0;
+                            
+                            $texto = '❌';
+                            $estilo = '';
 
-    <?php if (empty($pedidos)): ?>
-            <tr>
-                <td colspan="9" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
-            </tr>
-    <?php else: ?>
-
-    <?php foreach ($pedidos_agrupados as $pedido): ?>
-    <tr>
-        <td class="num-column"><?= htmlspecialchars($pedido['numero'])?></td>
-        
-        <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
-        
-        <?php foreach ($equipamentos as $nome_equipamento): 
-            $stmt = $db->prepare("SELECT id, status FROM itens_producao WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido");
-            $stmt->execute([$pedido['numero'], $nome_equipamento]);
-            $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC); 
-        ?>
-            <td>
-                <div style="display: flex; justify-content: center;">
-                <?php if ($pecas && count($pecas) > 0): 
-                    foreach ($pecas as $peca):
-                        $status = isset($peca['status']) ? $peca['status'] : 'Pendente';
-                        $id_peca = isset($peca['id']) ? $peca['id'] : 0;
-                        
-                        $texto = '❌';
-                        $estilo = '';
-
-                    if ($peca['status'] === 'Produzido') {
-                        $texto = '✅';
-                    } elseif ($peca['status'] === 'Embalado') {
-                        $texto = 'E';
-                        $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
-                    }
-                ?>
-                    <span class="item-check" 
-                        data-id="<?= $peca['id'] ?>" 
-                        data-pedido="<?= htmlspecialchars($pedido['numero']) ?>"
-                        data-equipamento="<?= htmlspecialchars($nome_equipamento) ?>"
-                        <?= $estilo ?> 
-                        style="font-size: 20px;">
-                        <?= $texto ?>
-                    </span>
-                    <?php endforeach;?>
-                <?php else: ?>
-                    <span style="color: #ccc;">-</span>
-                <?php endif; ?>
-                </div>
-            </td>
+                            if ($peca['status'] === 'Produzido') {
+                                $texto = '✅';
+                            } elseif ($peca['status'] === 'Embalado') {
+                                $texto = 'E';
+                                $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
+                            }
+                    ?>
+                        <span class="item-check" 
+                            data-id="<?= $peca['id'] ?>" 
+                            data-pedido="<?= htmlspecialchars($pedido['numero']) ?>"
+                            data-equipamento="<?= htmlspecialchars($nome_equipamento) ?>"
+                            <?= $estilo ?> 
+                            style="font-size: 20px;">
+                            <?= $texto ?>
+                        </span>
+                        <?php endforeach;?>
+                    <?php else: ?>
+                        <span style="color: #ccc;">-</span>
+                    <?php endif; ?>
+                    </div>
+                </td>
+            <?php endforeach; ?>
+        </tr>
         <?php endforeach; ?>
-    </tr>
-    <?php endforeach; ?>
-    <?php endif; ?>
-</tbody>
-    </table>
+        <?php endif; ?>
+    </tbody>
+        </table>
+    </div>
 
      <div id="feedback-box">
         <div id="feedback-content"></div>
@@ -334,110 +349,110 @@ require_once '../Function/trava.php';
             }
         });
 
- function atualizarStatusNoBanco(codigoCompleto) {
-    fetch(`../Function/atualizar_etapa.php?id=${codigoCompleto}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const icon = document.querySelector(`.item-check[data-id="${data.idReal}"]`);
-                
-                let nrPedido = "Desconhecido";
-                let nmItem = "Equipamento";
-
-                if (icon) {
-                    nrPedido = icon.getAttribute('data-pedido') || nrPedido;
-                    nmItem = icon.getAttribute('data-equipamento') || nmItem;
-
-                    if (data.statusGerado === 'Produzido') {
-                        icon.innerText = '✅';
-                        icon.style.color = ''; 
-                        icon.style.fontWeight = 'normal';
-                    } else if (data.statusGerado === 'Embalado') {
-                        icon.innerText = 'E';
-                        icon.style.color = '#27ae60'; 
-                        icon.style.fontWeight = 'bold';
-                        icon.style.fontSize = '30px';
-                    }
-                } else {
-                    const partes = codigoCompleto.split('-');
-                    if (partes[0]) nrPedido = partes[0];
-                }
-                
-                dispararFeedbackCerto(nrPedido, nmItem, data.statusGerado); 
-                
-                setTimeout(() => {
-                    window.location.reload();
-                }, 5000);
-
-            } else {
-                console.error("Erro no servidor:", data.error);
-                alert("Erro: " + data.error); 
-            }
-        })
-        .catch(err => console.error("Erro na requisição:", err));
-}
-
-    function verificarLinha(linha) {
-        const itensLista = linha.querySelectorAll('.item-check');
-        if (itensLista.length === 0) return;
-       
-        const pendentes = Array.from(itensLista).filter(i => i.innerText.trim() !== 'E');
-
-        if (pendentes.length === 0) {
-            const numeroPedido = linha.cells[0].innerText.trim();
-
-            fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}&tipo_tela=os_equipamentos`)
+        function atualizarStatusNoBanco(codigoCompleto) {
+            fetch(`../Function/atualizar_etapa.php?id=${codigoCompleto}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data && data.success) {
-                        if (data.status_pedido === 'SUBIU_POS_VENDA') {
-                            linha.style.transition = "opacity 0.8s, background 0.5s";
-                            linha.style.background = "#d4edda";
-                            setTimeout(() => linha.remove(), 1000);
+                    if (data.success) {
+                        const icon = document.querySelector(`.item-check[data-id="${data.idReal}"]`);
+                        
+                        let nrPedido = "Desconhecido";
+                        let nmItem = "Equipamento";
+
+                        if (icon) {
+                            nrPedido = icon.getAttribute('data-pedido') || nrPedido;
+                            nmItem = icon.getAttribute('data-equipamento') || nmItem;
+
+                            if (data.statusGerado === 'Produzido') {
+                                icon.innerText = '✅';
+                                icon.style.color = ''; 
+                                icon.style.fontWeight = 'normal';
+                            } else if (data.statusGerado === 'Embalado') {
+                                icon.innerText = 'E';
+                                icon.style.color = '#27ae60'; 
+                                icon.style.fontWeight = 'bold';
+                                icon.style.fontSize = '30px';
+                            }
                         } else {
-                            linha.style.transition = "background 0.5s";
-                            linha.style.background = "#ffeaa7"; 
+                            const partes = codigoCompleto.split('-');
+                            if (partes[0]) nrPedido = partes[0];
                         }
+                        
+                        dispararFeedbackCerto(nrPedido, nmItem, data.statusGerado); 
+                        
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 5000);
+
                     } else {
-                        console.error("O banco recusou a inserção:", data.error);
+                        console.error("Erro no servidor:", data.error);
+                        alert("Erro: " + data.error); 
                     }
                 })
-                .catch(err => console.error("Falha na comunicação com o servidor:", err));
-        }
-    }
-        
-    document.querySelectorAll('tbody tr').forEach(tr => verificarLinha(tr));
-
-    function dispararFeedbackCerto(pedido, item, status) {
-        const box = document.getElementById('feedback-box');
-        const content = document.getElementById('feedback-content');
-        
-        if (status === 'Embalado') {
-            box.style.backgroundColor = 'rgba(39, 174, 96, 0.85)'; 
-        } else {
-            box.style.backgroundColor = 'rgba(46, 196, 182, 0.85)'; 
+                .catch(err => console.error("Erro na requisição:", err));
         }
 
-        content.innerHTML = `<div>PEDIDO: <strong>#${pedido}</strong></div>
-                             <div class="sub-item">${item} &rarr; <u>${status.toUpperCase()}</u></div>`;
-        
-        box.classList.add('active');
-        
-        setTimeout(() => {
-            box.classList.remove('active');
-        }, 2800);
-    }
+        function verificarLinha(linha) {
+            const itensLista = linha.querySelectorAll('.item-check');
+            if (itensLista.length === 0) return;
+           
+            const pendentes = Array.from(itensLista).filter(i => i.innerText.trim() !== 'E');
 
-    let scrollSpeed = 0; 
-    function autoScroll() {
-        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-            setTimeout(() => window.scrollTo(0, 0), 3000);
-        } else {
-            window.scrollBy(0, scrollSpeed);
+            if (pendentes.length === 0) {
+                const numeroPedido = linha.cells[0].innerText.trim();
+
+                fetch(`../Function/notificar_posVenda.php?pedido=${encodeURIComponent(numeroPedido)}&tipo_tela=os_equipamentos`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.success) {
+                            if (data.status_pedido === 'SUBIU_POS_VENDA') {
+                                linha.style.transition = "opacity 0.8s, background 0.5s";
+                                linha.style.background = "#d4edda";
+                                setTimeout(() => linha.remove(), 1000);
+                            } else {
+                                linha.style.transition = "background 0.5s";
+                                linha.style.background = "#ffeaa7"; 
+                            }
+                        } else {
+                            console.error("O banco recusou a inserção:", data.error);
+                        }
+                    })
+                    .catch(err => console.error("Falha na comunicação com o servidor:", err));
+            }
         }
-        requestAnimationFrame(autoScroll);
-    }
-    window.onload = () => { if(scrollSpeed > 0) autoScroll(); };
+            
+        document.querySelectorAll('tbody tr').forEach(tr => verificarLinha(tr));
+
+        function dispararFeedbackCerto(pedido, item, status) {
+            const box = document.getElementById('feedback-box');
+            const content = document.getElementById('feedback-content');
+            
+            if (status === 'Embalado') {
+                box.style.backgroundColor = 'rgba(39, 174, 96, 0.85)'; 
+            } else {
+                box.style.backgroundColor = 'rgba(46, 196, 182, 0.85)'; 
+            }
+
+            content.innerHTML = `<div>PEDIDO: <strong>#${pedido}</strong></div>
+                                 <div class="sub-item">${item} &rarr; <u>${status.toUpperCase()}</u></div>`;
+            
+            box.classList.add('active');
+            
+            setTimeout(() => {
+                box.classList.remove('active');
+            }, 3000);
+        }
+
+        let scrollSpeed = 0; 
+        function autoScroll() {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+                setTimeout(() => window.scrollTo(0, 0), 3000);
+            } else {
+                window.scrollBy(0, scrollSpeed);
+            }
+            requestAnimationFrame(autoScroll);
+        }
+        window.onload = () => { if(scrollSpeed > 0) autoScroll(); };
     </script>
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>

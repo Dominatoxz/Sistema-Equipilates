@@ -1,5 +1,6 @@
 <?php
 require_once './Function/trava.php'; 
+date_default_timezone_set('America/Sao_Paulo');
 ?>
 
 <!DOCTYPE html>

@@ -2,9 +2,9 @@
 Class Database {
     public $conn;
     private $db_host = 'localhost';
-    private $db_name = 'u109029190_db_GN6XeAZr'; //u109029190_db_GN6XeAZr
-    private $db_user = 'u109029190_usr_GN6XeAZr'; //u109029190_usr_GN6XeAZr
-    private $db_password = 'Equipilates26'; //Equipilates26
+    private $db_name = 'planilha_db'; //u109029190_db_GN6XeAZr
+    private $db_user = 'root'; //u109029190_usr_GN6XeAZr
+    private $db_password = 'equipilates26'; //Equipilates26
 
     public function getConnection() {
         
@@ -12,6 +12,7 @@ Class Database {
         try{
             //conexão com o banco de dados usando PDO
             $this->conn = new PDO("mysql:host=" . $this->db_host . ";dbname=" . $this->db_name, $this->db_user, $this->db_password);
+            $this->conn->exec("SET time_zone = '-03:00';");
             //configura o PDO para lançar exceções em caso de erro
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 

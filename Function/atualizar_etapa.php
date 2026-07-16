@@ -31,18 +31,22 @@ if ($codigoLido) {
         $statusAtual = trim($item['status']); 
         $podeAtualizar = false;
         $novoStatus = '';
+        $colunaData = ''; 
 
         if ($tipo === 'P') {
             if ($statusAtual === 'Pendente') {
                 $novoStatus = 'Produzido';
+                $colunaData = 'data_inicio'; 
                 $podeAtualizar = true;
             } else {
                 echo json_encode(['success' => false, 'error' => 'Este item já foi fabricado!']);
                 exit;
             }
+      
         } elseif ($tipo === 'E') {
             if ($statusAtual === 'Produzido') {
                 $novoStatus = 'Embalado';
+                $colunaData = 'data_fim'; 
                 $podeAtualizar = true;
             } else {
                 echo json_encode(['success' => false, 'error' => 'Não é possível embalar um item que não foi fabricado!']);
@@ -51,9 +55,13 @@ if ($codigoLido) {
         }
 
         if ($podeAtualizar) {
-            $query = "UPDATE $tabelaAlvo SET status = :status, data_fim = NOW() WHERE id = :id";
+            date_default_timezone_set('America/Sao_Paulo'); 
+            $dataHoraPHP = date('Y-m-d H:i:s'); 
+
+            $query = "UPDATE $tabelaAlvo SET status = :status, $colunaData = :data_registro WHERE id = :id";
             $stmt = $db->prepare($query);
             $stmt->bindParam(':status', $novoStatus);
+            $stmt->bindParam(':data_registro', $dataHoraPHP);
             $stmt->bindParam(':id', $id);
             
             if ($stmt->execute()) {

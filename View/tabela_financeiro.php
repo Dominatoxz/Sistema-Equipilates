@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('America/Sao_Paulo');
 require_once '../Function/trava.php'; 
 ?>
 
@@ -305,7 +306,7 @@ require_once '../Function/trava.php';
                 <tr id="Linha-<?= $p['id'] ?>">
                     <td style="font-weight: bold; color: #2980b9; font-size: 18px;"><?= htmlspecialchars($p['numero_pedido']) ?></td>
                     <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10)) ?></td>
-                    <td><?= date('d/m/Y H:i', strtotime($p['data_conclusao'])) ?></td>
+                    <td><?= (new DateTime($p['data_conclusao']))->format('d/m/Y H:i') ?></td>
                     <td><span class="badge-pronto">100% Embalado</span></td>
                     <td>
                         <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Enviar para o Pós-venda</button>

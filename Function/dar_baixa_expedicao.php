@@ -42,12 +42,20 @@ try {
     $numeroPedidoReal = $dadosPedido['numero_pedido'];
     $prazoProducao = $dadosPedido['prazo_producao'];
 
+    date_default_timezone_set('America/Sao_Paulo');
+    $dataConclusaoPHP = date('Y-m-d H:i:s'); 
+
     $db->beginTransaction();
 
     $queryInsert = "INSERT INTO pedidos_expedidos (numero_pedido, prazo_producao, data_conclusao, status_posvenda)
-                    VALUES (?, ?, NOW(), 'Finalizado')";
+                    VALUES (?, ?, ?, 'Finalizado')";
     $stmtInsert = $db->prepare($queryInsert);
-    $stmtInsert->execute([$numeroPedidoReal, $prazoProducao]);
+
+    $stmtInsert->execute([
+        $numeroPedidoReal, 
+        $prazoProducao, 
+        $dataConclusaoPHP
+    ]);
 
     $queryUpdate = "UPDATE pedidos_prontos SET status_posvenda = 'Expedido' WHERE id = ?";
     $stmtUpdate = $db->prepare($queryUpdate);

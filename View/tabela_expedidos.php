@@ -1,6 +1,6 @@
 <?php
-date_default_timezone_set('America/Sao_Paulo');
 require_once '../Function/trava.php'; 
+date_default_timezone_set('America/Sao_Paulo');
 ?>
 
 <!DOCTYPE html>
@@ -8,7 +8,7 @@ require_once '../Function/trava.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pós-Venda</title>
+    <title>Expedidos</title>
   <style>
         :root {
             --bg-main: #f8fafc;
@@ -16,7 +16,6 @@ require_once '../Function/trava.php';
             --panel-bg: #ffffff;
             --border-tech: rgba(15, 23, 42, 0.06);
             
-            /* Cores de Identidade Light Tech */
             --tech-blue: #2563eb;
             --tech-blue-hover: #1d4ed8;
             --tech-green: #10b981;
@@ -260,7 +259,7 @@ require_once '../Function/trava.php';
 </head>
 <body>
     <div class="header-painel">
-        <h1>Painel Pós-Venda</h1>
+        <h1>Painel de pedidos Expedidos</h1>
         <div style="font-weight: bold; color: #7f8c8d;">Status de Saídas</div>
     </div>
     
@@ -269,10 +268,7 @@ require_once '../Function/trava.php';
             <tr>
                 <th>Pedido / OS</th>
                 <th>Prazo de Produção</th>
-                <th>Concluído em</th>
-                <th>Status da Fabricação</th>
-                <th>Ações</th>
-                <th>Mais</th>
+                <th>Expedido em</th>
             </tr>
         </thead>
         <tbody>
@@ -284,52 +280,18 @@ require_once '../Function/trava.php';
             $db = $database->getConnection();
             $sistema = new Sistema($db);
 
-            $pedidos = $sistema->mostrarFilaPosVenda(); 
+            $pedidos = $sistema->mostrarFilaExpedidos(); 
             ?>
             <?php if (empty($pedidos)): ?>
                 <tr>
-                    <td colspan="6" class="sem-pedidos">Nenhum pedido aguardando liberação.</td>
+                    <td colspan="6" class="sem-pedidos">Nenhum pedido expedido.</td>
                 </tr>
             <?php else: ?>
-                <?php foreach($pedidos as $p): 
-                    $stmtObs = $db->prepare("SELECT observacao, DATE_FORMAT(data_criacao, '%d/%m/%Y %H:%i') as data_obs 
-                                             FROM observacoes_posvenda 
-                                             WHERE id_pedido = :id 
-                                             ORDER BY data_criacao DESC 
-                                             LIMIT 1");
-                    $stmtObs->bindParam(':id', $p['id']);
-                    $stmtObs->execute();
-                    $notaExistente = $stmtObs->fetch(PDO::FETCH_ASSOC);
-                    
-                    $textoNota = $notaExistente ? $notaExistente['observacao'] : '';
-                    $dataNota = $notaExistente ? "⏱️ Última alteração: <strong>" . $notaExistente['data_obs'] . "</strong>" : '';
-                ?>
+                <?php foreach($pedidos as $p): ?>
                 <tr id="Linha-<?= $p['id'] ?>">
                     <td style="font-weight: bold; color: #2980b9; font-size: 18px;"><?= htmlspecialchars($p['numero_pedido']) ?></td>
                     <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10)) ?></td>
-                    <td><?= (new DateTime($p['data_conclusao']))->format('d/m/Y H:i') ?></td>
-                    <td><span class="badge-pronto">100% Embalado</span></td>
-                    <td>
-                        <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Enviar para a Expedição</button>
-                    </td>
-                    <td>
-                        <button class="btn-mais" onclick="toggleSanfona(<?= $p['id'] ?>)">...</button>
-                    </td>
-                </tr>
-                <tr id="ObsRow-<?= $p['id'] ?>" class="linha-observacao">
-                    <td colspan="6">
-                        <div class="wrapper-sanfona">
-                            <div class="container-obs">
-                                <input type="text" 
-                                       id="input-obs-<?= $p['id'] ?>" 
-                                       class="input-obs" 
-                                       placeholder="Observações"
-                                       value="<?= htmlspecialchars($textoNota) ?>">
-                                <button class="btn-salvar-obs" onclick="salvarObservacaoBanco(<?= $p['id'] ?>, '<?= htmlspecialchars($p['numero_pedido']) ?>')">Salvar Nota</button>
-                            </div>
-                            <p class="txt-historico-obs" id="time-obs-<?= $p['id'] ?>"><?= $dataNota ?></p>
-                        </div>
-                    </td>
+                    <td><?= date('d/m/Y H:i', strtotime($p['data_conclusao'])) ?></td>
                 </tr>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -337,133 +299,30 @@ require_once '../Function/trava.php';
     </table>
 
     <script>
-         function toggleSanfona(id) {
-            const linhaObs = document.getElementById(`ObsRow-${id}`);
-            if (!linhaObs) return;
-            
-            if (linhaObs.style.display === "table-row") {
-                linhaObs.classList.remove('aberta');
-                setTimeout(() => {
-                    linhaObs.style.display = "none";
-                }, 400); 
-            } else {
-                linhaObs.style.display = "table-row";
-                setTimeout(() => {
-                    linhaObs.classList.add('aberta');
-                }, 20);
-            }
-        }
-
-        function salvarObservacaoBanco(id, numPedido) {
-            const elementoInput = document.getElementById(`input-obs-${id}`);
-            const timeObs = document.getElementById(`time-obs-${id}`);
-            
-            if (!elementoInput) {
-                alert("Erro ao identificar o campo de digitação.");
-                return;
+        function verificarAtualizacoesEmSegundoPlano() {
+            if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+                return; 
             }
 
-            const txtObs = elementoInput.value;
-
-            fetch('../Function/salvar_obs_posvenda.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    id_pedido: id, 
-                    numero_pedido: numPedido, 
-                    observacao: txtObs 
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const agora = new Date().toLocaleString('pt-BR');
-                    if (timeObs) {
-                        timeObs.innerHTML = `⏱️ Última alteração salva em: <strong>${agora}</strong>`;
-                    }
-                    alert("Observação guardada com sucesso no banco de dados!");
-                    toggleSanfona(id);
-                } else {
-                    alert("Erro ao salvar nota: " + data.error);
-                }
-            })
-            .catch(err => console.error("Erro na comunicação:", err));
-        }
-
-        function liberarPedido(id) {
-            if (confirm("Enviar pedido para a Expedição?")) {
-                
-                const dadosEnviar = { id_pedido: id };
-                fetch('../Function/dar_baixa_posVenda.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json' 
-                    },
-                    body: JSON.stringify(dadosEnviar) 
-                })
+            fetch('../Function/dados_tabelas.php?tela=expedicao')
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        const linha = document.getElementById(`Linha-${id}`);
-                        const linhaObs = document.getElementById(`ObsRow-${id}`);
-                        
-                        localStorage.removeItem(`obs_pedido_${id}`);
-                        
-                        if(linha) {
-                            linha.style.transition = "all 0.5s ease";
-                            linha.style.opacity = "0";
-                            linha.style.background = "#e8f5e9";
+                        const novosDados = data.dados;
+                        const novosIds = novosDados.map(p => p.id.toString());
+
+                        const temNovoItem = novosIds.some(id => !idsAtuais.includes(id));
+                        const itemSumiu = idsAtuais.some(id => !novosIds.includes(id));
+
+                        if (temNovoItem || itemSumiu) {
+                            window.location.reload();
+                            return
                         }
-                        if(linhaObs) {
-                            linhaObs.style.transition = "all 0.5s ease";
-                            linhaObs.style.opacity = "0";
-                        }
-                        
-                        setTimeout(() => {
-                            if(linha) linha.remove();
-                            if(linhaObs) linhaObs.remove();
-                            
-                            if (document.querySelectorAll('tbody tr:not(.linha-observacao)').length === 0) {
-                                window.location.reload();
-                            }
-                        }, 10000);
-                    } else {
-                        alert("Erro ao dar baixa no sistema: " + data.error);
                     }
                 })
-                .catch(err => console.error("Erro na comunicação:", err));
-            }
+                .catch(err => console.error("Erro na sincronização rápida:", err));
         }
-                
-
-        
-    let idsAtuais = Array.from(document.querySelectorAll('tbody tr[id^="linha-"]'))
-                        .map(tr => tr.id.replace('linha-', ''));
-
-    function verificarAtualizacoesEmSegundoPlano() {
-        if (document.activeElement && document.activeElement.tagName === 'INPUT') {
-            return; 
-        }
-
-        fetch('../Function/dados_tabelas.php?tela=pos_venda')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const novosDados = data.dados;
-                    const novosIds = novosDados.map(p => p.id.toString());
-
-                    const temNovoItem = novosIds.some(id => !idsAtuais.includes(id));
-                    const itemSumiu = idsAtuais.some(id => !novosIds.includes(id));
-
-                    if (temNovoItem || itemSumiu) {
-                        window.location.reload();
-                    }
-                }
-            })
-            .catch(err => console.error("Erro na sincronização rápida:", err));
-    }
-
-    setInterval(verificarAtualizacoesEmSegundoPlano, 7000);
+        setInterval(verificarAtualizacoesEmSegundoPlano, 7000);
     </script>
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>

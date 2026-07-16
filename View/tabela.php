@@ -15,12 +15,24 @@ require_once '../Function/trava.php';
                 color: #333; 
                 margin: 10px; 
                 max-width: 100vw;
-                overflow-x: hidden; 
+                height: calc(100vh - 20px); 
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                box-sizing: border-box;
             }
+
 
             .table-container {
                 width: 100%;
-                overflow-x: auto;
+                height: calc(100vh - 100px); 
+                max-height: calc(100vh - 100px);
+                overflow-y: auto;
+                overflow-x: auto; 
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+                border: 1px solid black;
+                border-radius: 20px; 
+                background: #fff;
             }
 
             .sem-pedidos { 
@@ -36,11 +48,6 @@ require_once '../Function/trava.php';
                 table-layout: fixed; 
                 border-collapse: collapse; 
                 background: #fff; 
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
-                border-radius: 8px; 
-                overflow: hidden; 
-                border: 1px solid black;
-                border-radius: 20px;
             }
 
             th { 
@@ -51,9 +58,11 @@ require_once '../Function/trava.php';
                 text-transform: uppercase; 
                 font-size: 18px; 
                 word-wrap: break-word; 
+                position: -webkit-sticky; 
                 position: sticky;
-                top: 0;
-                z-index: 2;
+                top: 0; 
+                z-index: 10; 
+                box-shadow: inset 0 -2px 0 #1c1c1c; 
             }   
 
             td { 
@@ -132,168 +141,172 @@ require_once '../Function/trava.php';
             }
 
             .footer {
-                margin-top: 20px;
-                margin-bottom: 20px;
+                margin-top: 10px;
+                margin-bottom: 5px;
                 font-size: 0.85rem;
                 color: #bdc3c7;
+                flex-shrink: 0; 
             }
     </style>
 </head>
 <body>
     <input type="text" id="input-pistola" autofocus>
-    <table>
-        <?php
-        require_once '../config/Database.php'; 
-        require_once '../Model/Sistema.php'; 
 
-        $database = new Database();
-        $db = $database->getConnection();
-
-        $sistema = new Sistema($db);
-
-        $arquivo_cache = __DIR__ . '/../cache/dados_painel.json';
-        $tempo_expiracao = 30; 
-
-        if (file_exists($arquivo_cache) && (time() - filemtime($arquivo_cache) < $tempo_expiracao)) {
-            $dados_tabela = json_decode(file_get_contents($arquivo_cache), true);
-        } else {
-            $dados_tabela = $sistema->mostrarTabela();
-            
-            if (!is_dir(__DIR__ . '/../cache')) {
-                mkdir(__DIR__ . '/../cache', 0777, true);
-            }
-            file_put_contents($arquivo_cache, json_encode($dados_tabela, JSON_UNESCAPED_UNICODE));
-        }
-
-        $pedidos = !empty($dados_tabela) ? $dados_tabela : [];
-        $pedidos_agrupados = $pedidos;
-        ?>
-        <thead>
-            <tr>
-                <th>Pedido</th>
-                <th>Prazo</th>
-                <th>Reformer</th>
-                <th>Carrinho (Ref)</th>
-                <th>Torre</th>
-                <th>Carrinho (Tor)</th>
-                <th>Cadilac</th>
-                <th>Gaiola</th>
-                <th>Chair</th>
-                <th>Barrel</th>
-                <th>Wall Unit</th>
-                <th>Acessórios</th>
-            </tr>   
-        </thead>
-        <tbody>
-    <?php 
-    $equipamentos = [
-        'Reformer Excellence', 
-        'Carrinho Excellence', 
-        'Reformer Torre', 
-        'Carrinho Torre',
-        'Cadilac Excelence', 
-        'Gaiola Cadilac',
-        'Step Chair Excelence', 
-        'Lader Barrel Excelence',
-        'Wall Unit',
-    ];
-
-    $lista_acessorios = [ 
-        'Caixa Mini', 
-        'Caixa do Reformer', 
-        'P. de Molas - B R I N D E',
-        'P. de Molas - C O M P L E T A', 
-        'P. de Molas - P u s h T h r u',
-        'Caixa da Cadeira', 
-        'Prancha de Alongamento',
-    ];
-    $placeholders_acessorios = implode(',', array_fill(0, count($lista_acessorios), '?'));
-    ?>
-
-    <?php if (empty($pedidos)): ?>
-            <tr>
-                <td colspan="12" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
-            </tr>
-    <?php else: ?>
-
-    <?php foreach ($pedidos_agrupados as $pedido): ?>
-    <tr id="linha-<?= htmlspecialchars($pedido['numero']) ?>">
-        <td><?= htmlspecialchars($pedido['numero'])?></td>
-        
-        <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
-
-        <?php foreach ($equipamentos as $nome_equipamento): 
-            $stmt = $db->prepare("SELECT id, status FROM itens_producao WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido NOT LIKE 'OS%'");
-            $stmt->execute([$pedido['numero'], $nome_equipamento]);
-            $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC); 
-        ?>
-        <td>
-            <div style="display: flex; justify-content: center;">
-            <?php if ($pecas && count($pecas) > 0): 
-                foreach ($pecas as $peca):
-                    $status = isset($peca['status']) ? $peca['status'] : 'Em Produção';
-                    $id_peca = isset($peca['id']) ? $peca['id'] : 0;
-                    
-                    $texto = '❌';
-                    $estilo = '';
-
-                    if ($peca['status'] === 'Produzido') {
-                        $texto = '✅';
-                    } elseif ($peca['status'] === 'Embalado') {
-                        $texto = 'E';
-                        $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
-                    }
-            ?>
-                <span class="item-check" 
-                    data-id="<?= $peca['id'] ?>" 
-                    data-pedido="<?= htmlspecialchars($pedido['numero']) ?>"
-                    data-equipamento="<?= htmlspecialchars($nome_equipamento) ?>"
-                    <?= $estilo ?> 
-                    style="font-size: 24px;">
-                    <?= $texto ?>
-                </span>
-                <?php endforeach;?>
-            <?php else: ?>
-                <span style="color: #ccc;">-</span>
-            <?php endif; ?>
-            </div>
-        </td>
-        <?php endforeach; ?>
-        <td>
+    <div class="table-container">
+        <table>
             <?php
-            $sqlAcess = "SELECT status FROM itens_producao WHERE numero_pedido = ? AND equipamento IN ($placeholders_acessorios)";
-            $stmtAcess = $db->prepare($sqlAcess);
-            $paramsAcess = array_merge([$pedido['numero']], $lista_acessorios);
-            $stmtAcess->execute($paramsAcess);
-            $status_acessorios = $stmtAcess->fetchAll(PDO::FETCH_COLUMN);
+            require_once '../config/Database.php'; 
+            require_once '../Model/Sistema.php'; 
 
-            if (count($status_acessorios) === 0) {
-                echo '<span style="color: #ccc; font-size: 20px;">-</span>';
+            $database = new Database();
+            $db = $database->getConnection();
+
+            $sistema = new Sistema($db);
+
+            $arquivo_cache = __DIR__ . '/../cache/dados_painel.json';
+            $tempo_expiracao = 30; 
+
+            if (file_exists($arquivo_cache) && (time() - filemtime($arquivo_cache) < $tempo_expiracao)) {
+                $dados_tabela = json_decode(file_get_contents($arquivo_cache), true);
             } else {
-                $totalAcess = count($status_acessorios);
-                $totalEmbalados = 0;
-                $totalFinalizados = 0;
-
-                foreach ($status_acessorios as $st) {
-                    if ($st === 'Embalado') $totalEmbalados++;
-                    if ($st === 'Produzido') $totalFinalizados++;
+                $dados_tabela = $sistema->mostrarTabela();
+                
+                if (!is_dir(__DIR__ . '/../cache')) {
+                    mkdir(__DIR__ . '/../cache', 0777, true);
                 }
-
-                if ($totalEmbalados === $totalAcess) {
-                    echo '<span class="item-check status-acessorio-coletivo" data-pedido="'.htmlspecialchars($pedido['numero']).'" data-equipamento="Acessórios" style="color: #27ae60; font-weight: bold; font-size: 30px;">E</span>';
-                } elseif (($totalEmbalados + $totalFinalizados) === $totalAcess) {
-                    echo '<span class="item-check status-acessorio-coletivo" data-pedido="'.htmlspecialchars($pedido['numero']).'" data-equipamento="Acessórios" style="font-size: 25px;">✅</span>';
-                } else {
-                    echo '<span class="item-check status-acessorio-coletivo" data-pedido="'.htmlspecialchars($pedido['numero']).'" data-equipamento="Acessórios" style="font-size: 25px;">❌</span>';
-                }
+                file_put_contents($arquivo_cache, json_encode($dados_tabela, JSON_UNESCAPED_UNICODE));
             }
+
+            $pedidos = !empty($dados_tabela) ? $dados_tabela : [];
+            $pedidos_agrupados = $pedidos;
             ?>
-        </td>
-    </tr>
-    <?php endforeach; ?>
-    <?php endif; ?>
-</tbody>
-    </table>
+            <thead>
+                <tr>
+                    <th>Pedido</th>
+                    <th>Prazo</th>
+                    <th>Reformer</th>
+                    <th>Carrinho (Ref)</th>
+                    <th>Torre</th>
+                    <th>Carrinho (Tor)</th>
+                    <th>Cadilac</th>
+                    <th>Gaiola</th>
+                    <th>Chair</th>
+                    <th>Barrel</th>
+                    <th>Wall Unit</th>
+                    <th>Acessórios</th>
+                </tr>   
+            </thead>
+            <tbody>
+        <?php 
+        $equipamentos = [
+            'Reformer Excellence', 
+            'Carrinho Excellence', 
+            'Reformer Torre', 
+            'Carrinho Torre',
+            'Cadilac Excelence', 
+            'Gaiola Cadilac',
+            'Step Chair Excelence', 
+            'Lader Barrel Excelence',
+            'Wall Unit',
+        ];
+
+        $lista_acessorios = [ 
+            'Caixa Mini', 
+            'Caixa do Reformer', 
+            'P. de Molas - B R I N D E',
+            'P. de Molas - C O M P L E T A', 
+            'P. de Molas - P u s h T h r u',
+            'Caixa da Cadeira', 
+            'Prancha de Alongamento',
+        ];
+        $placeholders_acessorios = implode(',', array_fill(0, count($lista_acessorios), '?'));
+        ?>
+
+        <?php if (empty($pedidos)): ?>
+                <tr>
+                    <td colspan="12" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
+                </tr>
+        <?php else: ?>
+
+        <?php foreach ($pedidos_agrupados as $pedido): ?>
+        <tr id="linha-<?= htmlspecialchars($pedido['numero']) ?>">
+            <td><?= htmlspecialchars($pedido['numero'])?></td>
+            
+            <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
+
+            <?php foreach ($equipamentos as $nome_equipamento): 
+                $stmt = $db->prepare("SELECT id, status FROM itens_producao WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido NOT LIKE 'OS%'");
+                $stmt->execute([$pedido['numero'], $nome_equipamento]);
+                $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC); 
+            ?>
+            <td>
+                <div style="display: flex; justify-content: center;">
+                <?php if ($pecas && count($pecas) > 0): 
+                    foreach ($pecas as $peca):
+                        $status = isset($peca['status']) ? $peca['status'] : 'Em Produção';
+                        $id_peca = isset($peca['id']) ? $peca['id'] : 0;
+                        
+                        $texto = '❌';
+                        $estilo = '';
+
+                        if ($peca['status'] === 'Produzido') {
+                            $texto = '✅';
+                        } elseif ($peca['status'] === 'Embalado') {
+                            $texto = 'E';
+                            $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
+                        }
+                ?>
+                    <span class="item-check" 
+                        data-id="<?= $peca['id'] ?>" 
+                        data-pedido="<?= htmlspecialchars($pedido['numero']) ?>"
+                        data-equipamento="<?= htmlspecialchars($nome_equipamento) ?>"
+                        <?= $estilo ?> 
+                        style="font-size: 24px;">
+                        <?= $texto ?>
+                    </span>
+                    <?php endforeach;?>
+                <?php else: ?>
+                    <span style="color: #ccc;">-</span>
+                <?php endif; ?>
+                </div>
+            </td>
+            <?php endforeach; ?>
+            <td>
+                <?php
+                $sqlAcess = "SELECT status FROM itens_producao WHERE numero_pedido = ? AND equipamento IN ($placeholders_acessorios)";
+                $stmtAcess = $db->prepare($sqlAcess);
+                $paramsAcess = array_merge([$pedido['numero']], $lista_acessorios);
+                $stmtAcess->execute($paramsAcess);
+                $status_acessorios = $stmtAcess->fetchAll(PDO::FETCH_COLUMN);
+
+                if (count($status_acessorios) === 0) {
+                    echo '<span style="color: #ccc; font-size: 20px;">-</span>';
+                } else {
+                    $totalAcess = count($status_acessorios);
+                    $totalEmbalados = 0;
+                    $totalFinalizados = 0;
+
+                    foreach ($status_acessorios as $st) {
+                        if ($st === 'Embalado') $totalEmbalados++;
+                        if ($st === 'Produzido') $totalFinalizados++;
+                    }
+
+                    if ($totalEmbalados === $totalAcess) {
+                        echo '<span class="item-check status-acessorio-coletivo" data-pedido="'.htmlspecialchars($pedido['numero']).'" data-equipamento="Acessórios" style="color: #27ae60; font-weight: bold; font-size: 30px;">E</span>';
+                    } elseif (($totalEmbalados + $totalFinalizados) === $totalAcess) {
+                        echo '<span class="item-check status-acessorio-coletivo" data-pedido="'.htmlspecialchars($pedido['numero']).'" data-equipamento="Acessórios" style="font-size: 25px;">✅</span>';
+                    } else {
+                        echo '<span class="item-check status-acessorio-coletivo" data-pedido="'.htmlspecialchars($pedido['numero']).'" data-equipamento="Acessórios" style="font-size: 25px;">❌</span>';
+                    }
+                }
+                ?>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+        <?php endif; ?>
+    </tbody>
+        </table>
+    </div>
 
     <div id="feedback-box">
         <div id="feedback-content"></div>
@@ -392,7 +405,7 @@ function atualizarStatusNoBanco(codigoCompleto) {
 }
 
     function verificarLinha(linha) {
-        const itensLista = linha.querySelectorAll('.item-check');
+        const itensLista = inline = linha.querySelectorAll('.item-check');
         if (itensLista.length === 0) return;
        
         const pendentes = Array.from(itensLista).filter(i => i.innerText.trim() !== 'E');
