@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
             --bg-gradient: radial-gradient(circle at 50% 30%, #0c0f1d 0%, #030306 100%);
             --panel-bg: rgba(10, 11, 18, 0.65);
             --border-tech: rgba(0, 240, 255, 0.08);
-            
+
             --neon-blue: #00f0ff;
             --neon-amber: #ff9d00;
             --neon-red: #ff3838;
@@ -19,8 +20,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.96) translateY(15px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+            from {
+                opacity: 0;
+                transform: scale(0.96) translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
 
         body {
@@ -42,8 +50,8 @@
             content: '';
             position: absolute;
             inset: 0;
-            background-image: linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
             background-size: 40px 40px;
             pointer-events: none;
             z-index: 0;
@@ -69,8 +77,10 @@
         .login-container::after {
             content: '';
             position: absolute;
-            top: 0; right: 0;
-            width: 15px; height: 15px;
+            top: 0;
+            right: 0;
+            width: 15px;
+            height: 15px;
             border-top: 2px solid var(--neon-blue);
             border-right: 2px solid var(--neon-blue);
             border-radius: 0 16px 0 0;
@@ -95,7 +105,7 @@
 
         h2 {
             font-size: 0.85rem;
-            color: var(--neon-amber); 
+            color: var(--neon-amber);
             margin-top: 0;
             margin-bottom: 35px;
             text-transform: uppercase;
@@ -207,11 +217,12 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="login-container">
         <img src="assets/logo_equipilates.png" alt="Logo Equipilates">
-        
+
         <h1>Painel Operacional</h1>
         <h2>Controle de Acesso</h2>
 
@@ -243,4 +254,5 @@
     </div>
 
 </body>
+
 </html>

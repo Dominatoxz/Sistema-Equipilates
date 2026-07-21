@@ -1,10 +1,11 @@
 <?php
-require_once './Function/trava.php'; 
+require_once './Function/trava.php';
 date_default_timezone_set('America/Sao_Paulo');
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,18 +16,25 @@ date_default_timezone_set('America/Sao_Paulo');
             --bg-gradient: radial-gradient(circle at 50% 30%, #0c0f1d 0%, #030306 100%);
             --panel-bg: rgba(10, 11, 18, 0.6);
             --border-tech: rgba(0, 240, 255, 0.05);
-            
+
             --neon-blue: #00f0ff;
             --neon-amber: #ff9d00;
             --neon-purple: #bd00ff;
-            --neon-red: #ff3b30; 
+            --neon-red: #ff3b30;
             --text-primary: #ffffff;
             --text-secondary: #7e8494;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.98) translateY(10px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+            from {
+                opacity: 0;
+                transform: scale(0.98) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
 
         body {
@@ -50,8 +58,8 @@ date_default_timezone_set('America/Sao_Paulo');
             content: '';
             position: absolute;
             inset: 0;
-            background-image: linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
             background-size: 40px 40px;
             pointer-events: none;
             z-index: 0;
@@ -72,14 +80,14 @@ date_default_timezone_set('America/Sao_Paulo');
             animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        .header-painel { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            margin-bottom: 40px; 
+        .header-painel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 40px;
             width: 100%;
             max-width: 850px;
-            position: relative; 
+            position: relative;
         }
 
         .header-painel img {
@@ -88,43 +96,47 @@ date_default_timezone_set('America/Sao_Paulo');
             filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.2)) brightness(1.1);
         }
 
-    @keyframes glowSair {
-        0%, 100% { 
-            box-shadow: 0 0 10px rgba(255, 59, 48, 0.3); 
-            border-color: rgba(255, 59, 48, 0.3);
-        }
-        50% { 
-            box-shadow: 0 0 20px rgba(255, 59, 48, 0.6); 
-            border-color: rgba(255, 59, 48, 0.7);
-        }
-    }
+        @keyframes glowSair {
 
-    .header-painel a.btn-sair {
-        position: absolute;
-        right: 10px;
-        color: #ff3b30; 
-        text-decoration: none;
-        font-weight: 700; 
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        border: 1px solid rgba(255, 59, 48, 0.3);
-        background: rgba(255, 59, 48, 0.05); 
-        padding: 10px 20px; 
-        border-radius: 6px;
-        backdrop-filter: blur(8px);
-        animation: glowSair 2s infinite ease-in-out;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+            0%,
+            100% {
+                box-shadow: 0 0 10px rgba(255, 59, 48, 0.3);
+                border-color: rgba(255, 59, 48, 0.3);
+            }
 
-    .header-painel a.btn-sair:hover {
-        color: #ffffff;
-        background: #ff3b30; 
-        box-shadow: 0 0 25px #ff3b30;
-        text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
-        transform: translateY(-2px) scale(1.05);
-        animation: none; 
-    }
+            50% {
+                box-shadow: 0 0 20px rgba(255, 59, 48, 0.6);
+                border-color: rgba(255, 59, 48, 0.7);
+            }
+        }
+
+        .header-painel a.btn-sair {
+            position: absolute;
+            right: 10px;
+            color: #ff3b30;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            background: rgba(255, 59, 48, 0.05);
+            padding: 10px 20px;
+            border-radius: 6px;
+            backdrop-filter: blur(8px);
+            animation: glowSair 2s infinite ease-in-out;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .header-painel a.btn-sair:hover {
+            color: #ffffff;
+            background: #ff3b30;
+            box-shadow: 0 0 25px #ff3b30;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px) scale(1.05);
+            animation: none;
+        }
+
         h1 {
             font-size: 2.6rem;
             text-transform: uppercase;
@@ -134,7 +146,7 @@ date_default_timezone_set('America/Sao_Paulo');
             background: linear-gradient(180deg, #ffffff 30%, #5d667a 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.8));
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.8));
         }
 
         p.subtitle {
@@ -165,7 +177,7 @@ date_default_timezone_set('America/Sao_Paulo');
             gap: 20px;
             padding: 10px;
             width: 100%;
-            max-width: 850px; 
+            max-width: 850px;
             margin: 0 auto;
         }
 
@@ -185,7 +197,7 @@ date_default_timezone_set('America/Sao_Paulo');
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
             position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .card-botao h3 {
@@ -221,13 +233,35 @@ date_default_timezone_set('America/Sao_Paulo');
             background: transparent;
         }
 
-        .linha-contemporanea .icon-box { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0,240,255,0.5); }
-        .linha-contemporanea:hover { border-color: rgba(0, 240, 255, 0.4); box-shadow: 0 0 30px rgba(0, 240, 255, 0.15); }
-        .linha-contemporanea:hover h3 { color: var(--neon-blue); text-shadow: 0 0 8px rgba(0,240,255,0.3); }
+        .linha-contemporanea .icon-box {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+        }
 
-        .linha-cadastro .icon-box { color: var(--neon-purple); text-shadow: 0 0 10px rgba(189,0,255,0.5); }
-        .linha-cadastro:hover { border-color: rgba(189, 0, 255, 0.4); box-shadow: 0 0 30px rgba(189, 0, 255, 0.15); }
-        .linha-cadastro:hover h3 { color: var(--neon-purple); text-shadow: 0 0 8px rgba(189,0,255,0.3); }
+        .linha-contemporanea:hover {
+            border-color: rgba(0, 240, 255, 0.4);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+        }
+
+        .linha-contemporanea:hover h3 {
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+        }
+
+        .linha-cadastro .icon-box {
+            color: var(--neon-purple);
+            text-shadow: 0 0 10px rgba(189, 0, 255, 0.5);
+        }
+
+        .linha-cadastro:hover {
+            border-color: rgba(189, 0, 255, 0.4);
+            box-shadow: 0 0 30px rgba(189, 0, 255, 0.15);
+        }
+
+        .linha-cadastro:hover h3 {
+            color: var(--neon-purple);
+            text-shadow: 0 0 8px rgba(189, 0, 255, 0.3);
+        }
 
         .footer {
             margin-top: 60px;
@@ -240,12 +274,13 @@ date_default_timezone_set('America/Sao_Paulo');
         }
     </style>
 </head>
+
 <body>
     <div class="header-painel">
         <img src="assets/logo_equipilates.png" alt="Equipilates">
         <a class="btn-sair" href="Function/logout.php">Sair 🚪</a>
     </div>
-    
+
     <div class="container">
         <h1>Linhas</h1>
         <p class="subtitle">"Olhos e Mente na Tarefa."</p>
@@ -254,12 +289,12 @@ date_default_timezone_set('America/Sao_Paulo');
                 <div class="icon-box">🧬</div>
                 <h3>Contemporânea</h3>
             </a>
-            
+
             <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Gerente', 'CEO', 'Desenvolvedor'])): ?>
-            <a href="View/cadastro.php" class="card-botao linha-cadastro">
-                <div class="icon-box">📋</div>
-                <h3>Novo Usuário</h3>
-            </a>
+                <a href="View/cadastro.php" class="card-botao linha-cadastro">
+                    <div class="icon-box">📋</div>
+                    <h3>Novo Usuário</h3>
+                </a>
             <?php endif; ?>
         </div>
     </div>
@@ -271,16 +306,17 @@ date_default_timezone_set('America/Sao_Paulo');
     <script>
         document.querySelectorAll('.card-botao, .btn-sair').forEach(link => {
             link.addEventListener('click', function(e) {
-                e.preventDefault(); 
+                e.preventDefault();
                 const destino = this.getAttribute('href');
-                
-                document.body.classList.add('fade-out'); 
-                
+
+                document.body.classList.add('fade-out');
+
                 setTimeout(() => {
-                    window.location.href = destino; 
-                }, 300); 
+                    window.location.href = destino;
+                }, 300);
             });
         });
     </script>
 </body>
+
 </html>

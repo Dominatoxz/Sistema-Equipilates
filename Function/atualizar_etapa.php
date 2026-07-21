@@ -7,10 +7,10 @@ $codigoLido = $_GET['id'] ?? null;
 
 if ($codigoLido) {
     $partes = explode('-', $codigoLido);
-    $idBruto = $partes[0] ?? null;   
-    $tipo = $partes[1] ?? null; 
+    $idBruto = $partes[0] ?? null;
+    $tipo = $partes[1] ?? null;
 
-    if (strpos(strtoupper($idBruto),  'OS') === 0){
+    if (strpos(strtoupper($idBruto),  'OS') === 0) {
         $tabelaAlvo = 'itens_os';
         $id = (int) substr($idBruto, 2);
     } else {
@@ -22,31 +22,30 @@ if ($codigoLido) {
         $stmtCheck = $db->prepare("SELECT * FROM $tabelaAlvo WHERE id = ?");
         $stmtCheck->execute([$id]);
         $item = $stmtCheck->fetch(PDO::FETCH_ASSOC);
-        
+
         if (!$item) {
             echo json_encode(['success' => false, 'error' => 'Item não encontrado no banco']);
             exit;
         }
 
-        $statusAtual = trim($item['status']); 
+        $statusAtual = trim($item['status']);
         $podeAtualizar = false;
         $novoStatus = '';
-        $colunaData = ''; 
+        $colunaData = '';
 
         if ($tipo === 'P') {
             if ($statusAtual === 'Pendente') {
                 $novoStatus = 'Produzido';
-                $colunaData = 'data_inicio'; 
+                $colunaData = 'data_inicio';
                 $podeAtualizar = true;
             } else {
                 echo json_encode(['success' => false, 'error' => 'Este item já foi fabricado!']);
                 exit;
             }
-      
         } elseif ($tipo === 'E') {
             if ($statusAtual === 'Produzido') {
                 $novoStatus = 'Embalado';
-                $colunaData = 'data_fim'; 
+                $colunaData = 'data_fim';
                 $podeAtualizar = true;
             } else {
                 echo json_encode(['success' => false, 'error' => 'Não é possível embalar um item que não foi fabricado!']);
@@ -55,15 +54,15 @@ if ($codigoLido) {
         }
 
         if ($podeAtualizar) {
-            date_default_timezone_set('America/Sao_Paulo'); 
-            $dataHoraPHP = date('Y-m-d H:i:s'); 
+            date_default_timezone_set('America/Sao_Paulo');
+            $dataHoraPHP = date('Y-m-d H:i:s');
 
             $query = "UPDATE $tabelaAlvo SET status = :status, $colunaData = :data_registro WHERE id = :id";
             $stmt = $db->prepare($query);
             $stmt->bindParam(':status', $novoStatus);
             $stmt->bindParam(':data_registro', $dataHoraPHP);
             $stmt->bindParam(':id', $id);
-            
+
             if ($stmt->execute()) {
                 $idRealRetorno = ($tabelaAlvo === 'itens_os') ? 'OS' . $id : $id;
 
@@ -71,18 +70,18 @@ if ($codigoLido) {
                 $nomeEquipamentoDoBanco = $item['equipamento'] ?? 'Equipamento';
 
                 $arquivo_cache = __DIR__ . '/../cache/dados_painel.json';
-                $arquivo_cache_os = __DIR__ . '/../cache/dados_painelOs.json'; 
+                $arquivo_cache_os = __DIR__ . '/../cache/dados_painelOs.json';
 
                 if (file_exists($arquivo_cache)) {
                     unlink($arquivo_cache);
                 }
                 if (file_exists($arquivo_cache_os)) {
-                    unlink($arquivo_cache_os); 
+                    unlink($arquivo_cache_os);
                 }
 
                 echo json_encode([
-                    'success' => true, 
-                    'idReal' => $idRealRetorno, 
+                    'success' => true,
+                    'idReal' => $idRealRetorno,
                     'statusGerado' => $novoStatus,
                     'pedidoReal' => $nrPedidoDoBanco,
                     'equipamentoReal' => $nomeEquipamentoDoBanco

@@ -36,22 +36,21 @@ try {
         } else {
             $sqlOs = 'SELECT COUNT(*) FROM itens_os WHERE numero_pedido = ? AND status != "Embalado"';
         }
-    
-        } else {
+    } else {
         $equipamentosPrincipais = [
-            'REF. CLASSICO ALUMINIO', 
+            'REF. CLASSICO ALUMINIO',
             'CARRINHO CLASSICO',
-            'REF. CLASSICO TORRE', 
+            'REF. CLASSICO TORRE',
             'CARRINHO CLASSICO TORRE',
-            'CAD. CLASSICO ALUMINIO', 
+            'CAD. CLASSICO ALUMINIO',
             'GAIOLA CLASSICO',
             'REF. CLASSICO TAUARI',
             'CARRINHO CLASSICO TAUARI',
-            'CAD. CLASSICO TAUARI', 
+            'CAD. CLASSICO TAUARI',
             'GAIOLA CADILCAC TAUARI',
             'REFORMER HIBRIDO',
             'CARRINHO CLASSICO HIBRIDO',
-            'WUNDA CHAIR', 
+            'WUNDA CHAIR',
             'ELECTRIC CHAIR',
             'ARM CHAIR',
             'LADDER BARREL CLÁSS.',
@@ -62,36 +61,35 @@ try {
             'BENCH MAT',
             'GUILHOTINA'
         ];
-        
+
         $placeholders = implode(',', array_fill(0, count($equipamentosPrincipais), '?'));
-        
+
         $sqlProd = "SELECT COUNT(*) FROM itens_producao 
                     WHERE numero_pedido = ? 
                     AND equipamento IN ($placeholders) 
                     AND status != 'Embalado'";
-                    
+
         $stmtProd = $db->prepare($sqlProd);
-        
+
         $params = array_merge([$pedido], $equipamentosPrincipais);
         $stmtProd->execute($params);
         $totalPendentes = (int)$stmtProd->fetchColumn();
     }
 
     if ($totalPendentes === 0) {
-        
+
         $sqlCheck = 'SELECT COUNT(*) FROM pedidos_prontos WHERE numero_pedido = ?';
         $stmtCheck = $db->prepare($sqlCheck);
         $stmtCheck->execute([$pedido]);
         $existe = $stmtCheck->fetchColumn();
 
         if (!$existe) {
-            if ($isOS){
+            if ($isOS) {
                 $stmtPrazo = $db->prepare("SELECT prazo_producao FROM itens_os WHERE numero_pedido = ?");
                 $stmtPrazo->execute([$pedido]);
                 $prazoOriginal = $stmtPrazo->fetchColumn();
 
                 $prazo = $prazoOriginal ? trim($prazoOriginal) : 'Sem prazo';
-
             } else {
                 $stmtPrazo = $db->prepare("SELECT `PRAZO DE PRODUÇÃO` FROM tabela_adaptada WHERE `NUMERO PEDIDO` = ?");
                 $stmtPrazo->execute([$pedido]);
@@ -104,18 +102,16 @@ try {
                             VALUES (?, ?, NOW(), 'Pendente')";
             $stmtInsert = $db->prepare($sqlInsert);
             $stmtInsert->execute([$pedido, $prazo]);
-        } 
+        }
 
         echo json_encode(['success' => true, 'status_pedido' => 'SUBIU_POS_VENDA']);
     } else {
         echo json_encode([
-            'success' => true, 
-            'status_pedido' => 'AGUARDANDO_OUTRO_QUADRO', 
+            'success' => true,
+            'status_pedido' => 'AGUARDANDO_OUTRO_QUADRO',
             'pendentes' => $totalPendentes
         ]);
     }
-
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>

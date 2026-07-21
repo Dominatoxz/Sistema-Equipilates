@@ -26,12 +26,12 @@ if (!$idPedido) {
 }
 
 try {
-    date_default_timezone_set('America/Sao_Paulo'); 
-    $dataConclusaoPHP = date('Y-m-d H:i:s'); 
+    date_default_timezone_set('America/Sao_Paulo');
+    $dataConclusaoPHP = date('Y-m-d H:i:s');
 
     $database = new Database();
     $db = $database->getConnection();
-    
+
     $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Expedição', data_conclusao = :data_conclusao WHERE id = :id");
     $resultado = $stmt->execute([
         'data_conclusao' => $dataConclusaoPHP,
@@ -43,10 +43,9 @@ try {
     } else {
         echo json_encode(['success' => false, 'error' => 'O banco não sofreu alterações. O ID existe?']);
     }
-
 } catch (\PDOException $e) {
     echo json_encode([
-        'success' => false, 
+        'success' => false,
         'error' => 'Erro no MySQL: ' . $e->getMessage() . ' | Linha: ' . $e->getLine()
     ]);
 }

@@ -1,9 +1,10 @@
 <?php
-require_once '../Function/trava.php'; 
+require_once '../Function/trava.php';
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +17,7 @@ require_once '../Function/trava.php';
             --card-border: rgba(255, 255, 255, 0.04);
             --text-main: #f0f0f5;
             --text-muted: #8a8a9e;
-            
+
             --color-gold: #f39c12;
             --color-prod: #00b0ff;
             --color-oseq: #ff9100;
@@ -25,8 +26,15 @@ require_once '../Function/trava.php';
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         body {
@@ -59,11 +67,11 @@ require_once '../Function/trava.php';
             animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        .header-painel { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 40px; 
+        .header-painel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
             width: 100%;
             max-width: 1060px;
             padding: 0 10px;
@@ -73,7 +81,7 @@ require_once '../Function/trava.php';
         .header-painel img {
             max-height: 120px;
             width: 180px;
-            filter: drop-shadow(0 0 8px rgba(255,255,255,0.1));
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
         }
 
         .header-painel a.btn-voltar {
@@ -108,7 +116,7 @@ require_once '../Function/trava.php';
             background: linear-gradient(180deg, #ffffff 0%, #a2a2bc 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5));
+            filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));
         }
 
         h2 {
@@ -124,7 +132,7 @@ require_once '../Function/trava.php';
 
         p.subtitle {
             font-size: 1.05rem;
-            color: var(--text-muted); 
+            color: var(--text-muted);
             max-width: 650px;
             margin: 0 auto 8px auto;
             line-height: 1.6;
@@ -172,9 +180,11 @@ require_once '../Function/trava.php';
         .card-botao::before {
             content: '';
             position: absolute;
-            top: 0; left: -100%;
-            width: 50%; height: 100%;
-            background: linear-gradient(to right, transparent, rgba(255,255,255,0.03), transparent);
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.03), transparent);
             transform: skewX(-25deg);
             transition: 0.75s;
         }
@@ -211,8 +221,8 @@ require_once '../Function/trava.php';
             font-size: 24px;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: inset 0 2px 4px rgba(255,255,255,0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.02);
         }
 
         .card-botao:hover {
@@ -223,25 +233,69 @@ require_once '../Function/trava.php';
 
         .card-botao:hover .icon-box {
             transform: scale(1.1) translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
-    
-        .prod .icon-box { color: var(--color-prod); background: rgba(0, 176, 255, 0.06); border-color: rgba(0, 176, 255, 0.15); }
-        .prod:hover { box-shadow: 0 10px 30px rgba(0, 176, 255, 0.15); border-color: rgba(0, 176, 255, 0.4); }
-        .prod:hover h3 { color: var(--color-prod); }
 
-        .os-eq .icon-box { color: var(--color-oseq); background: rgba(ff, 145, 0, 0.06); border-color: rgba(ff, 145, 0, 0.15); }
-        .os-eq:hover { box-shadow: 0 10px 30px rgba(ff, 145, 0, 0.15); border-color: rgba(ff, 145, 0, 0.4); }
-        .os-eq:hover h3 { color: var(--color-oseq); }
+        .prod .icon-box {
+            color: var(--color-prod);
+            background: rgba(0, 176, 255, 0.06);
+            border-color: rgba(0, 176, 255, 0.15);
+        }
 
-        .os-ac .icon-box { color: var(--color-osac); background: rgba(213, 0, 249, 0.06); border-color: rgba(213, 0, 249, 0.15); }
-        .os-ac:hover { box-shadow: 0 10px 30px rgba(213, 0, 249, 0.15); border-color: rgba(213, 0, 249, 0.4); }
-        .os-ac:hover h3 { color: var(--color-osac); }
+        .prod:hover {
+            box-shadow: 0 10px 30px rgba(0, 176, 255, 0.15);
+            border-color: rgba(0, 176, 255, 0.4);
+        }
 
-        .pos-venda .icon-box { color: var(--color-pos); background: rgba(0, 230, 118, 0.06); border-color: rgba(0, 230, 118, 0.15); }
-        .pos-venda:hover { box-shadow: 0 10px 30px rgba(0, 230, 118, 0.15); border-color: rgba(0, 230, 118, 0.4); }
-        .pos-venda:hover h3 { color: var(--color-pos); }
+        .prod:hover h3 {
+            color: var(--color-prod);
+        }
+
+        .os-eq .icon-box {
+            color: var(--color-oseq);
+            background: rgba(ff, 145, 0, 0.06);
+            border-color: rgba(ff, 145, 0, 0.15);
+        }
+
+        .os-eq:hover {
+            box-shadow: 0 10px 30px rgba(ff, 145, 0, 0.15);
+            border-color: rgba(ff, 145, 0, 0.4);
+        }
+
+        .os-eq:hover h3 {
+            color: var(--color-oseq);
+        }
+
+        .os-ac .icon-box {
+            color: var(--color-osac);
+            background: rgba(213, 0, 249, 0.06);
+            border-color: rgba(213, 0, 249, 0.15);
+        }
+
+        .os-ac:hover {
+            box-shadow: 0 10px 30px rgba(213, 0, 249, 0.15);
+            border-color: rgba(213, 0, 249, 0.4);
+        }
+
+        .os-ac:hover h3 {
+            color: var(--color-osac);
+        }
+
+        .pos-venda .icon-box {
+            color: var(--color-pos);
+            background: rgba(0, 230, 118, 0.06);
+            border-color: rgba(0, 230, 118, 0.15);
+        }
+
+        .pos-venda:hover {
+            box-shadow: 0 10px 30px rgba(0, 230, 118, 0.15);
+            border-color: rgba(0, 230, 118, 0.4);
+        }
+
+        .pos-venda:hover h3 {
+            color: var(--color-pos);
+        }
 
         .footer {
             margin-top: 60px;
@@ -254,6 +308,7 @@ require_once '../Function/trava.php';
         }
     </style>
 </head>
+
 <body>
     <div class="header-painel">
         <img src="../assets/logo_equipilates.png" alt="">
@@ -319,7 +374,7 @@ require_once '../Function/trava.php';
                 <h3>Financeiro</h3>
                 <p>Fila para o controle do financeiro</p>
             </a>
-            
+
             <a href="tabela_expedição.php" class="card-botao pos-venda">
                 <div class="icon-box">✈️</div>
                 <h3>Expedição</h3>
@@ -356,4 +411,5 @@ require_once '../Function/trava.php';
         });
     </script>
 </body>
+
 </html>

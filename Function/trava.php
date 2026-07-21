@@ -16,7 +16,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['usuario_logado'])) {
 
 if (!isset($_SESSION['criado_em'])) {
     $_SESSION['criado_em'] = time();
-} else if (time() - $_SESSION['criado_em'] > 604800) { 
+} else if (time() - $_SESSION['criado_em'] > 604800) {
     session_unset();
     session_destroy();
     header("Location: ../login.php?erro=restrito");
@@ -26,9 +26,10 @@ if (!isset($_SESSION['criado_em'])) {
 /**
  * @param array 
  */
-    function verificarAcessoSetor(array $cargosPermitidos) {
+function verificarAcessoSetor(array $cargosPermitidos)
+{
     if (!isset($_SESSION['nivel_acesso']) || !in_array($_SESSION['nivel_acesso'], $cargosPermitidos)) {
-        
+
         echo "
         <!DOCTYPE html>
         <html lang='pt-br'>
@@ -45,13 +46,12 @@ if (!isset($_SESSION['criado_em'])) {
         <body>
             <div class='box-erro'>
                 <h2>Acesso Negado 🛑</h2>
-                <p>O seu nível de acesso (<strong>".htmlspecialchars($_SESSION['nivel_acesso'] ?? 'Nenhum')."</strong>) não tem permissão para aceder a esta página.</p>
+                <p>O seu nível de acesso (<strong>" . htmlspecialchars($_SESSION['nivel_acesso'] ?? 'Nenhum') . "</strong>) não tem permissão para aceder a esta página.</p>
                 <a href='javascript:history.back()' class='btn-voltar'>Voltar</a>
             </div>
         </body>
         </html>";
-        
-        exit; 
+
+        exit;
     }
-    }
-?>
+}

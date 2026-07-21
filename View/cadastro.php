@@ -1,15 +1,16 @@
 <?php
 require_once '../config/Database.php';
-require_once '../Function/trava.php'; 
+require_once '../Function/trava.php';
 
 
 $database = new Database();
 $db = $database->getConnection();
 
-$pdo = $db; 
+$pdo = $db;
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,8 +20,8 @@ $pdo = $db;
             --bg-main: #040408;
             --bg-gradient: radial-gradient(circle at 50% 30%, #0c0f1d 0%, #030306 100%);
             --panel-bg: rgba(10, 11, 18, 0.65);
-            --border-tech: rgba(189, 0, 255, 0.1); 
-            
+            --border-tech: rgba(189, 0, 255, 0.1);
+
             --neon-blue: #00f0ff;
             --neon-purple: #bd00ff;
             --neon-amber: #ff9d00;
@@ -31,8 +32,15 @@ $pdo = $db;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.97) translateY(15px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+            from {
+                opacity: 0;
+                transform: scale(0.97) translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
 
         body {
@@ -56,8 +64,8 @@ $pdo = $db;
             content: '';
             position: absolute;
             inset: 0;
-            background-image: linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
             background-size: 40px 40px;
             pointer-events: none;
             z-index: 0;
@@ -84,8 +92,10 @@ $pdo = $db;
         .container-cadastro::after {
             content: '';
             position: absolute;
-            top: 0; right: 0;
-            width: 15px; height: 15px;
+            top: 0;
+            right: 0;
+            width: 15px;
+            height: 15px;
             border-top: 2px solid var(--neon-amber);
             border-right: 2px solid var(--neon-amber);
             border-radius: 0 16px 0 0;
@@ -104,7 +114,7 @@ $pdo = $db;
 
         h2 {
             font-size: 0.85rem;
-            color: var(--neon-amber); 
+            color: var(--neon-amber);
             margin-top: 0;
             margin-bottom: 30px;
             text-transform: uppercase;
@@ -229,11 +239,12 @@ $pdo = $db;
             border-radius: 12px;
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.04);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
             animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        .tabela-usuarios th, .tabela-usuarios td {
+        .tabela-usuarios th,
+        .tabela-usuarios td {
             padding: 14px 18px;
             text-align: left;
         }
@@ -265,6 +276,7 @@ $pdo = $db;
         }
     </style>
 </head>
+
 <body>
 
     <div class="container-cadastro">
@@ -315,4 +327,5 @@ $pdo = $db;
     </table>
 
 </body>
+
 </html>

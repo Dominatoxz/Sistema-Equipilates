@@ -1,30 +1,116 @@
 <?php
-require_once '../Function/trava.php'; 
+require_once '../Function/trava.php';
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Pedidos</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; color: #333; margin: 25px; }
-        .header-painel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        h1 { color: #2c3e50; margin: 0; font-size: 28px; }
-        table { width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; }
-        th { background-color: #2c3e50; color: white; padding: 15px; text-align: center; font-size: 16px; text-transform: uppercase; }
-        td { padding: 15px; border-bottom: 1px solid #eef2f5; font-size: 16px; text-align: center; vertical-align: middle; }
-        tr:hover { background-color: #f8fafc; }
-        
-        .btn-baixa { background-color: #27ae60; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; font-size: 14px; }
-        .btn-baixa:hover { background-color: #219150; }
-        .badge-pronto { background-color: #d4edda; color: #155724; padding: 6px 12px; border-radius: 5px; font-size: 14px; font-weight: bold; border: 1px solid #c3e6cb; }
-        .sem-pedidos { text-align: center; padding: 50px; color: #7f8c8d; font-size: 18px; font-weight: 500; }
-        
-        .badge-origem { padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
-        .origem-normal { background-color: #e2e3e5; color: #383d41; }
-        .origem-os { background-color: #f8d7da; color: #721c24; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 25px;
+        }
+
+        .header-painel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 28px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eef2f5;
+            font-size: 16px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .btn-baixa {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-baixa:hover {
+            background-color: #219150;
+        }
+
+        .badge-pronto {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            border: 1px solid #c3e6cb;
+        }
+
+        .sem-pedidos {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .badge-origem {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .origem-normal {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+
+        .origem-os {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
 
         .filtros-container {
             display: flex;
@@ -32,6 +118,7 @@ require_once '../Function/trava.php';
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
+
         .btn-filtro {
             display: inline-flex;
             align-items: center;
@@ -46,15 +133,18 @@ require_once '../Function/trava.php';
             font-size: 14px;
             transition: all 0.2s ease;
         }
+
         .btn-filtro:hover {
             background-color: #f1f5f9;
             border-color: #94a3b8;
         }
+
         .btn-filtro.active {
             background-color: #2c3e50;
             color: #fff;
             border-color: #2c3e50;
         }
+
         .btn-filtro span {
             padding: 2px 8px;
             border-radius: 12px;
@@ -63,34 +153,94 @@ require_once '../Function/trava.php';
             min-width: 15px;
             text-align: center;
         }
+
         .btn-filtro.active span {
-            outline: 1px solid rgba(255,255,255,0.4);
+            outline: 1px solid rgba(255, 255, 255, 0.4);
         }
 
-        .linha-observacao { background-color: #fcfcfc; display: none; }
-        .linha-observacao td { text-align: left; padding: 0 25px; border-bottom: 1px solid #e0e0e0; }
+        .linha-observacao {
+            background-color: #fcfcfc;
+            display: none;
+        }
 
-        .txt-historico-obs { font-size: 0.8rem; color: #868e96; margin: 0; padding-left: 5px; font-style: italic; }
-        
-        .wrapper-sanfona { 
-            max-height: 0; 
-            overflow: hidden; 
-            transition: max-height 0.4s ease-out, padding 0.4s ease; 
+        .linha-observacao td {
+            text-align: left;
+            padding: 0 25px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .txt-historico-obs {
+            font-size: 0.8rem;
+            color: #868e96;
+            margin: 0;
+            padding-left: 5px;
+            font-style: italic;
+        }
+
+        .wrapper-sanfona {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.4s ease;
             padding: 0;
         }
-        .linha-observacao.aberta .wrapper-sanfona { 
-            max-height: 200px; 
+
+        .linha-observacao.aberta .wrapper-sanfona {
+            max-height: 200px;
             padding: 20px 0;
         }
-        .container-obs { display: flex; gap: 15px; align-items: center; width: 100%; }
-        .input-obs { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
-        .input-obs:focus { border-color: #2980b9; outline: none; box-shadow: 0 0 5px rgba(41,128,185,0.2); }
-        
-        .btn-salvar-obs { background-color: #2980b9; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-        .btn-salvar-obs:hover { background-color: #216b9b; }
-        
-        .btn-mais { background: none; border: none; color: #2980b9; font-size: 22px; font-weight: bold; cursor: pointer; padding: 5px 10px; transition: transform 0.2s; }
-        .btn-mais:hover { transform: translateY(-2px); }
+
+        .container-obs {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .input-obs {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        .input-obs:focus {
+            border-color: #2980b9;
+            outline: none;
+            box-shadow: 0 0 5px rgba(41, 128, 185, 0.2);
+        }
+
+        .btn-salvar-obs {
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-salvar-obs:hover {
+            background-color: #216b9b;
+        }
+
+        .btn-mais {
+            background: none;
+            border: none;
+            color: #2980b9;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 5px 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn-mais:hover {
+            transform: translateY(-2px);
+        }
+
         .footer {
             margin-top: 20px;
             margin-bottom: 20px;
@@ -99,12 +249,13 @@ require_once '../Function/trava.php';
         }
     </style>
 </head>
+
 <body>
     <div class="header-painel">
         <h1>Painel de Controle</h1>
         <div style="font-weight: bold; color: #7f8c8d;">Status de Saídas</div>
     </div>
-    
+
     <div class="filtros-container">
         <button class="btn-filtro active" data-filter="todos">
             Todos <span id="qtd-todos" style="background: #e2e8f0; color: #334155;">0</span>
@@ -128,135 +279,138 @@ require_once '../Function/trava.php';
         </thead>
         <tbody id="tabela-controle-body">
             <?php
-            require_once '../config/Database.php'; 
-            require_once '../Model/Sistema.php'; 
+            require_once '../config/Database.php';
+            require_once '../Model/Sistema.php';
 
             $database = new Database();
             $db = $database->getConnection();
             $sistema = new Sistema($db);
 
-            $pedidos = $sistema->mostrarFilaControle(); 
+            $pedidos = $sistema->mostrarFilaControle();
             ?>
             <?php if (empty($pedidos)): ?>
                 <tr class="linha-sem-registro">
                     <td colspan="4" class="sem-pedidos">Nenhum pedido aguardando liberação.</td>
                 </tr>
             <?php else: ?>
-                <?php foreach($pedidos as $p): 
+                <?php foreach ($pedidos as $p):
                     $numPedido = $p['numero_pedido'] ?? '';
-                    
+
                     $tipoOrigem = (strpos(strtoupper($numPedido), 'OS') !== false) ? 'OS' : 'Normal';
                     $classeOrigem = ($tipoOrigem === 'OS') ? 'origem-os' : 'origem-normal';
                 ?>
-                <tr id="linha-<?= $p['id'] ?>" data-tipo="<?= strtolower($tipoOrigem) ?>">
-                    <td style="font-weight: bold; color: #2980b9; font-size: 18px;">
-                        <?= htmlspecialchars($numPedido) ?>
-                    </td>
-                    <td>
-                        <span class="badge-origem <?= $classeOrigem ?>">
-                            <?= $tipoOrigem ?>
-                        </span>
-                    </td>
-                    <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10)) ?></td>
-                    <td><?= htmlspecialchars($p['status_posvenda']) ?></td>
-                </tr>
+                    <tr id="linha-<?= $p['id'] ?>" data-tipo="<?= strtolower($tipoOrigem) ?>">
+                        <td style="font-weight: bold; color: #2980b9; font-size: 18px;">
+                            <?= htmlspecialchars($numPedido) ?>
+                        </td>
+                        <td>
+                            <span class="badge-origem <?= $classeOrigem ?>">
+                                <?= $tipoOrigem ?>
+                            </span>
+                        </td>
+                        <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10)) ?></td>
+                        <td><?= htmlspecialchars($p['status_posvenda']) ?></td>
+                    </tr>
                 <?php endforeach; ?>
             <?php endif; ?>
         </tbody>
     </table>
 
     <script>
-    const botoesFiltro = document.querySelectorAll('.btn-filtro');
-    const linhasTabela = document.querySelectorAll('#tabela-controle-body tr[id^="linha-"]');
-    
-    function atualizarContadores() {
+        const botoesFiltro = document.querySelectorAll('.btn-filtro');
         const linhasTabela = document.querySelectorAll('#tabela-controle-body tr[id^="linha-"]');
-        let todos = 0, normal = 0, os = 0;
 
-        linhasTabela.forEach(tr => {
-            todos++;
-            const tipo = tr.getAttribute('data-tipo');
-
-            if (tipo === 'normal') normal++;
-            if (tipo === 'os') os++;
-        });
-
-        document.getElementById('qtd-todos').textContent = todos;
-        document.getElementById('qtd-normal').textContent = normal;
-        document.getElementById('qtd-os').textContent = os;
-    }
-
-    botoesFiltro.forEach(botao => {
-        botao.addEventListener('click', function() {
-            botoesFiltro.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-
-            const filtroSelecionado = this.getAttribute('data-filter');
+        function atualizarContadores() {
             const linhasTabela = document.querySelectorAll('#tabela-controle-body tr[id^="linha-"]');
-            let encontrouAlgum = false;
+            let todos = 0,
+                normal = 0,
+                os = 0;
 
             linhasTabela.forEach(tr => {
-                const tipoLinha = tr.getAttribute('data-tipo');
+                todos++;
+                const tipo = tr.getAttribute('data-tipo');
 
-                if (filtroSelecionado === 'todos') {
-                    tr.style.display = '';
-                    encontrouAlgum = true;
-                } else {
-                    if (tipoLinha === filtroSelecionado) {
+                if (tipo === 'normal') normal++;
+                if (tipo === 'os') os++;
+            });
+
+            document.getElementById('qtd-todos').textContent = todos;
+            document.getElementById('qtd-normal').textContent = normal;
+            document.getElementById('qtd-os').textContent = os;
+        }
+
+        botoesFiltro.forEach(botao => {
+            botao.addEventListener('click', function() {
+                botoesFiltro.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const filtroSelecionado = this.getAttribute('data-filter');
+                const linhasTabela = document.querySelectorAll('#tabela-controle-body tr[id^="linha-"]');
+                let encontrouAlgum = false;
+
+                linhasTabela.forEach(tr => {
+                    const tipoLinha = tr.getAttribute('data-tipo');
+
+                    if (filtroSelecionado === 'todos') {
                         tr.style.display = '';
                         encontrouAlgum = true;
                     } else {
-                        tr.style.display = 'none';
+                        if (tipoLinha === filtroSelecionado) {
+                            tr.style.display = '';
+                            encontrouAlgum = true;
+                        } else {
+                            tr.style.display = 'none';
+                        }
                     }
+                });
+
+                const avisoExistente = document.querySelector('.aviso-filtro-vazio');
+                if (avisoExistente) avisoExistente.remove();
+
+                if (!encontrouAlgum && linhasTabela.length > 0) {
+                    const tbody = document.getElementById('tabela-controle-body');
+                    const trAviso = document.createElement('tr');
+                    trAviso.className = 'aviso-filtro-vazio';
+                    trAviso.innerHTML = `<td colspan="4" class="sem-pedidos">Nenhum registro encontrado para este filtro.</td>`;
+                    tbody.appendChild(trAviso);
                 }
             });
-
-            const avisoExistente = document.querySelector('.aviso-filtro-vazio');
-            if (avisoExistente) avisoExistente.remove();
-
-            if (!encontrouAlgum && linhasTabela.length > 0) {
-                const tbody = document.getElementById('tabela-controle-body');
-                const trAviso = document.createElement('tr');
-                trAviso.className = 'aviso-filtro-vazio';
-                trAviso.innerHTML = `<td colspan="4" class="sem-pedidos">Nenhum registro encontrado para este filtro.</td>`;
-                tbody.appendChild(trAviso);
-            }
         });
-    });
 
-    document.addEventListener("DOMContentLoaded", atualizarContadores);
+        document.addEventListener("DOMContentLoaded", atualizarContadores);
 
-    let idsAtuais = Array.from(document.querySelectorAll('tbody tr[id^="linha-"]'))
-                         .map(tr => tr.id.replace('linha-', ''));
+        let idsAtuais = Array.from(document.querySelectorAll('tbody tr[id^="linha-"]'))
+            .map(tr => tr.id.replace('linha-', ''));
 
-    function verificarAtualizacoesEmSegundoPlano() {
-        if (document.activeElement && document.activeElement.tagName === 'INPUT') {
-            return; 
+        function verificarAtualizacoesEmSegundoPlano() {
+            if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+                return;
+            }
+
+            fetch('../Function/dados_tabelas.php?tela=pos_venda')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const novosDados = data.dados;
+                        const novosIds = novosDados.map(p => p.id.toString());
+
+                        const temNovoItem = novosIds.some(id => !idsAtuais.includes(id));
+                        const itemSumiu = idsAtuais.some(id => !novosIds.includes(id));
+
+                        if (temNovoItem || itemSumiu) {
+                            window.location.reload();
+                        }
+                    }
+                })
+                .catch(err => console.error("Erro na sincronização rápida:", err));
         }
 
-        fetch('../Function/dados_tabelas.php?tela=pos_venda')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const novosDados = data.dados;
-                    const novosIds = novosDados.map(p => p.id.toString());
-
-                    const temNovoItem = novosIds.some(id => !idsAtuais.includes(id));
-                    const itemSumiu = idsAtuais.some(id => !novosIds.includes(id));
-
-                    if (temNovoItem || itemSumiu) {
-                        window.location.reload();
-                    }
-                }
-            })
-            .catch(err => console.error("Erro na sincronização rápida:", err));
-    }
-
-    setInterval(verificarAtualizacoesEmSegundoPlano, 30000);
+        setInterval(verificarAtualizacoesEmSegundoPlano, 30000);
     </script>
-    
+
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>
     </div>
 </body>
+
 </html>

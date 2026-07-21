@@ -36,7 +36,6 @@ try {
     }
 
     echo json_encode(['success' => true, 'itens' => $itensFormatados]);
-
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

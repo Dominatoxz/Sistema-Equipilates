@@ -17,13 +17,13 @@ try {
         $dados = $sistema->mostrarFilaExpedicao();
     } elseif ($tela === 'financeiro') {
         $dados = $sistema->mostrarFilaFinanceiro();
-    } elseif ($tela === 'producao'){
+    } elseif ($tela === 'producao') {
         $dados = $sistema->mostrarTabela();
-    } elseif ($tela === 'producao_os'){
+    } elseif ($tela === 'producao_os') {
         $dados = $sistema->mostrarTabelaOs();
-    } elseif ($tela === 'producao_acess'){
+    } elseif ($tela === 'producao_acess') {
         $dados = $sistema->mostrarTabelaAcessorios();
-    } elseif ($tela === 'producao_acess_os'){
+    } elseif ($tela === 'producao_acess_os') {
         $dados = $sistema->mostrarTabelaAcessoriosOs();
     }
 

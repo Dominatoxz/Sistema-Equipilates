@@ -5,7 +5,7 @@ require_once '../config/Database.php';
 $database = new Database();
 $db = $database->getConnection();
 
-$pdo = $db; 
+$pdo = $db;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $senha = $_POST['senha'];
 
     if (!empty($usuario) && !empty($senha)) {
-        
+
         $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
         try {
@@ -25,7 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             header("Location: ../View/cadastro.php?status=sucesso");
             exit();
-
         } catch (\PDOException $e) {
             if ($e->getCode() == 23000) {
                 header("Location: ../View/cadastro.php?status=existe");

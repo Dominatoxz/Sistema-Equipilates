@@ -1,16 +1,19 @@
 <?php
-require_once '../Function/trava.php'; 
+require_once '../Function/trava.php';
 date_default_timezone_set('America/Sao_Paulo');
-class Sistema {
+class Sistema
+{
     private $conn;
 
     //instancia o banco de dados e a conexão para usar no model
-    public function __construct($db){
+    public function __construct($db)
+    {
         $this->conn = $db;
     }
 
     //função de mostrar a tabela com todos os seus dados
-   public function mostrarTabela(){
+    public function mostrarTabela()
+    {
         $query = "SELECT `NUMERO PEDIDO` as numero, 
                          `PRAZO DE PRODUCAO` as prazo_producao, 
                          `Reformer Excellence`, 
@@ -34,8 +37,9 @@ class Sistema {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-      
-    public function mostrarTabelaAcessorios(){
+
+    public function mostrarTabelaAcessorios()
+    {
         $query = "SELECT `NUMERO PEDIDO` as numero, 
                          `PRAZO DE PRODUCAO` as prazo_producao, 
                          `Wall Unit`, 
@@ -61,14 +65,15 @@ class Sistema {
                         (NULLIF(TRIM(`prancha de alongamento`), '') IS NOT NULL AND TRIM(`prancha de alongamento`) != '0')
                     )
                   ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
-                  
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
 
-    public function mostrarTabelaOs(){
+    public function mostrarTabelaOs()
+    {
         $query = "SELECT `NUMERO PEDIDO` as numero, 
                          `PRAZO DE PRODUCAO` as prazo_producao, 
                          `Reformer Excellence`, 
@@ -93,7 +98,8 @@ class Sistema {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-        public function mostrarTabelaAcessoriosOs(){
+    public function mostrarTabelaAcessoriosOs()
+    {
         $query = "SELECT `NUMERO PEDIDO` as numero, 
                          `PRAZO DE PRODUCAO` as prazo_producao, 
                          `Wall Unit`, 
@@ -119,13 +125,14 @@ class Sistema {
                         (NULLIF(TRIM(`Prancha de Alongamento`), '') IS NOT NULL AND TRIM(`Prancha de Alongamento`) != '0')
                     )
                   ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
-                  
+
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-     public function mostrarFilaFinanceiro(){
+    public function mostrarFilaFinanceiro()
+    {
         $query = "SELECT id, numero_pedido, prazo_producao, data_conclusao
                   FROM pedidos_prontos
                   WHERE status_posvenda = 'Financeiro'
@@ -134,8 +141,9 @@ class Sistema {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
-    public function mostrarFilaPosVenda(){
+
+    public function mostrarFilaPosVenda()
+    {
         $query = "SELECT id, numero_pedido, prazo_producao, data_conclusao
                   FROM pedidos_prontos
                   WHERE status_posvenda = 'Pós-venda'
@@ -145,7 +153,8 @@ class Sistema {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function mostrarFilaExpedicao(){
+    public function mostrarFilaExpedicao()
+    {
         $query = "SELECT id, numero_pedido, prazo_producao, data_conclusao
                   FROM pedidos_prontos
                   WHERE status_posvenda = 'Expedicao'
@@ -155,7 +164,8 @@ class Sistema {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function mostrarTabelaClassico(){
+    public function mostrarTabelaClassico()
+    {
         $query = "SELECT `NUMERO PEDIDO` as numero, 
                          `PRAZO DE PRODUCAO` as prazo_producao, 
                          `REF. CLASSICO ALUMINIO`, 
@@ -203,7 +213,8 @@ class Sistema {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function mostrarTabelaClassicoAcessorios(){
+    public function mostrarTabelaClassicoAcessorios()
+    {
         $query = "SELECT `NUMERO PEDIDO` as numero, 
                          `PRAZO DE PRODUCAO` as prazo_producao, 
                          `CAIXA DO REFORMER CLÁSSICA`,
@@ -283,7 +294,8 @@ class Sistema {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function mostrarTabelaClassicoOs(){
+    public function mostrarTabelaClassicoOs()
+    {
         $query = "SELECT `NUMERO PEDIDO` as numero, 
                          `PRAZO DE PRODUCAO` as prazo_producao, 
                          `REF. CLASSICO ALUMINIO`, 
@@ -331,7 +343,8 @@ class Sistema {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-        public function mostrarFilaControle(){
+    public function mostrarFilaControle()
+    {
         $query = "SELECT id, numero_pedido, prazo_producao, status_posvenda
                   FROM pedidos_prontos
                   WHERE status_posvenda NOT LIKE 'Finalizado'
@@ -339,9 +352,10 @@ class Sistema {
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
+    }
 
-        public function mostrarFilaExpedidos(){
+    public function mostrarFilaExpedidos()
+    {
         $query = "SELECT id, numero_pedido, prazo_producao, status_posvenda, data_conclusao
                   FROM pedidos_expedidos
                   WHERE status_posvenda LIKE 'Finalizado' 
@@ -349,11 +363,11 @@ class Sistema {
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        }
+    }
 
-      public function mostrarFilaProducao(): array 
-        {
-            $query = "SELECT id, numero_pedido, prazo_producao, status AS status_item, 'NORMAL' AS origem
+    public function mostrarFilaProducao(): array
+    {
+        $query = "SELECT id, numero_pedido, prazo_producao, status AS status_item, 'NORMAL' AS origem
                     FROM itens_producao 
                     WHERE equipamento NOT LIKE '%Emb.%'
                     
@@ -365,56 +379,54 @@ class Sistema {
                     
                     ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC";
 
-            try {
-                $stmt = $this->conn->prepare($query);
-                $stmt->execute();
-                $todosItens = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+            $todosItens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                $pedidosAgrupados = [];
-                $itensProcessadosPorPedido = []; 
+            $pedidosAgrupados = [];
+            $itensProcessadosPorPedido = [];
 
-                foreach ($todosItens as $item) {
-                    $numPedido = $item['numero_pedido'];
-                    $idItem = $item['id'];
-                    $origem = $item['origem'];
+            foreach ($todosItens as $item) {
+                $numPedido = $item['numero_pedido'];
+                $idItem = $item['id'];
+                $origem = $item['origem'];
 
-                    if (empty($numPedido)) {
-                        continue;
-                    }
-
-                    if (!isset($itensProcessadosPorPedido[$numPedido])) {
-                        $itensProcessadosPorPedido[$numPedido] = [];
-                    }
-
-                    if (in_array($idItem, $itensProcessadosPorPedido[$numPedido])) {
-                        continue;
-                    }
-                    
-                    $itensProcessadosPorPedido[$numPedido][] = $idItem;
-
-                    if (!isset($pedidosAgrupados[$numPedido])) {
-                        $pedidosAgrupados[$numPedido] = [
-                            'numero_pedido'   => $numPedido,
-                            'origem'          => $origem, 
-                            'prazo_producao'  => $item['prazo_producao'],
-                            'total_itens'     => 0,
-                            'itens_concluidos'=> 0
-                        ];
-                    }
-
-                    $pedidosAgrupados[$numPedido]['total_itens']++;
-
-                    if ($item['status_item'] === 'Embalado' || $item['status_item'] === 'E') {
-                        $pedidosAgrupados[$numPedido]['itens_concluidos']++;
-                    }
+                if (empty($numPedido)) {
+                    continue;
                 }
 
-                return array_values($pedidosAgrupados);
+                if (!isset($itensProcessadosPorPedido[$numPedido])) {
+                    $itensProcessadosPorPedido[$numPedido] = [];
+                }
 
-            } catch (PDOException $e) {
-                echo "Erro ao buscar fila de produção: " . $e->getMessage();
-                return [];
+                if (in_array($idItem, $itensProcessadosPorPedido[$numPedido])) {
+                    continue;
+                }
+
+                $itensProcessadosPorPedido[$numPedido][] = $idItem;
+
+                if (!isset($pedidosAgrupados[$numPedido])) {
+                    $pedidosAgrupados[$numPedido] = [
+                        'numero_pedido'   => $numPedido,
+                        'origem'          => $origem,
+                        'prazo_producao'  => $item['prazo_producao'],
+                        'total_itens'     => 0,
+                        'itens_concluidos' => 0
+                    ];
+                }
+
+                $pedidosAgrupados[$numPedido]['total_itens']++;
+
+                if ($item['status_item'] === 'Embalado' || $item['status_item'] === 'E') {
+                    $pedidosAgrupados[$numPedido]['itens_concluidos']++;
+                }
             }
+
+            return array_values($pedidosAgrupados);
+        } catch (PDOException $e) {
+            echo "Erro ao buscar fila de produção: " . $e->getMessage();
+            return [];
         }
+    }
 }
-?>

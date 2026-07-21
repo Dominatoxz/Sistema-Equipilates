@@ -31,7 +31,7 @@ try {
 
     $sqlBusca = "SELECT numero_pedido, prazo_producao FROM pedidos_prontos WHERE id = ?";
     $stmtBusca = $db->prepare($sqlBusca);
-    $stmtBusca->execute([$idPedido]); 
+    $stmtBusca->execute([$idPedido]);
     $dadosPedido = $stmtBusca->fetch(PDO::FETCH_ASSOC);
 
     if (!$dadosPedido) {
@@ -43,7 +43,7 @@ try {
     $prazoProducao = $dadosPedido['prazo_producao'];
 
     date_default_timezone_set('America/Sao_Paulo');
-    $dataConclusaoPHP = date('Y-m-d H:i:s'); 
+    $dataConclusaoPHP = date('Y-m-d H:i:s');
 
     $db->beginTransaction();
 
@@ -52,22 +52,20 @@ try {
     $stmtInsert = $db->prepare($queryInsert);
 
     $stmtInsert->execute([
-        $numeroPedidoReal, 
-        $prazoProducao, 
+        $numeroPedidoReal,
+        $prazoProducao,
         $dataConclusaoPHP
     ]);
 
     $queryUpdate = "UPDATE pedidos_prontos SET status_posvenda = 'Expedido' WHERE id = ?";
     $stmtUpdate = $db->prepare($queryUpdate);
-    $stmtUpdate->execute([$idPedido]); 
+    $stmtUpdate->execute([$idPedido]);
     $db->commit();
 
     echo json_encode(['success' => true]);
-
 } catch (PDOException $e) {
     if (isset($db) && $db->inTransaction()) {
         $db->rollBack();
     }
     echo json_encode(['success' => false, 'error' => 'Erro no Banco: ' . $e->getMessage()]);
 }
-?>
