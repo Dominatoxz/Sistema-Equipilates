@@ -463,7 +463,7 @@ require_once '../Function/trava.php';
             .catch(err => console.error("Erro na sincronização rápida:", err));
     }
 
-    setInterval(verificarAtualizacoesEmSegundoPlano, 7000);
+    setInterval(verificarAtualizacoesEmSegundoPlano, 60000);
     </script>
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>
