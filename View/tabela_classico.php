@@ -179,6 +179,18 @@ require_once '../Function/trava.php';
                 <th>Carrinho (T)</th>
                 <th>Cadilac Tauari</th>
                 <th>Gaiola (T)</th>
+                <th>Reformer Hibrido</th>
+                <th>Carrinho (H)</th>
+                <th>Wunda Chair</th>
+                <th>Eletric Chair</th>
+                <th>Arm Chair</th>
+                <th>Barrel</th>
+                <th>POP</th>
+                <th>Wall Unit</th>
+                <th>Mat (C)</th>
+                <th>Mat (P)</th>
+                <th>Bench</th>
+                <th>Guilhotina</th>
                 <th>Acessórios</th>
             </tr>
         </thead>
@@ -195,6 +207,18 @@ require_once '../Function/trava.php';
                 'CARRINHO CLASSICO TAUARI',
                 'CAD. CLASSICO TAUARI',
                 'GAIOLA CADILCAC TAUARI',
+                'REFORMER HIBRIDO',
+                'CARRINHO CLASSICO HIBRIDO',
+                'WUNDA CHAIR',
+                'ELECTRIC CHAIR',
+                'ARM CHAIR',
+                'LADDER BARREL CLÁSS.',
+                'PEDI O POLE',
+                'WALL UNIT CLÁSSICO',
+                'MAT CLÁSSICO',
+                'MAT PORTÁTIL',
+                'BENCH MAT',
+                'GUILHOTINA',
             ];
 
             $lista_acessorios = [

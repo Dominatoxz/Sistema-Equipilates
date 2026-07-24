@@ -41,7 +41,7 @@ require_once '../Function/trava.php';
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 1px solid rgba(15, 23, 42, 0.05);
         }
@@ -55,15 +55,29 @@ require_once '../Function/trava.php';
             font-weight: 800;
         }
 
-        .status-tag {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            background: rgba(15, 23, 42, 0.04);
-            padding: 6px 14px;
-            border-radius: 20px;
+        .container-pesquisa {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .input-pesquisa {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .input-pesquisa:focus {
+            border-color: var(--tech-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
 
         table {
@@ -265,6 +279,10 @@ require_once '../Function/trava.php';
         <div style="font-weight: bold; color: #7f8c8d;">Status de Saídas</div>
     </div>
 
+    <div class="container-pesquisa">
+        <input type="text" id="inputPesquisa" class="input-pesquisa" placeholder="🔍 Buscar por Pedido / OS...">
+    </div>
+
     <table>
         <thead>
             <tr>
@@ -305,7 +323,7 @@ require_once '../Function/trava.php';
                     $textoNota = $notaExistente ? $notaExistente['observacao'] : '';
                     $dataNota = $notaExistente ? "⏱️ Última alteração: <strong>" . $notaExistente['data_obs'] . "</strong>" : '';
                 ?>
-                    <tr id="Linha-<?= $p['id'] ?>">
+                    <tr id="Linha-<?= $p['id'] ?>" class="linha-pedido">
                         <td style="font-weight: bold; color: #2980b9; font-size: 18px;"><?= htmlspecialchars($p['numero_pedido']) ?></td>
                         <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10)) ?></td>
                         <td><?= (new DateTime($p['data_conclusao']))->format('d/m/Y H:i') ?></td>
@@ -338,6 +356,29 @@ require_once '../Function/trava.php';
     </table>
 
     <script>
+        document.getElementById('inputPesquisa').addEventListener('keyup', function() {
+            const termoBusca = this.value.toLowerCase();
+            const linhasPedido = document.querySelectorAll('.linha-pedido');
+
+            linhasPedido.forEach(linha => {
+                const idPedido = linha.id.replace('Linha-', '');
+                const linhaObs = document.getElementById(`ObsRow-${idPedido}`);
+                const textoPedido = linha.getElementsByTagName('td')[0].textContent.toLowerCase();
+
+                if (textoPedido.includes(termoBusca)) {
+                    linha.style.display = ""; 
+                    if (linhaObs && !linhaObs.classList.contains('aberta')) {
+                        linhaObs.style.display = "none";
+                    }
+                } else {
+                    linha.style.display = "none";    
+                    if (linhaObs) {
+                        linhaObs.style.display = "none"; 
+                    }
+                }
+            });
+        });
+
         function toggleSanfona(id) {
             const linhaObs = document.getElementById(`ObsRow-${id}`);
             if (!linhaObs) return;
@@ -440,8 +481,8 @@ require_once '../Function/trava.php';
             }
         }
 
-        let idsAtuais = Array.from(document.querySelectorAll('tbody tr[id^="linha-"]'))
-            .map(tr => tr.id.replace('linha-', ''));
+        let idsAtuais = Array.from(document.querySelectorAll('tbody tr[id^="Linha-"]'))
+            .map(tr => tr.id.replace('Linha-', ''));
 
         function verificarAtualizacoesEmSegundoPlano() {
             if (document.activeElement && document.activeElement.tagName === 'INPUT') {

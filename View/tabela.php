@@ -221,6 +221,10 @@ require_once '../Function/trava.php';
                     'P. de Molas - P u s h T h r u',
                     'Caixa da Cadeira',
                     'Prancha de Alongamento',
+                    'SPINE CORRECTOR',
+                    'SMALL BARREL',
+                    'BASTÃO ALUMÍNIO 1,5 M',
+                    'PUSH UP DEVICE (PAR)',
                 ];
                 $placeholders_acessorios = implode(',', array_fill(0, count($lista_acessorios), '?'));
                 ?>

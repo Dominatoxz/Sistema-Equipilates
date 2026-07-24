@@ -41,7 +41,7 @@ date_default_timezone_set('America/Sao_Paulo');
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 1px solid rgba(15, 23, 42, 0.05);
         }
@@ -55,15 +55,29 @@ date_default_timezone_set('America/Sao_Paulo');
             font-weight: 800;
         }
 
-        .status-tag {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            background: rgba(15, 23, 42, 0.04);
-            padding: 6px 14px;
-            border-radius: 20px;
+        .container-pesquisa {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .input-pesquisa {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .input-pesquisa:focus {
+            border-color: var(--tech-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
 
         table {
@@ -105,147 +119,12 @@ date_default_timezone_set('America/Sao_Paulo');
             background-color: #f8fafc;
         }
 
-        .pedido-numero {
-            font-weight: 800;
-            color: var(--tech-blue);
-            font-size: 1.05rem;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-baixa {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 1px;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15);
-        }
-
-        .btn-baixa:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-            filter: brightness(1.05);
-        }
-
-        .badge-pronto {
-            background-color: #ecfdf5;
-            color: #065f46;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            border: 1px solid #a7f3d0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
         .sem-pedidos {
             text-align: center;
             padding: 60px;
             color: var(--text-secondary);
             font-size: 1.1rem;
             font-weight: 500;
-        }
-
-        .linha-observacao {
-            background-color: #fdfefe;
-            display: none;
-        }
-
-        .linha-observacao td {
-            text-align: left;
-            padding: 0 30px;
-            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-            background: #fafbfe;
-        }
-
-        .txt-historico-obs {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin: 8px 0 0 5px;
-            font-style: normal;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .wrapper-sanfona {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s ease;
-            padding: 0;
-        }
-
-        .linha-observacao.aberta .wrapper-sanfona {
-            max-height: 200px;
-            padding: 20px 0;
-        }
-
-        .container-obs {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            width: 100%;
-        }
-
-        .input-obs {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #e2e8f0;
-            background-color: #ffffff;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            color: var(--text-primary);
-            box-sizing: border-box;
-            transition: all 0.2s ease;
-        }
-
-        .input-obs:focus {
-            border-color: var(--tech-blue);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .btn-salvar-obs {
-            background-color: #0f172a;
-            color: white;
-            border: none;
-            padding: 12px 22px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.2s ease;
-        }
-
-        .btn-salvar-obs:hover {
-            background-color: #1e293b;
-            transform: translateY(-1px);
-        }
-
-        .btn-mais {
-            background: rgba(37, 99, 235, 0.05);
-            border: 1px solid rgba(37, 99, 235, 0.1);
-            color: var(--tech-blue);
-            font-size: 16px;
-            font-weight: 800;
-            cursor: pointer;
-            padding: 6px 14px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-
-        .btn-mais:hover {
-            background: var(--tech-blue);
-            color: #ffffff;
-            transform: translateY(-1px);
         }
 
         .footer {
@@ -265,11 +144,15 @@ date_default_timezone_set('America/Sao_Paulo');
         <div style="font-weight: bold; color: #7f8c8d;">Status de Saídas</div>
     </div>
 
+    <div class="container-pesquisa">
+        <input type="text" id="inputPesquisa" class="input-pesquisa" placeholder="🔍 Buscar por Pedido / OS...">
+    </div>
+
     <table>
         <thead>
             <tr>
                 <th>Pedido / OS</th>
-                <th>Prazo de Produção</th>
+                <th>Prazo de Production</th>
                 <th>Expedido em</th>
             </tr>
         </thead>
@@ -286,11 +169,11 @@ date_default_timezone_set('America/Sao_Paulo');
             ?>
             <?php if (empty($pedidos)): ?>
                 <tr>
-                    <td colspan="6" class="sem-pedidos">Nenhum pedido expedido.</td>
+                    <td colspan="3" class="sem-pedidos">Nenhum pedido expedido.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($pedidos as $p): ?>
-                    <tr id="Linha-<?= $p['id'] ?>">
+                    <tr id="Linha-<?= $p['id'] ?>" class="linha-pedido">
                         <td style="font-weight: bold; color: #2980b9; font-size: 18px;"><?= htmlspecialchars($p['numero_pedido']) ?></td>
                         <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10)) ?></td>
                         <td><?= date('d/m/Y H:i', strtotime($p['data_conclusao'])) ?></td>
@@ -301,6 +184,23 @@ date_default_timezone_set('America/Sao_Paulo');
     </table>
 
     <script>
+        document.getElementById('inputPesquisa').addEventListener('keyup', function() {
+            const termoBusca = this.value.toLowerCase();
+            const linhasPedido = document.querySelectorAll('.linha-pedido');
+
+            linhasPedido.forEach(linha => {
+                const textoPedido = linha.getElementsByTagName('td')[0].textContent.toLowerCase();
+                if (textoPedido.includes(termoBusca)) {
+                    linha.style.display = ""; 
+                } else {
+                    linha.style.display = "none";    
+                }
+            });
+        });
+
+        let idsAtuais = Array.from(document.querySelectorAll('tbody tr[id^="Linha-"]'))
+            .map(tr => tr.id.replace('Linha-', ''));
+
         function verificarAtualizacoesEmSegundoPlano() {
             if (document.activeElement && document.activeElement.tagName === 'INPUT') {
                 return;
@@ -318,12 +218,12 @@ date_default_timezone_set('America/Sao_Paulo');
 
                         if (temNovoItem || itemSumiu) {
                             window.location.reload();
-                            return
                         }
                     }
                 })
                 .catch(err => console.error("Erro na sincronização rápida:", err));
         }
+        
         setInterval(verificarAtualizacoesEmSegundoPlano, 60000);
     </script>
     <div class="footer">

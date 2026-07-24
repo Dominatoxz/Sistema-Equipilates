@@ -206,7 +206,7 @@ require_once '../Function/trava.php';
         ?>
         <thead>
             <tr>
-                <th>Pedido</th>
+               <th>Pedido</th>
                 <th>Prazo</th>
                 <th>Caixa Mini</th>
                 <th>Caixa do Reformer</th>
@@ -215,6 +215,10 @@ require_once '../Function/trava.php';
                 <th>P. de Molas - PT</th>
                 <th>Caixa da Cadeira</th>
                 <th>Prancha de Alongamento</th>
+                <th>SPINE</th>
+                <th>SMALL</th>
+                <th>BASTÃO 1,5 M</th>
+                <th>PUSH UP</th>
             </tr>
         </thead>
         <tbody>
@@ -227,6 +231,10 @@ require_once '../Function/trava.php';
                 'P. de Molas - P u s h T h r u',
                 'Caixa da Cadeira',
                 'Prancha de Alongamento',
+                'SPINE CORRECTOR',
+                'SMALL BARREL',
+                'BASTÃO ALUMÍNIO 1,5 M',
+                'PUSH UP DEVICE (PAR)',
             ];
 
             $database = new Database();

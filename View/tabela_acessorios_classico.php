@@ -182,6 +182,10 @@ require_once '../Function/trava.php';
                 <th>Travesseiro (BM)</th>
                 <th>Travesseiro (R)</th>
                 <th>Travesseiro (Lua)</th>
+                <th>Trav Cilindrico</th>
+                <th>Trav Ombreira</th>
+                <th>Trav Cabec 30</th>
+                <th>Trav Cabec 40</th>
 
             </tr>
         </thead>
@@ -201,6 +205,10 @@ require_once '../Function/trava.php';
                 'TRAVESSEIRO BENCH MAT',
                 'TRAVESSEIRO RÉGUA',
                 'TRAVESSEIRO 1/2 LUA',
+                'TRAV. CILINDRICO',
+                'TRAV. OMBREIRA (PAR)',
+                'TRAV. CABEC. 30 mm',
+                'TRAV. CABEC. 40 mm',
             ];
 
             $database = new Database();
@@ -218,6 +226,120 @@ require_once '../Function/trava.php';
 
                         <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
 
+                        <?php foreach ($equipamentos as $nome_equipamento):
+                            $stmt = $db->prepare("SELECT id, status FROM itens_producao WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido");
+                            $stmt->execute([$pedido['numero'], $nome_equipamento]);
+                            $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        ?>
+                            <td>
+                                <div style="display: flex; justify-content: center;">
+                                    <?php if ($pecas && count($pecas) > 0):
+                                        foreach ($pecas as $peca):
+                                            $status = isset($peca['status']) ? $peca['status'] : 'Pendente';
+                                            $id_peca = isset($peca['id']) ? $peca['id'] : 0;
+
+                                            $texto = '❌';
+                                            $estilo = '';
+
+                                            if ($peca['status'] === 'Finalizado') {
+                                                $texto = '✅';
+                                            } elseif ($peca['status'] === 'Embalado') {
+                                                $texto = 'E';
+                                                $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
+                                            }
+                                    ?>
+                                            <span class="item-check"
+                                                data-id="<?= $peca['id'] ?>"
+                                                <?= $estilo ?>
+                                                style="font-size: 25px;">
+                                                <?= $texto ?>
+                                            </span>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <span style="color: #ccc;">-</span>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                        <?php endforeach; ?>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
+    <table>
+        <?php
+        require_once '../config/Database.php';
+        require_once '../Model/Sistema.php';
+
+        $database = new Database();
+        $db = $database->getConnection();
+
+        $sistema = new Sistema($db);
+
+        $pedidos = $sistema->mostrarTabelaClassicoAcessorios();
+        ?>
+        <?php
+        if (!isset($pedidos)) {
+            $pedidos = [];
+        }
+
+        $pedidos_agrupados = $pedidos;
+        ?>
+        <thead>
+            <tr>
+                <th>Capa Prot Barrel</th>
+                <th>Sheepskin</th>
+                <th>Bastão Aluminio</th>
+                <th>Puxador de Aluminio</th>
+                <th>Anel de Pilates</th>
+                <th>Magic Square</th>
+                <th>Foot Correc</th>
+                <th>Bean Bag</th>
+                <th>Breath a Cizer</th>
+                <th>Neck Screatcher</th>
+                <th>Hand Tens</th>
+                <th>Toe Exerciser</th>
+                <th>Air Plane</th>
+                <th>Finger Exercise</th>
+                <th>Push Up</th>
+                <th>Mini Barrel</th>
+                <th>Mini Spine</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            $equipamentos = [
+                'CAPA PROT. BARREL CLÁSS.',
+                'SHEEPSKIN COVER',
+                'BASTÃO ALUMÍNIO 1,5 M',
+                'PUXADOR DE ALUMINIO',
+                'ANEL DE PILATES ARCHIVE AÇO',
+                'MAGIC SQUARE',
+                 'FOOT CORREC. ALUM.',
+                'BEAN BAG',
+                'BREATH A CIZER',
+                'NECK STRETCHER',
+                'HAND TENS O METER',
+                'TOE EXERCISER',
+                'AIR PLANE BOARD',
+                'FINGER EXERCISE',
+                'PUSH UP DEVICE (PAR)',
+                'MINI BARREL',
+                'MINI SPINE',
+            ];
+
+            $database = new Database();
+            $db = $database->getConnection(); ?>
+
+            <?php if (empty($pedidos)): ?>
+                <tr>
+                    <td colspan="9" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
+                </tr>
+            <?php else: ?>
+
+                <?php foreach ($pedidos_agrupados as $pedido): ?>
+                    <tr>
                         <?php foreach ($equipamentos as $nome_equipamento):
                             $stmt = $db->prepare("SELECT id, status FROM itens_producao WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido");
                             $stmt->execute([$pedido['numero'], $nome_equipamento]);

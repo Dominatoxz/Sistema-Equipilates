@@ -60,32 +60,6 @@ require_once '../Function/trava.php';
             background-color: #f8fafc;
         }
 
-        .btn-baixa {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-            font-size: 14px;
-        }
-
-        .btn-baixa:hover {
-            background-color: #219150;
-        }
-
-        .badge-pronto {
-            background-color: #d4edda;
-            color: #155724;
-            padding: 6px 12px;
-            border-radius: 5px;
-            font-size: 14px;
-            font-weight: bold;
-            border: 1px solid #c3e6cb;
-        }
-
         .sem-pedidos {
             text-align: center;
             padding: 50px;
@@ -115,7 +89,7 @@ require_once '../Function/trava.php';
         .filtros-container {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
         }
 
@@ -154,91 +128,29 @@ require_once '../Function/trava.php';
             text-align: center;
         }
 
-        .btn-filtro.active span {
-            outline: 1px solid rgba(255, 255, 255, 0.4);
-        }
-
-        .linha-observacao {
-            background-color: #fcfcfc;
-            display: none;
-        }
-
-        .linha-observacao td {
-            text-align: left;
-            padding: 0 25px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .txt-historico-obs {
-            font-size: 0.8rem;
-            color: #868e96;
-            margin: 0;
-            padding-left: 5px;
-            font-style: italic;
-        }
-
-        .wrapper-sanfona {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-out, padding 0.4s ease;
-            padding: 0;
-        }
-
-        .linha-observacao.aberta .wrapper-sanfona {
-            max-height: 200px;
-            padding: 20px 0;
-        }
-
-        .container-obs {
+        .container-pesquisa {
+            margin-bottom: 20px;
             display: flex;
-            gap: 15px;
-            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .input-pesquisa {
             width: 100%;
-        }
-
-        .input-obs {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #ccc;
+            max-width: 400px;
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
             border-radius: 6px;
-            font-size: 15px;
-            box-sizing: border-box;
+            font-size: 14px;
+            color: #334155;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
         }
 
-        .input-obs:focus {
+        .input-pesquisa:focus {
             border-color: #2980b9;
             outline: none;
-            box-shadow: 0 0 5px rgba(41, 128, 185, 0.2);
-        }
-
-        .btn-salvar-obs {
-            background-color: #2980b9;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        .btn-salvar-obs:hover {
-            background-color: #216b9b;
-        }
-
-        .btn-mais {
-            background: none;
-            border: none;
-            color: #2980b9;
-            font-size: 22px;
-            font-weight: bold;
-            cursor: pointer;
-            padding: 5px 10px;
-            transition: transform 0.2s;
-        }
-
-        .btn-mais:hover {
-            transform: translateY(-2px);
+            box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.15);
         }
 
         .footer {
@@ -266,6 +178,7 @@ require_once '../Function/trava.php';
         <button class="btn-filtro" data-filter="os">
             Ordens de Serviço (OS) <span id="qtd-os" style="background: #f8d7da; color: #721c24;">0</span>
         </button>
+        <input type="text" id="inputPesquisa" class="input-pesquisa" placeholder="🔍 Buscar por Pedido / OS...">
     </div>
 
     <table>
@@ -295,7 +208,6 @@ require_once '../Function/trava.php';
             <?php else: ?>
                 <?php foreach ($pedidos as $p):
                     $numPedido = $p['numero_pedido'] ?? '';
-
                     $tipoOrigem = (strpos(strtoupper($numPedido), 'OS') !== false) ? 'OS' : 'Normal';
                     $classeOrigem = ($tipoOrigem === 'OS') ? 'origem-os' : 'origem-normal';
                 ?>
@@ -318,18 +230,15 @@ require_once '../Function/trava.php';
 
     <script>
         const botoesFiltro = document.querySelectorAll('.btn-filtro');
-        const linhasTabela = document.querySelectorAll('#tabela-controle-body tr[id^="linha-"]');
+        const inputPesquisa = document.getElementById('inputPesquisa');
 
         function atualizarContadores() {
             const linhasTabela = document.querySelectorAll('#tabela-controle-body tr[id^="linha-"]');
-            let todos = 0,
-                normal = 0,
-                os = 0;
+            let todos = 0, normal = 0, os = 0;
 
             linhasTabela.forEach(tr => {
                 todos++;
                 const tipo = tr.getAttribute('data-tipo');
-
                 if (tipo === 'normal') normal++;
                 if (tipo === 'os') os++;
             });
@@ -339,43 +248,50 @@ require_once '../Function/trava.php';
             document.getElementById('qtd-os').textContent = os;
         }
 
+        function aplicarFiltrosCombinados() {
+            const botaoAtivo = document.querySelector('.btn-filtro.active');
+            const filtroSelecionado = botaoAtivo.getAttribute('data-filter');
+            const termoBusca = inputPesquisa.value.toLowerCase();
+            
+            const linhasTabela = document.querySelectorAll('#tabela-controle-body tr[id^="linha-"]');
+            let encontrouAlgum = false;
+
+            linhasTabela.forEach(tr => {
+                const tipoLinha = tr.getAttribute('data-tipo');
+                const textoPedido = tr.getElementsByTagName('td')[0].textContent.toLowerCase();
+
+                const atendeFiltro = (filtroSelecionado === 'todos' || tipoLinha === filtroSelecionado);
+                const atendeBusca = textoPedido.includes(termoBusca);
+
+                if (atendeFiltro && atendeBusca) {
+                    tr.style.display = '';
+                    encontrouAlgum = true;
+                } else {
+                    tr.style.display = 'none';
+                }
+            });
+
+            const avisoExistente = document.querySelector('.aviso-filtro-vazio');
+            if (avisoExistente) avisoExistente.remove();
+
+            if (!encontrouAlgum && linhasTabela.length > 0) {
+                const tbody = document.getElementById('tabela-controle-body');
+                const trAviso = document.createElement('tr');
+                trAviso.className = 'aviso-filtro-vazio';
+                trAviso.innerHTML = `<td colspan="4" class="sem-pedidos">Nenhum registro encontrado para a busca atual.</td>`;
+                tbody.appendChild(trAviso);
+            }
+        }
+
         botoesFiltro.forEach(botao => {
             botao.addEventListener('click', function() {
                 botoesFiltro.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-
-                const filtroSelecionado = this.getAttribute('data-filter');
-                const linhasTabela = document.querySelectorAll('#tabela-controle-body tr[id^="linha-"]');
-                let encontrouAlgum = false;
-
-                linhasTabela.forEach(tr => {
-                    const tipoLinha = tr.getAttribute('data-tipo');
-
-                    if (filtroSelecionado === 'todos') {
-                        tr.style.display = '';
-                        encontrouAlgum = true;
-                    } else {
-                        if (tipoLinha === filtroSelecionado) {
-                            tr.style.display = '';
-                            encontrouAlgum = true;
-                        } else {
-                            tr.style.display = 'none';
-                        }
-                    }
-                });
-
-                const avisoExistente = document.querySelector('.aviso-filtro-vazio');
-                if (avisoExistente) avisoExistente.remove();
-
-                if (!encontrouAlgum && linhasTabela.length > 0) {
-                    const tbody = document.getElementById('tabela-controle-body');
-                    const trAviso = document.createElement('tr');
-                    trAviso.className = 'aviso-filtro-vazio';
-                    trAviso.innerHTML = `<td colspan="4" class="sem-pedidos">Nenhum registro encontrado para este filtro.</td>`;
-                    tbody.appendChild(trAviso);
-                }
+                aplicarFiltrosCombinados();
             });
         });
+
+        inputPesquisa.addEventListener('keyup', aplicarFiltrosCombinados);
 
         document.addEventListener("DOMContentLoaded", atualizarContadores);
 

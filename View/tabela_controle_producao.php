@@ -132,7 +132,7 @@ require_once '../Function/trava.php';
         .filtros-container {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
         }
 
@@ -173,6 +173,31 @@ require_once '../Function/trava.php';
 
         .btn-filtro.active span {
             outline: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .container-pesquisa {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .input-pesquisa {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #334155;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .input-pesquisa:focus {
+            border-color: #2980b9;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.15);
         }
 
         .tooltip-itens {
@@ -248,6 +273,8 @@ require_once '../Function/trava.php';
         <button class="btn-filtro" data-filter="Embalado">
             Embalados <span id="qtd-embalado" style="background: #c3e6cb; color: #155724;">0</span>
         </button>
+        <input type="text" id="inputPesquisa" class="input-pesquisa" placeholder="🔍 Buscar por Pedido / OS...">
+
     </div>
 
     <table>
@@ -387,14 +414,11 @@ require_once '../Function/trava.php';
         setInterval(verificarAtualizacoesEmSegundoPlano, 60000);
 
         const botoesFiltro = document.querySelectorAll('.btn-filtro');
+        const inputPesquisa = document.getElementById('inputPesquisa');
         const linhasTabela = document.querySelectorAll('#tabela-pedidos-body tr[data-id]');
 
         function atualizarContadores() {
-            let todos = 0,
-                atrasados = 0,
-                pendentes = 0,
-                producao = 0,
-                embalados = 0;
+            let todos = 0, atrasados = 0, pendentes = 0, producao = 0, embalados = 0;
 
             linhasTabela.forEach(tr => {
                 todos++;
@@ -414,50 +438,57 @@ require_once '../Function/trava.php';
             document.getElementById('qtd-embalado').textContent = embalados;
         }
 
+        function aplicarFiltrosCombinados() {
+            const botaoAtivo = document.querySelector('.btn-filtro.active');
+            const filtroSelecionado = botaoAtivo.getAttribute('data-filter');
+            const termoBusca = inputPesquisa.value.toLowerCase();
+            
+            let encontrouAlgum = false;
+
+            linhasTabela.forEach(tr => {
+                const statusLinha = tr.getAttribute('data-status');
+                const temBadgeAtrasado = tr.querySelector('.badge-atrasado') !== null;
+                const textoPedido = tr.getElementsByTagName('td')[0].textContent.toLowerCase();
+
+                let atendeStatus = false;
+                if (filtroSelecionado === 'todos') {
+                    atendeStatus = true;
+                } else if (filtroSelecionado === 'atrasado') {
+                    atendeStatus = temBadgeAtrasado;
+                } else {
+                    atendeStatus = (statusLinha === filtroSelecionado);
+                }
+
+                const atendeBusca = textoPedido.includes(termoBusca);
+
+                if (atendeStatus && atendeBusca) {
+                    tr.style.display = '';
+                    encontrouAlgum = true;
+                } else {
+                    tr.style.display = 'none';
+                }
+            });
+
+            const avisoExistente = document.querySelector('.aviso-filtro-vazio');
+            if (avisoExistente) avisoExistente.remove();
+
+            if (!encontrouAlgum && linhasTabela.length > 0) {
+                const tbody = document.getElementById('tabela-pedidos-body');
+                const trAviso = document.createElement('tr');
+                trAviso.className = 'aviso-filtro-vazio';
+                trAviso.innerHTML = `<td colspan="4" class="sem-pedidos">Nenhum registro encontrado para a busca atual.</td>`;
+                tbody.appendChild(trAviso);
+            }
+        }
+
         botoesFiltro.forEach(botao => {
             botao.addEventListener('click', function() {
                 botoesFiltro.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-
-                const filtroSelecionado = this.getAttribute('data-filter');
-                let encontrouAlgum = false;
-
-                linhasTabela.forEach(tr => {
-                    const statusLinha = tr.getAttribute('data-status');
-                    const temBadgeAtrasado = tr.querySelector('.badge-atrasado') !== null;
-
-                    if (filtroSelecionado === 'todos') {
-                        tr.style.display = '';
-                        encontrouAlgum = true;
-                    } else if (filtroSelecionado === 'atrasado') {
-                        if (temBadgeAtrasado) {
-                            tr.style.display = '';
-                            encontrouAlgum = true;
-                        } else {
-                            tr.style.display = 'none';
-                        }
-                    } else {
-                        if (statusLinha === filtroSelecionado) {
-                            tr.style.display = '';
-                            encontrouAlgum = true;
-                        } else {
-                            tr.style.display = 'none';
-                        }
-                    }
-                });
-
-                const avisoExistente = document.querySelector('.aviso-filtro-vazio');
-                if (avisoExistente) avisoExistente.remove();
-
-                if (!encontrouAlgum && linhasTabela.length > 0) {
-                    const tbody = document.getElementById('tabela-pedidos-body');
-                    const trAviso = document.createElement('tr');
-                    trAviso.className = 'aviso-filtro-vazio';
-                    trAviso.innerHTML = `<td colspan="4" class="sem-pedidos">Nenhum pedido com este status no momento.</td>`;
-                    tbody.appendChild(trAviso);
-                }
+                aplicarFiltrosCombinados();
             });
         });
+        inputPesquisa.addEventListener('keyup', aplicarFiltrosCombinados);
 
         document.addEventListener("DOMContentLoaded", atualizarContadores);
 
