@@ -228,7 +228,7 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .num-pedido {
-            font-size: 25px;
+            font-size: 22px;
             font-weight: bold;
             color: #000;
         }

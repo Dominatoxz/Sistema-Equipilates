@@ -291,7 +291,9 @@ require_once '../Function/trava.php';
                 <th>Prazo de Produção</th>
                 <th>Concluído em</th>
                 <th>Status da Fabricação</th>
+                <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Pos-venda', 'Desenvolvedor'])): ?>
                 <th>Ações</th>
+                <?php endif; ?>
                 <th>Mais</th>
             </tr>
         </thead>
@@ -329,9 +331,11 @@ require_once '../Function/trava.php';
                         <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10)) ?></td>
                         <td><?= (new DateTime($p['data_conclusao']))->format('d/m/Y H:i') ?></td>
                         <td><span class="badge-pronto">100% Embalado</span></td>
+                        <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Pos-venda', 'Desenvolvedor'])): ?>
                         <td>
                             <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Enviar para a Expedição</button>
                         </td>
+                        <?php endif; ?>
                         <td>
                             <button class="btn-mais" onclick="toggleSanfona(<?= $p['id'] ?>)">...</button>
                         </td>
