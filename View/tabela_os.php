@@ -205,7 +205,7 @@ require_once '../Function/trava.php';
                 <th>Carrinho (Tor)</th>
                 <th>Cadilac</th>
                 <th>Gaiola</th>
-                <th>Chair</th>
+                <th>Step</th>
                 <th>Barrel</th>
                 <th>Wall Unit</th>
                 <th>Acessórios</th>

@@ -12,7 +12,8 @@ $generator = new BarcodeGeneratorPNG();
 $filtro_pedido    = isset($_GET['filtro_pedido']) ? trim($_GET['filtro_pedido']) : '';
 $filtro_item      = isset($_GET['filtro_item']) ? trim($_GET['filtro_item']) : '';
 $filtro_tipo_eti  = isset($_GET['filtro_tipo_eti']) ? trim($_GET['filtro_tipo_eti']) : 'todos';
-$filtro_data      = isset($_GET['filtro_data']) ? trim($_GET['filtro_data']) : '';
+$filtro_data_ini  = isset($_GET['filtro_data_ini']) ? trim($_GET['filtro_data_ini']) : '';
+$filtro_data_fim  = isset($_GET['filtro_data_fim']) ? trim($_GET['filtro_data_fim']) : '';
 
 $params = [];
 
@@ -28,9 +29,17 @@ if (!empty($filtro_item)) {
     $sql_producao .= " AND equipamento LIKE :item1";
     $params[':item1'] = '%' . $filtro_item . '%';
 }
-if (!empty($filtro_data)) {
-    $sql_producao .= " AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') = :data1";
-    $params[':data1'] = $filtro_data;
+
+if (!empty($filtro_data_ini) && !empty($filtro_data_fim)) {
+    $sql_producao .= " AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :data_ini1 AND :data_fim1";
+    $params[':data_ini1'] = $filtro_data_ini;
+    $params[':data_fim1'] = $filtro_data_fim;
+} elseif (!empty($filtro_data_ini)) {
+    $sql_producao .= " AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') >= :data_ini1";
+    $params[':data_ini1'] = $filtro_data_ini;
+} elseif (!empty($filtro_data_fim)) {
+    $sql_producao .= " AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') <= :data_fim1";
+    $params[':data_fim1'] = $filtro_data_fim;
 }
 
 $sql_os = "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, 'OS' AS tabela_origem 
@@ -45,9 +54,17 @@ if (!empty($filtro_item)) {
     $sql_os .= " AND equipamento LIKE :item2";
     $params[':item2'] = '%' . $filtro_item . '%';
 }
-if (!empty($filtro_data)) {
-    $sql_os .= " AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') = :data2";
-    $params[':data2'] = $filtro_data;
+
+if (!empty($filtro_data_ini) && !empty($filtro_data_fim)) {
+    $sql_os .= " AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :data_ini2 AND :data_fim2";
+    $params[':data_ini2'] = $filtro_data_ini;
+    $params[':data_fim2'] = $filtro_data_fim;
+} elseif (!empty($filtro_data_ini)) {
+    $sql_os .= " AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') >= :data_ini2";
+    $params[':data_ini2'] = $filtro_data_ini;
+} elseif (!empty($filtro_data_fim)) {
+    $sql_os .= " AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') <= :data_fim2";
+    $params[':data_fim2'] = $filtro_data_fim;
 }
 
 $query = "($sql_producao) UNION ALL ($sql_os) ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC, id ASC";
@@ -333,8 +350,13 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
 
             <div class="filter-group">
-                <label for="filtro_data">Prazo de Produção:</label>
-                <input type="date" name="filtro_data" id="filtro_data" value="<?= htmlspecialchars($filtro_data) ?>">
+                <label for="filtro_data_ini">Prazo Inicial:</label>
+                <input type="date" name="filtro_data_ini" id="filtro_data_ini" value="<?= htmlspecialchars($filtro_data_ini) ?>">
+            </div>
+
+            <div class="filter-group">
+                <label for="filtro_data_fim">Prazo Final:</label>
+                <input type="date" name="filtro_data_fim" id="filtro_data_fim" value="<?= htmlspecialchars($filtro_data_fim) ?>">
             </div>
 
             <div class="filter-group">
