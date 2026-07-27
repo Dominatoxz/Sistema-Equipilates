@@ -384,13 +384,15 @@ require_once '../Function/trava.php';
                 </a>
             <?php endif; ?>
 
-            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Desenvolvedor', 'CEO', 'PCP'])): ?>
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Desenvolvedor', 'Diretor', 'PCP', 'Supervisor'])): ?>
                 <a href="../Function/imprimir_etiquetas.php" class="card-botao pos-venda">
                     <div class="icon-box">🖨️</div>
                     <h3>Impressão</h3>
                     <p>Etiquetas organizadas</p>
                 </a>
-
+            <?php endif; ?>
+            
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Desenvolvedor', 'Diretor', 'PCP'])): ?>
                 <a href="historico_impressoes.php" class="card-botao pos-venda">
                     <div class="icon-box">📜</div>
                     <h3>Histórico de Impressões</h3>
