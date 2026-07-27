@@ -335,7 +335,10 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="no-print">
         <div class="header-filtros">
             <h2>Filtros para Impressão de Etiquetas</h2>
-            <a href="../View/central_contemporaneo.php" class="btn-action btn-voltar">← Voltar para a Central</a>
+            <div style="display: flex; gap: 10px;">
+                <a href="../View/historico_impressoes.php" class="btn-action btn-voltar">📜 Histórico de Impressões</a>
+                <a href="../View/central_contemporaneo.php" class="btn-action btn-voltar">← Voltar para a Central</a>
+            </div>
         </div>
 
         <form method="GET" class="filter-form">
@@ -372,9 +375,21 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <a href="imprimir_etiquetas.php" class="btn-action btn-limpar">Limpar</a>
 
             <?php if (!empty($itens)): ?>
-                <button type="button" class="btn-action btn-print" onclick="window.print()">Imprimir Selecionadas (<?= count($itens) ?>)</button>
+                <button type="button" id="btnImprimir" class="btn-action btn-print" onclick="prepararImpressao()">Imprimir Selecionadas (<?= count($itens) ?>)</button>
             <?php endif; ?>
         </form>
+    </div>
+
+    <div class="no-print" id="modalMotivo" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;">
+        <div style="background:#fff; padding:25px; border-radius:8px; max-width:420px; width:90%; box-shadow:0 4px 20px rgba(0,0,0,0.2);">
+            <h3 style="margin-top:0; color:#2c3e50;">Reimpressão de Etiqueta</h3>
+            <p id="modalMotivoTexto" style="color:#555;"></p>
+            <textarea id="inputMotivo" rows="3" style="width:100%; box-sizing:border-box; padding:8px; border:1px solid #ccc; border-radius:5px; font-size:14px;" placeholder="Descreva o motivo da reimpressão..."></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
+                <button type="button" class="btn-action btn-limpar" onclick="cancelarReimpressao()">Cancelar</button>
+                <button type="button" class="btn-action btn-print" onclick="confirmarReimpressao()">Confirmar e Imprimir</button>
+            </div>
+        </div>
     </div>
 
     <div class="container-gabarito">
@@ -394,7 +409,7 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 if (($filtro_tipo_eti === 'todos' || $filtro_tipo_eti === 'producao') && !$apenasEmbalagem):
         ?>
-                    <div class="etiqueta etiqueta-fabrica">
+                    <div class="etiqueta etiqueta-fabrica" data-id="<?= (int)$item['id'] ?>" data-origem="<?= htmlspecialchars($item['tabela_origem']) ?>" data-tipo="PRODUCAO">
                         <div class="etiqueta-header">
                             <span class="num-pedido">PEDIDO #<?= htmlspecialchars($item['numero_pedido']) ?></span>
                             <span class="tipo-etiqueta">PRODUÇÃO</span>
@@ -412,7 +427,7 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 if ($filtro_tipo_eti === 'todos' || $filtro_tipo_eti === 'embalagem'):
                 ?>
-                    <div class="etiqueta etiqueta-embalagem">
+                    <div class="etiqueta etiqueta-embalagem" data-id="<?= (int)$item['id'] ?>" data-origem="<?= htmlspecialchars($item['tabela_origem']) ?>" data-tipo="EMBALAGEM">
                         <div class="etiqueta-header">
                             <span class="num-pedido">PEDIDO #<?= htmlspecialchars($item['numero_pedido']) ?></span>
                             <span class="tipo-etiqueta">EMBALAGEM</span>
@@ -435,6 +450,60 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         <?php endif; ?>
     </div>
+
+    <script>
+        function coletarItens() {
+            return Array.from(document.querySelectorAll('.etiqueta')).map(function (el) {
+                return {
+                    id_item: el.dataset.id,
+                    tabela_origem: el.dataset.origem,
+                    tipo_etiqueta: el.dataset.tipo
+                };
+            });
+        }
+
+        function prepararImpressao(motivo) {
+            fetch('registrar_impressao_etiqueta.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itens: coletarItens(), motivo: motivo || '' })
+            })
+                .then(function (resp) { return resp.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        window.print();
+                    } else if (data.precisa_motivo) {
+                        abrirModalMotivo(data.qtd_repetidas);
+                    } else {
+                        alert('Erro ao registrar impressão: ' + (data.error || 'desconhecido'));
+                    }
+                })
+                .catch(function (err) {
+                    alert('Erro ao registrar impressão: ' + err.message);
+                });
+        }
+
+        function abrirModalMotivo(qtd) {
+            document.getElementById('modalMotivoTexto').textContent =
+                qtd + ' etiqueta(s) já foram impressas anteriormente. Informe o motivo da reimpressão para continuar:';
+            document.getElementById('inputMotivo').value = '';
+            document.getElementById('modalMotivo').style.display = 'flex';
+        }
+
+        function confirmarReimpressao() {
+            var motivo = document.getElementById('inputMotivo').value.trim();
+            if (!motivo) {
+                alert('Informe o motivo da reimpressão.');
+                return;
+            }
+            document.getElementById('modalMotivo').style.display = 'none';
+            prepararImpressao(motivo);
+        }
+
+        function cancelarReimpressao() {
+            document.getElementById('modalMotivo').style.display = 'none';
+        }
+    </script>
 
 </body>
 

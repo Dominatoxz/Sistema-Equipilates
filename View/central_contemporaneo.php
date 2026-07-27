@@ -390,6 +390,12 @@ require_once '../Function/trava.php';
                     <h3>Impressão</h3>
                     <p>Etiquetas organizadas</p>
                 </a>
+
+                <a href="historico_impressoes.php" class="card-botao pos-venda">
+                    <div class="icon-box">📜</div>
+                    <h3>Histórico de Impressões</h3>
+                    <p>Registro de etiquetas impressas</p>
+                </a>
             <?php endif; ?>
         </div>
     </div>

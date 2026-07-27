@@ -32,6 +32,19 @@ CREATE TABLE IF NOT EXISTS pedidos_prontos (
     status_posvenda VARCHAR(50) DEFAULT 'Financeiro'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS impressoes_etiquetas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_item INT NOT NULL,
+    tabela_origem VARCHAR(20) NOT NULL,
+    tipo_etiqueta VARCHAR(20) NOT NULL,
+    usuario_id INT NOT NULL,
+    usuario_nome VARCHAR(50),
+    motivo_reimpressao VARCHAR(255) DEFAULT NULL,
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_item_origem_tipo (id_item, tabela_origem, tipo_etiqueta)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
 CREATE TABLE IF NOT EXISTS pedidos_expedidos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     numero_pedido VARCHAR(50) NOT NULL,
