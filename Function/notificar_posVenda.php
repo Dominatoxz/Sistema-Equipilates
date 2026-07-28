@@ -44,8 +44,9 @@ try {
             'Step Chair Excelence',
             'Lader Barrel Excelence',
             'Wall Unit',
-            'Carrinho',
-            'Gaiola'
+            'Carrinho Excellence',
+            'Carrinho Torre',
+            'Gaiola Cadilac'
         ];
 
         $placeholders = implode(',', array_fill(0, count($equipamentosPrincipais), '?'));
