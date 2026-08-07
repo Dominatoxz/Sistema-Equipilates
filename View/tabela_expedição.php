@@ -420,7 +420,7 @@ require_once '../Function/trava.php';
                         <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_EXPEDICAO_ACAO)): ?>
                             <td>
                                 <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Finalizar Pedido</button>
-                                <button class="btn-reprogramar" onclick="abrirModalReprogramar(<?= $p['id'] ?>)">Reprogramar</button>
+                                <button class="btn-reprogramar" onclick="abrirModalReprogramar(<?= $p['id'] ?>)">Remover Pedido</button>
                             </td>
                         <?php endif; ?>
                         <td>
