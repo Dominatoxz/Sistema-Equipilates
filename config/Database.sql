@@ -5,11 +5,12 @@ CREATE TABLE IF NOT EXISTS itens_producao (
     numero_pedido VARCHAR(50) NOT NULL,
     prazo_producao VARCHAR(255),
     equipamento VARCHAR(100) NOT NULL,
-    posicao_no_pedido INT NOT NULL, 
+    posicao_no_pedido INT NOT NULL,
     cor VARCHAR(100),
     status VARCHAR(50) DEFAULT 'Pendente',
     data_inicio DATETIME DEFAULT NULL,
-    data_fim DATETIME DEFAULT NULL
+    data_fim DATETIME DEFAULT NULL,
+    data_armazem DATETIME DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS itens_os (
@@ -17,11 +18,12 @@ CREATE TABLE IF NOT EXISTS itens_os (
     numero_pedido VARCHAR(50) NOT NULL,
     prazo_producao VARCHAR(255),
     equipamento VARCHAR(100) NOT NULL,
-    posicao_no_pedido INT NOT NULL, 
+    posicao_no_pedido INT NOT NULL,
     cor VARCHAR(100),
     status VARCHAR(50) DEFAULT 'Pendente',
     data_inicio DATETIME DEFAULT NULL,
-    data_fim DATETIME DEFAULT NULL
+    data_fim DATETIME DEFAULT NULL,
+    data_armazem DATETIME DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS pedidos_prontos (
@@ -44,6 +46,16 @@ CREATE TABLE IF NOT EXISTS impressoes_etiquetas (
     INDEX idx_item_origem_tipo (id_item, tabela_origem, tipo_etiqueta)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS pedidos_reprogramados (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    numero_pedido VARCHAR(50) NOT NULL,
+    prazo_producao VARCHAR(255),
+    origem_tela VARCHAR(30) NOT NULL,
+    motivo VARCHAR(255) NOT NULL,
+    usuario_id INT,
+    usuario_nome VARCHAR(50),
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS pedidos_expedidos (
     id INT AUTO_INCREMENT PRIMARY KEY,

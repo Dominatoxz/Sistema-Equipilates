@@ -104,6 +104,21 @@ require_once '../Function/trava.php';
             color: #721c24;
         }
 
+        .badge-origem.linha-misto {
+            background-color: #ede9fe;
+            color: #5b21b6;
+        }
+
+        .badge-origem.linha-contemporaneo {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-origem.linha-classico {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
         .sem-pedidos {
             text-align: center;
             padding: 50px;
@@ -282,6 +297,7 @@ require_once '../Function/trava.php';
             <tr>
                 <th>Pedido / OS</th>
                 <th>Tipo</th>
+                <th>Linha</th>
                 <th>Prazo de Produção</th>
                 <th>Andamento da Produção</th>
             </tr>
@@ -317,6 +333,15 @@ require_once '../Function/trava.php';
                     }
 
                     $classeOrigem = ($origem === 'OS') ? 'origem-os' : 'origem-producao';
+
+                    $linhaPedido = $sistema->linhaDoPedido($numPedido);
+                    $classeLinha = match ($linhaPedido) {
+                        'Misto' => 'linha-misto',
+                        'Contemporâneo' => 'linha-contemporaneo',
+                        'Clássico' => 'linha-classico',
+                        default => '',
+                    };
+                    $textoLinha = $linhaPedido;
             ?>
                     <tr id="Linha-<?= $idUnicoLinha ?>" data-id="<?= $idUnicoLinha ?>" data-status="<?= $statusProducao ?>">
                         <td style="font-weight: bold; color: #2980b9;">
@@ -326,6 +351,12 @@ require_once '../Function/trava.php';
                         <td>
                             <span class="badge-origem <?= $classeOrigem ?>">
                                 <?= htmlspecialchars($origem) ?>
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="badge-origem <?= $classeLinha ?>">
+                                <?= htmlspecialchars($textoLinha) ?>
                             </span>
                         </td>
 
@@ -374,7 +405,7 @@ require_once '../Function/trava.php';
             else:
                 ?>
                 <tr class="linha-sem-registro">
-                    <td colspan="4" class="sem-pedidos">Nenhum pedido em produção encontrado.</td>
+                    <td colspan="5" class="sem-pedidos">Nenhum pedido em produção encontrado.</td>
                 </tr>
             <?php endif; ?>
         </tbody>
@@ -418,7 +449,11 @@ require_once '../Function/trava.php';
         const linhasTabela = document.querySelectorAll('#tabela-pedidos-body tr[data-id]');
 
         function atualizarContadores() {
-            let todos = 0, atrasados = 0, pendentes = 0, producao = 0, embalados = 0;
+            let todos = 0,
+                atrasados = 0,
+                pendentes = 0,
+                producao = 0,
+                embalados = 0;
 
             linhasTabela.forEach(tr => {
                 todos++;
@@ -442,7 +477,7 @@ require_once '../Function/trava.php';
             const botaoAtivo = document.querySelector('.btn-filtro.active');
             const filtroSelecionado = botaoAtivo.getAttribute('data-filter');
             const termoBusca = inputPesquisa.value.toLowerCase();
-            
+
             let encontrouAlgum = false;
 
             linhasTabela.forEach(tr => {
@@ -476,7 +511,7 @@ require_once '../Function/trava.php';
                 const tbody = document.getElementById('tabela-pedidos-body');
                 const trAviso = document.createElement('tr');
                 trAviso.className = 'aviso-filtro-vazio';
-                trAviso.innerHTML = `<td colspan="4" class="sem-pedidos">Nenhum registro encontrado para a busca atual.</td>`;
+                trAviso.innerHTML = `<td colspan="5" class="sem-pedidos">Nenhum registro encontrado para a busca atual.</td>`;
                 tbody.appendChild(trAviso);
             }
         }

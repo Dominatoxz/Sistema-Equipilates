@@ -1,8 +1,8 @@
 <?php
+require_once '../Function/trava.php';
 require_once '../config/Database.php';
 
 $pedido = $_GET['pedido'] ?? null;
-$tipoTela = $_GET['tipo_tela'] ?? 'producao';
 
 if (!$pedido) {
     echo json_encode(['success' => false, 'error' => 'Pedido não informado.']);
@@ -13,55 +13,16 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
-    $totalPendentes = 0;
     $isOS = (stripos($pedido, 'os') !== false);
+    $tabelaItens = $isOS ? 'itens_os' : 'itens_producao';
 
-    if ($isOS) {
-        if ($tipoTela === 'os_equipamentos') {
-            $sqlOs = "SELECT COUNT(*) FROM itens_os 
-                      WHERE numero_pedido = ? 
-                        AND status != 'Embalado'
-                        AND equipamento NOT LIKE 'Caixa%' 
-                        AND equipamento NOT LIKE 'Prancha%' 
-                        AND equipamento NOT LIKE 'Molas%'
-                        AND equipamento NOT LIKE 'Acessorio%'";
-        } else if ($tipoTela === 'os_acessorios') {
-            $sqlOs = "SELECT COUNT(*) FROM itens_os 
-                      WHERE numero_pedido = ? 
-                        AND status != 'Embalado'
-                        AND (equipamento LIKE 'Caixa%' 
-                          OR equipamento LIKE 'Prancha%' 
-                          OR equipamento LIKE 'Molas%'
-                          OR equipamento LIKE 'Acessorio%')";
-        } else {
-            $sqlOs = 'SELECT COUNT(*) FROM itens_os WHERE numero_pedido = ? AND status != "Embalado"';
-        }
-    } else {
-        $equipamentosPrincipais = [
-            'Reformer Excellence',
-            'Reformer Torre',
-            'Cadilac Excelence',
-            'Step Chair Excelence',
-            'Lader Barrel Excelence',
-            'Wall Unit',
-            'Carrinho Excellence',
-            'Carrinho Torre',
-            'Gaiola Cadilac'
-        ];
-
-        $placeholders = implode(',', array_fill(0, count($equipamentosPrincipais), '?'));
-
-        $sqlProd = "SELECT COUNT(*) FROM itens_producao 
-                    WHERE numero_pedido = ? 
-                    AND equipamento IN ($placeholders) 
-                    AND status != 'Embalado'";
-
-        $stmtProd = $db->prepare($sqlProd);
-
-        $params = array_merge([$pedido], $equipamentosPrincipais);
-        $stmtProd->execute($params);
-        $totalPendentes = (int)$stmtProd->fetchColumn();
-    }
+    $sql = "SELECT COUNT(*) FROM $tabelaItens
+            WHERE numero_pedido = ?
+              AND equipamento NOT LIKE 'Emb.%'
+              AND status != 'Armazenado'";
+    $stmt = $db->prepare($sql);
+    $stmt->execute([$pedido]);
+    $totalPendentes = (int) $stmt->fetchColumn();
 
     if ($totalPendentes === 0) {
 

@@ -3,7 +3,7 @@ require_once '../Function/trava.php';
 require_once '../config/Database.php';
 date_default_timezone_set('America/Sao_Paulo');
 
-verificarAcessoSetor(['Desenvolvedor', 'CEO', 'PCP']);
+verificarAcessoSetor(CARGOS_HISTORICO_IMPRESSOES);
 
 $database = new Database();
 $db = $database->getConnection();
@@ -207,7 +207,7 @@ $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
     <div class="header-painel">
         <h1>Histórico de Impressões de Etiquetas</h1>
-        <a href="central_contemporaneo.php" class="btn-voltar">← Voltar para a Central</a>
+        <a href="Contemporaneo/central_contemporaneo.php" class="btn-voltar">← Voltar para a Central</a>
     </div>
 
     <div class="container-pesquisa">
@@ -260,11 +260,11 @@ $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </table>
 
     <script>
-        document.getElementById('inputPesquisa').addEventListener('keyup', function () {
+        document.getElementById('inputPesquisa').addEventListener('keyup', function() {
             const termoBusca = this.value.toLowerCase();
             const linhas = document.querySelectorAll('.linha-registro');
 
-            linhas.forEach(function (linha) {
+            linhas.forEach(function(linha) {
                 const textoPedido = linha.getElementsByTagName('td')[0].textContent.toLowerCase();
                 linha.style.display = textoPedido.includes(termoBusca) ? "" : "none";
             });

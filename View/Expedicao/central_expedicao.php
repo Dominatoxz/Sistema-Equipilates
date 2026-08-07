@@ -1,5 +1,5 @@
 <?php
-require_once '../Function/trava.php';
+require_once '../../Function/trava.php';
 ?>
 
 <!DOCTYPE html>
@@ -8,7 +8,7 @@ require_once '../Function/trava.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Central de Produção</title>
+    <title>Painel Central de Expedição</title>
     <style>
         :root {
             --bg-color: #f4f6f9;
@@ -18,9 +18,9 @@ require_once '../Function/trava.php';
             --text-main: #1e1e26;
             --text-muted: #62627a;
 
-            --color-gold: #d97706;
+            --color-gold: #06c7d9;
             --color-prod: #0088cc;
-            --color-oseq: #e65100;
+            --color-oseq: #0049e6;
             --color-osac: #9c27b0;
             --color-pos: #10b981;
         }
@@ -96,7 +96,6 @@ require_once '../Function/trava.php';
             border-radius: 30px;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(5px);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
         }
 
@@ -162,8 +161,6 @@ require_once '../Function/trava.php';
             background: var(--card-bg);
             border-radius: 16px;
             border: 1px solid var(--card-border);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             padding: 35px 25px;
             text-decoration: none;
             color: var(--text-main);
@@ -306,97 +303,50 @@ require_once '../Function/trava.php';
 
 <body>
     <div class="header-painel">
-        <img src="../assets/logo_equipilates.png" alt="">
-        <a class="btn-voltar" href="../index.php">Central ></a>
+        <img src="../../assets/logo_equipilates.png" alt="">
+        <div style="display: flex; gap: 12px;">
+            <a class="btn-voltar" href="../Classico/central_classico.php">Clássico ></a>
+            <a class="btn-voltar" href="../Contemporaneo/central_contemporaneo.php">Contemporâneo ></a>
+            <a class="btn-voltar" href="../../index.php">Central ></a>
+        </div>
     </div>
     <div class="container">
         <h1>Central de controle</h1>
-        <h2>Contemporâneo</h2>
-        <p class="subtitle">"A mente, quando habitualmente ocupada, esculpe o corpo, dita a postura e define os movimentos."</p>
+        <h2>Expedição<option value=""></option>
+        </h2>
+        <p class="subtitle">"Seu corpo é seu maior bem, ele guarda e reflete sua alma."</p>
         <p class="sub-subtitle">- Joseph Pilates</p>
 
         <div class="grid-painel">
-            <a href="tabela.php" class="card-botao prod">
+            <a href="tabela_producao_expedicao.php" class="card-botao prod">
                 <div class="icon-box">📦</div>
-                <h3>Equipamentos</h3>
-                <p>Equipamentos da linha contemporânea e pedidos normais</p>
+                <h3>Equipamentos do Contemporâneo</h3>
+                <p>Equipamentos da linha contemporânea</p>
             </a>
 
-            <a href="tabela_acessorios.php" class="card-botao prod">
+            <a href="tabela_acessorios_expedicao.php" class="card-botao prod">
                 <div class="icon-box">➕</div>
-                <h3>Acessórios</h3>
-                <p>Acessórios da linha contemporânea e pedidos normais</p>
+                <h3>Acessórios do Contemporâneo</h3>
+                <p>Acessórios da linha contemporânea</p>
             </a>
 
-            <a href="tabela_os.php" class="card-botao os-eq">
-                <div class="icon-box">🛠️</div>
-                <h3>Equipamentos OS</h3>
-                <p>Estruturas de Ordens de Serviço</p>
+            <a href="tabela_classico_expedicao.php" class="card-botao os-eq">
+                <div class="icon-box">🏛️</div>
+                <h3>Equipamentos do Clássico</h3>
+                <p>Equipamentos da linha clássica</p>
             </a>
 
-            <a href="tabela_os_acess.php" class="card-botao os-ac">
-                <div class="icon-box">⚙️</div>
-                <h3>Acessórios OS</h3>
-                <p>Molas, Caixas e Pranchas de OS</p>
+            <a href="tabela_classico_acess_expedicao.php" class="card-botao os-ac">
+                <div class="icon-box">➕</div>
+                <h3>Acessórios do Clássico</h3>
+                <p>Acessórios da linha clássica</p>
             </a>
 
-            <a href="tabela_controle_producao.php" class="card-botao pos-venda">
-                <div class="icon-box">📋</div>
-                <h3>Controle da Produção</h3>
-                <p>Fila da produção dos pedidos</p>
-            </a>
-
-            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Financeiro', 'Diretor', 'CEO', 'Desenvolvedor', 'PCP'])): ?>
-                <a href="tabela_financeiro.php" class="card-botao pos-venda">
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_FINANCEIRO_NAV)): ?>
+                <a href="../tabela_financeiro.php" class="card-botao pos-venda">
                     <div class="icon-box">💰</div>
                     <h3>Financeiro</h3>
                     <p>Fila para o controle do financeiro</p>
-                </a>
-            <?php endif; ?>
-
-            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Pos-venda', 'Diretor', 'CEO', 'Desenvolvedor', 'PCP'])): ?>
-                <a href="tabela_posVenda.php" class="card-botao pos-venda">
-                    <div class="icon-box">✅</div>
-                    <h3>Pós-Venda</h3>
-                    <p>Fila de pedidos produzidos</p>
-                </a>
-            <?php endif; ?>
-
-            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Expedicao', 'Diretor', 'CEO', 'Desenvolvedor', 'PCP'])): ?>
-                <a href="tabela_expedição.php" class="card-botao pos-venda">
-                    <div class="icon-box">✈️</div>
-                    <h3>Expedição</h3>
-                    <p>Fila de organização de pedidos para expedição</p>
-                </a>
-            <?php endif; ?>
-
-            <a href="tabela_controle.php" class="card-botao pos-venda">
-                <div class="icon-box">🎮</div>
-                <h3>Controle</h3>
-                <p>Fila de controle de pedidos</p>
-            </a>
-
-            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Desenvolvedor', 'Diretor', 'CEO', 'PCP', 'Expedicao'])): ?>
-                <a href="tabela_expedidos.php" class="card-botao pos-venda">
-                    <div class="icon-box">🛬</div>
-                    <h3>Pedidos expedidos</h3>
-                    <p>Fila de controle de pedidos expedidos</p>
-                </a>
-            <?php endif; ?>
-
-            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Desenvolvedor', 'Diretor', 'PCP', 'Supervisor'])): ?>
-                <a href="../Function/imprimir_etiquetas.php" class="card-botao pos-venda">
-                    <div class="icon-box">🖨️</div>
-                    <h3>Impressão</h3>
-                    <p>Etiquetas organizadas</p>
-                </a>
-            <?php endif; ?>
-            
-            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Desenvolvedor', 'Diretor', 'PCP'])): ?>
-                <a href="historico_impressoes.php" class="card-botao pos-venda">
-                    <div class="icon-box">📜</div>
-                    <h3>Histórico de Impressões</h3>
-                    <p>Registro de etiquetas impressas</p>
                 </a>
             <?php endif; ?>
         </div>
@@ -407,13 +357,15 @@ require_once '../Function/trava.php';
     </div>
 
     <script>
-        document.querySelector('.btn-voltar').addEventListener('click', function(e) {
-            e.preventDefault();
-            const destino = this.getAttribute('href');
-            document.body.classList.add('fade-out');
-            setTimeout(() => {
-                window.location.href = destino;
-            }, 300);
+        document.querySelectorAll('.btn-voltar').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const destino = this.getAttribute('href');
+                document.body.classList.add('fade-out');
+                setTimeout(() => {
+                    window.location.href = destino;
+                }, 300);
+            });
         });
     </script>
 </body>

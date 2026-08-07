@@ -1,5 +1,5 @@
 <?php
-require_once '../Function/trava.php';
+require_once '../../Function/trava.php';
 ?>
 
 <!DOCTYPE html>
@@ -11,18 +11,18 @@ require_once '../Function/trava.php';
     <title>Painel Central de Produção</title>
     <style>
         :root {
-            --bg-color: #08080c;
-            --bg-gradient: radial-gradient(circle at 50% 50%, #111218 0%, #060609 100%);
-            --card-bg: rgba(18, 18, 26, 0.65);
-            --card-border: rgba(255, 255, 255, 0.04);
-            --text-main: #f0f0f5;
-            --text-muted: #8a8a9e;
+            --bg-color: #f4f6f9;
+            --bg-gradient: radial-gradient(circle at 50% 50%, #ffffff 0%, #e9edf3 100%);
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-border: rgba(0, 0, 0, 0.05);
+            --text-main: #1e1e26;
+            --text-muted: #62627a;
 
-            --color-gold: #f39c12;
-            --color-prod: #00b0ff;
-            --color-oseq: #ff9100;
-            --color-osac: #d500f9;
-            --color-pos: #00e676;
+            --color-gold: #d97706;
+            --color-prod: #0088cc;
+            --color-oseq: #e65100;
+            --color-osac: #9c27b0;
+            --color-pos: #10b981;
         }
 
         @keyframes fadeIn {
@@ -81,7 +81,7 @@ require_once '../Function/trava.php';
         .header-painel img {
             max-height: 120px;
             width: 180px;
-            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
         }
 
         .header-painel a.btn-voltar {
@@ -91,32 +91,32 @@ require_once '../Function/trava.php';
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 2px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(0, 0, 0, 0.08);
             padding: 10px 20px;
             border-radius: 30px;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(5px);
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
         }
 
         .header-painel a.btn-voltar:hover {
-            background: #ffffff;
-            color: #000000;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+            background: #1e1e26;
+            color: #ffffff;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
             transform: scale(1.05);
+            border-color: #1e1e26;
         }
 
         h1 {
             font-size: 2.8rem;
-            color: #ffffff;
+            color: #1e1e26;
             text-transform: uppercase;
             letter-spacing: 4px;
             margin-bottom: 5px;
             font-weight: 800;
-            background: linear-gradient(180deg, #ffffff 0%, #a2a2bc 100%);
+            background: linear-gradient(180deg, #111115 0%, #4a4a6a 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));
         }
 
         h2 {
@@ -126,8 +126,7 @@ require_once '../Function/trava.php';
             color: var(--color-gold);
             text-transform: uppercase;
             letter-spacing: 6px;
-            font-weight: 600;
-            text-shadow: 0 0 12px rgba(243, 156, 18, 0.3);
+            font-weight: 700;
         }
 
         p.subtitle {
@@ -136,13 +135,13 @@ require_once '../Function/trava.php';
             max-width: 650px;
             margin: 0 auto 8px auto;
             line-height: 1.6;
-            font-weight: 300;
+            font-weight: 400;
             letter-spacing: 0.5px;
         }
 
         p.sub-subtitle {
             font-size: 0.75rem;
-            color: #52526b;
+            color: #9292a6;
             text-transform: uppercase;
             letter-spacing: 3px;
             margin-top: 0;
@@ -162,8 +161,6 @@ require_once '../Function/trava.php';
             background: var(--card-bg);
             border-radius: 16px;
             border: 1px solid var(--card-border);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             padding: 35px 25px;
             text-decoration: none;
             color: var(--text-main);
@@ -175,6 +172,7 @@ require_once '../Function/trava.php';
             cursor: pointer;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02), inset 0 1px 0 rgba(255, 255, 255, 0.6);
         }
 
         .card-botao::before {
@@ -184,7 +182,7 @@ require_once '../Function/trava.php';
             left: -100%;
             width: 50%;
             height: 100%;
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.03), transparent);
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
             transform: skewX(-25deg);
             transition: 0.75s;
         }
@@ -196,8 +194,8 @@ require_once '../Function/trava.php';
         .card-botao h3 {
             margin: 18px 0 8px 0;
             font-size: 1.25rem;
-            color: #ffffff;
-            font-weight: 600;
+            color: #1e1e26;
+            font-weight: 700;
             letter-spacing: 0.5px;
             transition: color 0.3s ease;
         }
@@ -208,7 +206,7 @@ require_once '../Function/trava.php';
             color: var(--text-muted);
             text-align: center;
             line-height: 1.5;
-            font-weight: 400;
+            font-weight: 500;
         }
 
         .icon-box {
@@ -220,32 +218,29 @@ require_once '../Function/trava.php';
             justify-content: center;
             font-size: 24px;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.02);
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
         }
 
         .card-botao:hover {
             transform: translateY(-5px);
-            background: rgba(25, 25, 35, 0.85);
-            border-color: rgba(255, 255, 255, 0.1);
+            background: #ffffff;
+            border-color: rgba(0, 0, 0, 0.08);
         }
 
         .card-botao:hover .icon-box {
             transform: scale(1.1) translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
-
 
         .prod .icon-box {
             color: var(--color-prod);
-            background: rgba(0, 176, 255, 0.06);
-            border-color: rgba(0, 176, 255, 0.15);
+            background: rgba(0, 136, 204, 0.06);
         }
 
         .prod:hover {
-            box-shadow: 0 10px 30px rgba(0, 176, 255, 0.15);
-            border-color: rgba(0, 176, 255, 0.4);
+            box-shadow: 0 15px 30px rgba(0, 136, 204, 0.12);
+            border-color: rgba(0, 136, 204, 0.3);
         }
 
         .prod:hover h3 {
@@ -254,13 +249,12 @@ require_once '../Function/trava.php';
 
         .os-eq .icon-box {
             color: var(--color-oseq);
-            background: rgba(ff, 145, 0, 0.06);
-            border-color: rgba(ff, 145, 0, 0.15);
+            background: rgba(230, 81, 0, 0.06);
         }
 
         .os-eq:hover {
-            box-shadow: 0 10px 30px rgba(ff, 145, 0, 0.15);
-            border-color: rgba(ff, 145, 0, 0.4);
+            box-shadow: 0 15px 30px rgba(230, 81, 0, 0.12);
+            border-color: rgba(230, 81, 0, 0.3);
         }
 
         .os-eq:hover h3 {
@@ -269,13 +263,12 @@ require_once '../Function/trava.php';
 
         .os-ac .icon-box {
             color: var(--color-osac);
-            background: rgba(213, 0, 249, 0.06);
-            border-color: rgba(213, 0, 249, 0.15);
+            background: rgba(156, 39, 176, 0.06);
         }
 
         .os-ac:hover {
-            box-shadow: 0 10px 30px rgba(213, 0, 249, 0.15);
-            border-color: rgba(213, 0, 249, 0.4);
+            box-shadow: 0 15px 30px rgba(156, 39, 176, 0.12);
+            border-color: rgba(156, 39, 176, 0.3);
         }
 
         .os-ac:hover h3 {
@@ -284,13 +277,12 @@ require_once '../Function/trava.php';
 
         .pos-venda .icon-box {
             color: var(--color-pos);
-            background: rgba(0, 230, 118, 0.06);
-            border-color: rgba(0, 230, 118, 0.15);
+            background: rgba(16, 185, 129, 0.06);
         }
 
         .pos-venda:hover {
-            box-shadow: 0 10px 30px rgba(0, 230, 118, 0.15);
-            border-color: rgba(0, 230, 118, 0.4);
+            box-shadow: 0 15px 30px rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.3);
         }
 
         .pos-venda:hover h3 {
@@ -301,57 +293,43 @@ require_once '../Function/trava.php';
             margin-top: 60px;
             margin-bottom: 30px;
             font-size: 0.75rem;
-            color: #424254;
+            color: #8c8c9e;
             letter-spacing: 2px;
             text-transform: uppercase;
-            font-weight: 500;
+            font-weight: 600;
         }
     </style>
 </head>
 
 <body>
     <div class="header-painel">
-        <img src="../assets/logo_equipilates.png" alt="">
-        <a class="btn-voltar" href="../index.php">Central ></a>
+        <img src="../../assets/logo_equipilates.png" alt="">
+        <div style="display: flex; gap: 12px;">
+            <a class="btn-voltar" href="../Classico/central_classico.php">Clássico ></a>
+            <a class="btn-voltar" href="../Expedicao/central_expedicao.php">Expedição ></a>
+            <a class="btn-voltar" href="../../index.php">Central ></a>
+        </div>
     </div>
     <div class="container">
         <h1>Central de controle</h1>
-        <h2>Clássico</h2>
-        <p class="subtitle">"É estar presente, concentrado e não distraído. É a mente que esculpe o corpo."</p>
+        <h2>Contemporâneo</h2>
+        <p class="subtitle">"A mente, quando habitualmente ocupada, esculpe o corpo, dita a postura e define os movimentos."</p>
         <p class="sub-subtitle">- Joseph Pilates</p>
 
         <div class="grid-painel">
-            <a href="tabela_classico.php" class="card-botao prod">
+            <a href="tabela.php" class="card-botao prod">
                 <div class="icon-box">📦</div>
                 <h3>Equipamentos</h3>
-                <p>Equipamentos da linha clássica e pedidos normais</p>
+                <p>Equipamentos da linha contemporânea e pedidos normais</p>
             </a>
 
-            <a href="tabela_classico_segunda.php" class="card-botao prod">
-                <div class="icon-box">📦</div>
-                <h3>Equipamentos</h3>
-                <p>Equipamentos da linha clássica e pedidos normais parte 2</p>
-            </a>
-
-            <a href="tabela_acessorios_classico.php" class="card-botao prod">
+            <a href="tabela_acessorios.php" class="card-botao prod">
                 <div class="icon-box">➕</div>
                 <h3>Acessórios</h3>
-                <p>Acessórios da linha clássica e pedidos normais</p>
+                <p>Acessórios da linha contemporânea e pedidos normais</p>
             </a>
 
-            <a href="tabela_acessorios_classico_segunda.php" class="card-botao prod">
-                <div class="icon-box">➕</div>
-                <h3>Acessórios</h3>
-                <p>Acessórios da linha clássica e pedidos normais Parte 2</p>
-            </a>
-
-            <a href="tabela_acessorios_classico_terceira.php" class="card-botao prod">
-                <div class="icon-box">➕</div>
-                <h3>Acessórios</h3>
-                <p>Acessórios da linha clássica e pedidos normais Parte 3</p>
-            </a>
-
-            <a href="tabela_classico_os.php" class="card-botao os-eq">
+            <a href="tabela_os.php" class="card-botao os-eq">
                 <div class="icon-box">🛠️</div>
                 <h3>Equipamentos OS</h3>
                 <p>Estruturas de Ordens de Serviço</p>
@@ -360,39 +338,76 @@ require_once '../Function/trava.php';
             <a href="tabela_os_acess.php" class="card-botao os-ac">
                 <div class="icon-box">⚙️</div>
                 <h3>Acessórios OS</h3>
-                <p>Acessórios de OS</p>
+                <p>Molas, Caixas e Pranchas de OS</p>
             </a>
 
-            <a href="tabela_posVenda.php" class="card-botao pos-venda">
-                <div class="icon-box">✅</div>
-                <h3>Pós-Venda</h3>
-                <p>Fila de pedidos produzidos</p>
+            <a href="../tabela_controle_producao.php" class="card-botao pos-venda">
+                <div class="icon-box">📋</div>
+                <h3>Controle da Produção</h3>
+                <p>Fila da produção dos pedidos</p>
             </a>
 
-            <a href="tabela_financeiro.php" class="card-botao pos-venda">
-                <div class="icon-box">💰</div>
-                <h3>Financeiro</h3>
-                <p>Fila para o controle do financeiro</p>
-            </a>
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_FINANCEIRO_NAV)): ?>
+                <a href="../tabela_financeiro.php" class="card-botao pos-venda">
+                    <div class="icon-box">💰</div>
+                    <h3>Financeiro</h3>
+                    <p>Fila para o controle do financeiro</p>
+                </a>
+            <?php endif; ?>
 
-            <a href="tabela_expedição.php" class="card-botao pos-venda">
-                <div class="icon-box">✈️</div>
-                <h3>Expedição</h3>
-                <p>Fila de organização de pedidos para expedição</p>
-            </a>
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_POSVENDA_NAV)): ?>
+                <a href="../tabela_posVenda.php" class="card-botao pos-venda">
+                    <div class="icon-box">✅</div>
+                    <h3>Pós-Venda</h3>
+                    <p>Fila de pedidos produzidos</p>
+                </a>
+            <?php endif; ?>
 
-            <a href="tabela_controle.php" class="card-botao pos-venda">
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_EXPEDICAO_NAV)): ?>
+                <a href="../tabela_expedição.php" class="card-botao pos-venda">
+                    <div class="icon-box">✈️</div>
+                    <h3>Expedição</h3>
+                    <p>Fila de organização de pedidos para expedição</p>
+                </a>
+            <?php endif; ?>
+
+            <a href="../tabela_controle.php" class="card-botao pos-venda">
                 <div class="icon-box">🎮</div>
                 <h3>Controle</h3>
                 <p>Fila de controle de pedidos</p>
             </a>
 
-            <a href="../Function/imprimir_etiquetas.php" class="card-botao pos-venda">
-                <div class="icon-box">🖨️</div>
-                <h3>Impressão</h3>
-                <p>Etiquetas organizadas</p>
-            </a>
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_PEDIDOS_EXPEDIDOS)): ?>
+                <a href="../tabela_expedidos.php" class="card-botao pos-venda">
+                    <div class="icon-box">🛬</div>
+                    <h3>Pedidos expedidos</h3>
+                    <p>Fila de controle de pedidos expedidos</p>
+                </a>
+            <?php endif; ?>
 
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_IMPRESSAO)): ?>
+                <a href="../../Function/imprimir_etiquetas.php" class="card-botao pos-venda">
+                    <div class="icon-box">🖨️</div>
+                    <h3>Impressão</h3>
+                    <p>Etiquetas organizadas</p>
+                </a>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_HISTORICO_IMPRESSOES)): ?>
+                <a href="../historico_impressoes.php" class="card-botao pos-venda">
+                    <div class="icon-box">📜</div>
+                    <h3>Histórico de Impressões</h3>
+                    <p>Registro de etiquetas impressas</p>
+                </a>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_PEDIDOS_REPROGRAMADOS)): ?>
+                <a href="../pedidos_reprogramados.php" class="card-botao pos-venda">
+                    <div class="icon-box">🔁</div>
+                    <h3>Pedidos Reprogramados</h3>
+                    <p>Pedidos removidos da fila com motivo registrado</p>
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -401,13 +416,15 @@ require_once '../Function/trava.php';
     </div>
 
     <script>
-        document.querySelector('.btn-voltar').addEventListener('click', function(e) {
-            e.preventDefault();
-            const destino = this.getAttribute('href');
-            document.body.classList.add('fade-out');
-            setTimeout(() => {
-                window.location.href = destino;
-            }, 300);
+        document.querySelectorAll('.btn-voltar').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const destino = this.getAttribute('href');
+                document.body.classList.add('fade-out');
+                setTimeout(() => {
+                    window.location.href = destino;
+                }, 300);
+            });
         });
     </script>
 </body>

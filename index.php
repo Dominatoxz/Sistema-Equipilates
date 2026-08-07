@@ -248,6 +248,21 @@ date_default_timezone_set('America/Sao_Paulo');
             text-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
         }
 
+        .linha-classica .icon-box {
+            color: var(--neon-amber);
+            text-shadow: 0 0 10px rgba(255, 157, 0, 0.5);
+        }
+
+        .linha-classica:hover {
+            border-color: rgba(255, 157, 0, 0.4);
+            box-shadow: 0 0 30px rgba(255, 157, 0, 0.15);
+        }
+
+        .linha-classica:hover h3 {
+            color: var(--neon-amber);
+            text-shadow: 0 0 8px rgba(255, 157, 0, 0.3);
+        }
+
         .linha-cadastro .icon-box {
             color: var(--neon-purple);
             text-shadow: 0 0 10px rgba(189, 0, 255, 0.5);
@@ -259,6 +274,16 @@ date_default_timezone_set('America/Sao_Paulo');
         }
 
         .linha-cadastro:hover h3 {
+            color: var(--neon-purple);
+            text-shadow: 0 0 8px rgba(189, 0, 255, 0.3);
+        }
+
+         .linha-expedicao:hover {
+            border-color: rgba(189, 0, 255, 0.4);
+            box-shadow: 0 0 30px rgba(189, 0, 255, 0.15);
+        }
+
+        .linha-expedicao:hover h3 {
             color: var(--neon-purple);
             text-shadow: 0 0 8px rgba(189, 0, 255, 0.3);
         }
@@ -285,12 +310,24 @@ date_default_timezone_set('America/Sao_Paulo');
         <h1>Linhas</h1>
         <p class="subtitle">"Olhos e Mente na Tarefa."</p>
         <div class="grid-painel">
-            <a href="View/central_contemporaneo.php" class="card-botao linha-contemporanea">
+            <a href="View/Contemporaneo/central_contemporaneo.php" class="card-botao linha-contemporanea">
                 <div class="icon-box">🧬</div>
                 <h3>Contemporânea</h3>
             </a>
 
-            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Gerente', 'CEO', 'Desenvolvedor'])): ?>
+            <a href="View/Classico/central_classico.php" class="card-botao linha-classica">
+                <div class="icon-box">🏛️</div>
+                <h3>Clássica</h3>
+            </a>
+
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_ARMAZEM)): ?>
+            <a href="View/Expedicao/central_expedicao.php" class="card-botao linha-expedicao">
+                <div class="icon-box">🏠</div>
+                <h3>Armazem Expedição</h3>
+            </a>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_ADMIN_USUARIOS)): ?>
                 <a href="View/cadastro.php" class="card-botao linha-cadastro">
                     <div class="icon-box">📋</div>
                     <h3>Novo Usuário</h3>

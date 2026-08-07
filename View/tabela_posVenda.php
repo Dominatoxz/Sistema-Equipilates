@@ -101,6 +101,10 @@ require_once '../Function/trava.php';
             text-transform: uppercase;
             letter-spacing: 1.5px;
             font-weight: 700;
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         td {
@@ -148,6 +152,28 @@ require_once '../Function/trava.php';
             filter: brightness(1.05);
         }
 
+        .btn-reprogramar {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 10px rgba(239, 68, 68, 0.15);
+            margin-left: 8px;
+        }
+
+        .btn-reprogramar:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            filter: brightness(1.05);
+        }
+
         .badge-pronto {
             background-color: #ecfdf5;
             color: #065f46;
@@ -156,6 +182,54 @@ require_once '../Function/trava.php';
             font-size: 0.8rem;
             font-weight: 700;
             border: 1px solid #a7f3d0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-linha-misto {
+            background-color: #f3e8ff;
+            color: #6b21a8;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid #d8b4fe;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-linha-contemporaneo {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid #93c5fd;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-linha-classico {
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid #fde68a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-linha-indefinido {
+            background-color: #f1f5f9;
+            color: #475569;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid #cbd5e1;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -288,11 +362,12 @@ require_once '../Function/trava.php';
         <thead>
             <tr>
                 <th>Pedido / OS</th>
+                <th>Linha</th>
                 <th>Prazo de Produção</th>
                 <th>Concluído em</th>
                 <th>Status da Fabricação</th>
-                <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Pos-venda', 'Desenvolvedor'])): ?>
-                <th>Ações</th>
+                <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_POSVENDA_ACAO)): ?>
+                    <th>Ações</th>
                 <?php endif; ?>
                 <th>Mais</th>
             </tr>
@@ -310,7 +385,7 @@ require_once '../Function/trava.php';
             ?>
             <?php if (empty($pedidos)): ?>
                 <tr>
-                    <td colspan="6" class="sem-pedidos">Nenhum pedido aguardando liberação.</td>
+                    <td colspan="7" class="sem-pedidos">Nenhum pedido aguardando liberação.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($pedidos as $p):
@@ -325,23 +400,35 @@ require_once '../Function/trava.php';
 
                     $textoNota = $notaExistente ? $notaExistente['observacao'] : '';
                     $dataNota = $notaExistente ? "⏱️ Última alteração: <strong>" . $notaExistente['data_obs'] . "</strong>" : '';
+
+                    $linhaPedido = $sistema->linhaDoPedido($p['numero_pedido']);
+                    $badgeLinhaClasse = match ($linhaPedido) {
+                        'Misto' => 'badge-linha-misto',
+                        'Contemporâneo' => 'badge-linha-contemporaneo',
+                        'Clássico' => 'badge-linha-classico',
+                        default => 'badge-linha-indefinido',
+                    };
                 ?>
                     <tr id="Linha-<?= $p['id'] ?>" class="linha-pedido">
                         <td style="font-weight: bold; color: #2980b9; font-size: 18px;"><?= htmlspecialchars($p['numero_pedido']) ?></td>
+                        <td>
+                            <span class="<?= $badgeLinhaClasse ?>"><?= htmlspecialchars($linhaPedido) ?></span>
+                        </td>
                         <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10)) ?></td>
                         <td><?= (new DateTime($p['data_conclusao']))->format('d/m/Y H:i') ?></td>
                         <td><span class="badge-pronto">100% Embalado</span></td>
-                        <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], ['Pos-venda', 'Desenvolvedor'])): ?>
-                        <td>
-                            <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Enviar para a Expedição</button>
-                        </td>
+                        <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_POSVENDA_ACAO)): ?>
+                            <td>
+                                <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Enviar para a Expedição</button>
+                                <button class="btn-reprogramar" onclick="abrirModalReprogramar(<?= $p['id'] ?>)">Reprogramar</button>
+                            </td>
                         <?php endif; ?>
                         <td>
                             <button class="btn-mais" onclick="toggleSanfona(<?= $p['id'] ?>)">...</button>
                         </td>
                     </tr>
                     <tr id="ObsRow-<?= $p['id'] ?>" class="linha-observacao">
-                        <td colspan="6">
+                        <td colspan="7">
                             <div class="wrapper-sanfona">
                                 <div class="container-obs">
                                     <input type="text"
@@ -360,7 +447,91 @@ require_once '../Function/trava.php';
         </tbody>
     </table>
 
+    <div id="modalReprogramar" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); align-items:center; justify-content:center; z-index:1000;">
+        <div style="background:#fff; padding:25px; border-radius:12px; max-width:420px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+            <h3 style="margin-top:0; color:#0f172a;">Reprogramar Pedido</h3>
+            <p style="color:#64748b; font-size:0.9rem;">Explique o motivo pelo qual este pedido está saindo desta fila. Ele será registrado e removido daqui.</p>
+            <textarea id="inputMotivoReprogramar" rows="4" style="width:100%; box-sizing:border-box; padding:10px; border:1px solid #e2e8f0; border-radius:8px; font-size:0.9rem; font-family:inherit;" placeholder="Descreva o motivo..."></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
+                <button type="button" onclick="fecharModalReprogramar()" style="background:#e2e8f0; color:#334155; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.8rem;">Cancelar</button>
+                <button type="button" onclick="confirmarReprogramacao()" style="background:#dc2626; color:#fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.8rem;">Confirmar e Remover</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        const csrfToken = <?= json_encode(gerarTokenCSRF()) ?>;
+        let idReprogramarAtual = null;
+
+        function abrirModalReprogramar(id) {
+            idReprogramarAtual = id;
+            document.getElementById('inputMotivoReprogramar').value = '';
+            document.getElementById('modalReprogramar').style.display = 'flex';
+        }
+
+        function fecharModalReprogramar() {
+            document.getElementById('modalReprogramar').style.display = 'none';
+            idReprogramarAtual = null;
+        }
+
+        function confirmarReprogramacao() {
+            const motivo = document.getElementById('inputMotivoReprogramar').value.trim();
+            if (!motivo) {
+                alert('Informe o motivo da reprogramação.');
+                return;
+            }
+            if (!idReprogramarAtual) return;
+
+            const id = idReprogramarAtual;
+
+            fetch('../Function/reprogramar_pedido.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id_pedido: id,
+                        motivo: motivo,
+                        origem_tela: 'posvenda',
+                        csrf_token: csrfToken
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        fecharModalReprogramar();
+
+                        const linha = document.getElementById(`Linha-${id}`);
+                        const linhaObs = document.getElementById(`ObsRow-${id}`);
+
+                        if (linha) {
+                            linha.style.transition = "all 0.5s ease";
+                            linha.style.opacity = "0";
+                            linha.style.background = "#fee2e2";
+                        }
+                        if (linhaObs) {
+                            linhaObs.style.transition = "all 0.5s ease";
+                            linhaObs.style.opacity = "0";
+                        }
+
+                        setTimeout(() => {
+                            if (linha) linha.remove();
+                            if (linhaObs) linhaObs.remove();
+
+                            if (document.querySelectorAll('tbody tr:not(.linha-observacao)').length === 0) {
+                                window.location.reload();
+                            }
+                        }, 600);
+                    } else {
+                        alert('Erro ao reprogramar pedido: ' + data.error);
+                        fecharModalReprogramar();
+                    }
+                })
+                .catch(err => {
+                    alert('Erro na comunicação: ' + err.message);
+                });
+        }
+
         document.getElementById('inputPesquisa').addEventListener('keyup', function() {
             const termoBusca = this.value.toLowerCase();
             const linhasPedido = document.querySelectorAll('.linha-pedido');
@@ -371,14 +542,14 @@ require_once '../Function/trava.php';
                 const textoPedido = linha.getElementsByTagName('td')[0].textContent.toLowerCase();
 
                 if (textoPedido.includes(termoBusca)) {
-                    linha.style.display = ""; 
+                    linha.style.display = "";
                     if (linhaObs && !linhaObs.classList.contains('aberta')) {
                         linhaObs.style.display = "none";
                     }
                 } else {
-                    linha.style.display = "none";    
+                    linha.style.display = "none";
                     if (linhaObs) {
-                        linhaObs.style.display = "none"; 
+                        linhaObs.style.display = "none";
                     }
                 }
             });
@@ -420,7 +591,8 @@ require_once '../Function/trava.php';
                     body: JSON.stringify({
                         id_pedido: id,
                         numero_pedido: numPedido,
-                        observacao: txtObs
+                        observacao: txtObs,
+                        csrf_token: csrfToken
                     })
                 })
                 .then(res => res.json())
@@ -443,7 +615,8 @@ require_once '../Function/trava.php';
             if (confirm("Enviar pedido para a Expedição?")) {
 
                 const dadosEnviar = {
-                    id_pedido: id
+                    id_pedido: id,
+                    csrf_token: csrfToken
                 };
                 fetch('../Function/dar_baixa_posVenda.php', {
                         method: 'POST',

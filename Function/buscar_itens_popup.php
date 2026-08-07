@@ -1,4 +1,5 @@
 <?php
+require_once '../Function/trava.php';
 header('Content-Type: application/json');
 require_once '../config/Database.php';
 

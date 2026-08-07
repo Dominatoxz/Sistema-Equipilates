@@ -5,6 +5,11 @@ require_once 'trava.php';
 
 header('Content-Type: application/json');
 
+if (!isset($_SESSION['nivel_acesso']) || !in_array($_SESSION['nivel_acesso'], CARGOS_FINANCEIRO_ACAO)) {
+    echo json_encode(['success' => false, 'error' => 'Seu cargo não tem permissão para esta ação.']);
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'error' => 'Método de requisição inválido.']);
     exit();
@@ -12,6 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $jsonRecebido = file_get_contents('php://input');
 $dados = json_decode($jsonRecebido, true);
+
+if (!validarTokenCSRF($dados['csrf_token'] ?? null)) {
+    echo json_encode(['success' => false, 'error' => 'Sessão expirada ou inválida. Recarregue a página e tente de novo.']);
+    exit();
+}
 
 if (!isset($dados['id_pedido']) || empty($dados['id_pedido'])) {
     echo json_encode(['success' => false, 'error' => 'ID do pedido não foi informado.']);

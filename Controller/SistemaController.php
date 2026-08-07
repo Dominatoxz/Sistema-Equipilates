@@ -20,20 +20,20 @@ class SistemaController
     {
         //pede lista de dados ao Model
         $pedidos = $this->sistema->mostrarTabela();
-        require_once './View/tabela.php';
+        require_once './View/Contemporaneo/tabela.php';
     }
 
     public function os()
     {
         //pede lista de dados ao Model
         $pedidos = $this->sistema->mostrarTabelaOs();
-        require_once './View/tabela_os.php';
+        require_once './View/Contemporaneo/tabela_os.php';
     }
 
     public function acessorios()
     {
         $pedidos = $this->sistema->mostrarTabelaAcessorios();
-        require_once './View/tabela_acessorios.php';
+        require_once './View/Contemporaneo/tabela_acessorios.php';
     }
 
     public function posVenda()
@@ -46,6 +46,6 @@ class SistemaController
     public function acessoriosOs()
     {
         $pedidos = $this->sistema->mostrarTabelaAcessoriosOs();
-        require_once './View/tabela_os_acess.php';
+        require_once './View/Contemporaneo/tabela_os_acess.php';
     }
 }

@@ -2,12 +2,19 @@
 require_once 'trava.php';
 require_once '../config/Database.php';
 
+verificarAcessoSetor(CARGOS_ADMIN_USUARIOS);
+
 $database = new Database();
 $db = $database->getConnection();
 
 $pdo = $db;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    if (!validarTokenCSRF($_POST['csrf_token'] ?? null)) {
+        header("Location: ../View/cadastro.php?status=erro");
+        exit();
+    }
 
     $usuario = filter_input(INPUT_POST, 'usuario', FILTER_SANITIZE_SPECIAL_CHARS);
     $senha = $_POST['senha'];

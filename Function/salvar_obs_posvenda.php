@@ -1,9 +1,15 @@
 <?php
+require_once '../Function/trava.php';
 require_once '../config/Database.php';
 
 header('Content-Type: application/json');
 
 $dados = json_decode(file_get_contents("php://input"), true);
+
+if (!validarTokenCSRF($dados['csrf_token'] ?? null)) {
+    echo json_encode(['success' => false, 'error' => 'Sessão expirada ou inválida. Recarregue a página e tente de novo.']);
+    exit;
+}
 
 if (!isset($dados['id_pedido']) || !isset($dados['observacao'])) {
     echo json_encode(['success' => false, 'error' => 'Dados incompletos.']);

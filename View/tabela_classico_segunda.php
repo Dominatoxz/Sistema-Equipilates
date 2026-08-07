@@ -52,6 +52,11 @@ require_once '../Function/trava.php';
             text-transform: uppercase;
             font-size: 15px;
             word-wrap: break-word;
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: inset 0 -2px 0 #1c1c1c;
         }
 
         td {

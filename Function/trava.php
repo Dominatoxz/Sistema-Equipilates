@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/cargos.php';
+require_once __DIR__ . '/csrf.php';
+
 ini_set('session.cookie_lifetime', 0);
 ini_set('session.cookie_httponly', 1);
 

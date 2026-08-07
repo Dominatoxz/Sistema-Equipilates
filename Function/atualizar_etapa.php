@@ -1,9 +1,11 @@
 <?php
+require_once '../Function/trava.php';
 header('Content-Type: application/json');
 require_once '../config/Database.php';
 $db = (new Database())->getConnection();
 
 $codigoLido = $_GET['id'] ?? null;
+$origem = $_GET['origem'] ?? 'producao';
 
 if ($codigoLido) {
     $partes = explode('-', $codigoLido);
@@ -34,6 +36,10 @@ if ($codigoLido) {
         $colunaData = '';
 
         if ($tipo === 'P') {
+            if ($origem !== 'producao') {
+                echo json_encode(['success' => false, 'error' => 'Ação não permitida nesta tela.']);
+                exit;
+            }
             if ($statusAtual === 'Pendente') {
                 $novoStatus = 'Produzido';
                 $colunaData = 'data_inicio';
@@ -43,13 +49,27 @@ if ($codigoLido) {
                 exit;
             }
         } elseif ($tipo === 'E') {
-            if ($statusAtual === 'Produzido') {
-                $novoStatus = 'Embalado';
-                $colunaData = 'data_fim';
-                $podeAtualizar = true;
+            if ($origem === 'expedicao') {
+                if ($statusAtual === 'Embalado') {
+                    $novoStatus = 'Armazenado';
+                    $colunaData = 'data_armazem';
+                    $podeAtualizar = true;
+                } elseif ($statusAtual === 'Armazenado') {
+                    echo json_encode(['success' => false, 'error' => 'Este item já foi armazenado!']);
+                    exit;
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'Este item ainda não foi embalado na produção!']);
+                    exit;
+                }
             } else {
-                echo json_encode(['success' => false, 'error' => 'Não é possível embalar um item que não foi fabricado!']);
-                exit;
+                if ($statusAtual === 'Produzido') {
+                    $novoStatus = 'Embalado';
+                    $colunaData = 'data_fim';
+                    $podeAtualizar = true;
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'Não é possível embalar um item que não foi fabricado!']);
+                    exit;
+                }
             }
         }
 
@@ -57,10 +77,16 @@ if ($codigoLido) {
             date_default_timezone_set('America/Sao_Paulo');
             $dataHoraPHP = date('Y-m-d H:i:s');
 
-            $query = "UPDATE $tabelaAlvo SET status = :status, $colunaData = :data_registro WHERE id = :id";
+            if ($colunaData !== '') {
+                $query = "UPDATE $tabelaAlvo SET status = :status, $colunaData = :data_registro WHERE id = :id";
+            } else {
+                $query = "UPDATE $tabelaAlvo SET status = :status WHERE id = :id";
+            }
             $stmt = $db->prepare($query);
             $stmt->bindParam(':status', $novoStatus);
-            $stmt->bindParam(':data_registro', $dataHoraPHP);
+            if ($colunaData !== '') {
+                $stmt->bindParam(':data_registro', $dataHoraPHP);
+            }
             $stmt->bindParam(':id', $id);
 
             if ($stmt->execute()) {
@@ -69,14 +95,8 @@ if ($codigoLido) {
                 $nrPedidoDoBanco = $item['numero_pedido'] ?? $item['numero_os'] ?? $item['numero'] ?? 'Desconhecido';
                 $nomeEquipamentoDoBanco = $item['equipamento'] ?? 'Equipamento';
 
-                $arquivo_cache = __DIR__ . '/../cache/dados_painel.json';
-                $arquivo_cache_os = __DIR__ . '/../cache/dados_painelOs.json';
-
-                if (file_exists($arquivo_cache)) {
-                    unlink($arquivo_cache);
-                }
-                if (file_exists($arquivo_cache_os)) {
-                    unlink($arquivo_cache_os);
+                foreach (glob(__DIR__ . '/../cache/*.json') as $arquivoCache) {
+                    unlink($arquivoCache);
                 }
 
                 echo json_encode([

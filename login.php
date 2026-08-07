@@ -1,3 +1,10 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once __DIR__ . '/Function/csrf.php';
+$csrfToken = gerarTokenCSRF();
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -231,10 +238,13 @@
                 <div class="alert alert-danger">⚠️ LOG: Usuário ou senha incorretos.</div>
             <?php elseif ($_GET['erro'] === 'restrito'): ?>
                 <div class="alert alert-warning">🔒 AVISO: Autenticação necessária para acesso.</div>
+            <?php elseif ($_GET['erro'] === 'bloqueado'): ?>
+                <div class="alert alert-danger">⏱️ Muitas tentativas erradas. Aguarde alguns minutos antes de tentar de novo.</div>
             <?php endif; ?>
         <?php endif; ?>
 
         <form action="Function/valida_login.php" method="POST" autocomplete="off">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
             <div class="form-group">
                 <label for="usuario">ID Usuário</label>
                 <input type="text" id="usuario" name="usuario" placeholder="Ex: joao.producao" required autofocus>

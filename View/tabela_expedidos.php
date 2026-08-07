@@ -100,6 +100,10 @@ date_default_timezone_set('America/Sao_Paulo');
             text-transform: uppercase;
             letter-spacing: 1.5px;
             font-weight: 700;
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         td {
@@ -191,9 +195,9 @@ date_default_timezone_set('America/Sao_Paulo');
             linhasPedido.forEach(linha => {
                 const textoPedido = linha.getElementsByTagName('td')[0].textContent.toLowerCase();
                 if (textoPedido.includes(termoBusca)) {
-                    linha.style.display = ""; 
+                    linha.style.display = "";
                 } else {
-                    linha.style.display = "none";    
+                    linha.style.display = "none";
                 }
             });
         });
@@ -223,7 +227,7 @@ date_default_timezone_set('America/Sao_Paulo');
                 })
                 .catch(err => console.error("Erro na sincronização rápida:", err));
         }
-        
+
         setInterval(verificarAtualizacoesEmSegundoPlano, 60000);
     </script>
     <div class="footer">

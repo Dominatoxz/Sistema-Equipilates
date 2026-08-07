@@ -5,9 +5,16 @@ require_once '../vendor/autoload.php';
 use Picqer\Barcode\BarcodeGeneratorPNG;
 
 require_once '../config/Database.php';
+require_once '../Model/Sistema.php';
 
 $db = (new Database())->getConnection();
 $generator = new BarcodeGeneratorPNG();
+
+$sistema = new Sistema($db);
+$pedidosMistos = array_unique(array_merge(
+    $sistema->pedidosMistos('itens_producao'),
+    $sistema->pedidosMistos('itens_os')
+));
 
 $filtro_pedido    = isset($_GET['filtro_pedido']) ? trim($_GET['filtro_pedido']) : '';
 $filtro_item      = isset($_GET['filtro_item']) ? trim($_GET['filtro_item']) : '';
@@ -237,11 +244,19 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .etiqueta-header {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
-            align-items: flex-end;
+            align-items: center;
+            row-gap: 2px;
             border-bottom: 1px solid #000;
             padding-bottom: 2px;
             margin-bottom: 5px;
+        }
+
+        .etiqueta-header-pedido {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .num-pedido {
@@ -251,11 +266,23 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .tipo-etiqueta {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: #000;
+        }
+
+        .badge-misto-etiqueta {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 1px 6px;
+            border-radius: 3px;
+            letter-spacing: 0.5px;
+            vertical-align: middle;
         }
 
         .etiqueta-titulo {
@@ -336,8 +363,10 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="header-filtros">
             <h2>Filtros para Impressão de Etiquetas</h2>
             <div style="display: flex; gap: 10px;">
-                <a href="../View/historico_impressoes.php" class="btn-action btn-voltar">📜 Histórico de Impressões</a>
-                <a href="../View/central_contemporaneo.php" class="btn-action btn-voltar">← Voltar para a Central</a>
+                <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_HISTORICO_IMPRESSOES)): ?>
+                    <a href="../View/historico_impressoes.php" class="btn-action btn-voltar">📜 Histórico de Impressões</a>
+                <?php endif; ?>
+                <a href="../index.php" class="btn-action btn-voltar">← Voltar para a Central</a>
             </div>
         </div>
 
@@ -411,7 +440,12 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
         ?>
                     <div class="etiqueta etiqueta-fabrica" data-id="<?= (int)$item['id'] ?>" data-origem="<?= htmlspecialchars($item['tabela_origem']) ?>" data-tipo="PRODUCAO">
                         <div class="etiqueta-header">
-                            <span class="num-pedido">PEDIDO #<?= htmlspecialchars($item['numero_pedido']) ?></span>
+                            <div class="etiqueta-header-pedido">
+                                <span class="num-pedido">PEDIDO #<?= htmlspecialchars($item['numero_pedido']) ?></span>
+                                <?php if (in_array($item['numero_pedido'], $pedidosMistos)): ?>
+                                    <span class="badge-misto-etiqueta">MISTO</span>
+                                <?php endif; ?>
+                            </div>
                             <span class="tipo-etiqueta">PRODUÇÃO</span>
                         </div>
                         <div class="etiqueta-titulo"><?= htmlspecialchars($item['equipamento']) ?></div>
@@ -429,7 +463,12 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 ?>
                     <div class="etiqueta etiqueta-embalagem" data-id="<?= (int)$item['id'] ?>" data-origem="<?= htmlspecialchars($item['tabela_origem']) ?>" data-tipo="EMBALAGEM">
                         <div class="etiqueta-header">
-                            <span class="num-pedido">PEDIDO #<?= htmlspecialchars($item['numero_pedido']) ?></span>
+                            <div class="etiqueta-header-pedido">
+                                <span class="num-pedido">PEDIDO #<?= htmlspecialchars($item['numero_pedido']) ?></span>
+                                <?php if (in_array($item['numero_pedido'], $pedidosMistos)): ?>
+                                    <span class="badge-misto-etiqueta">MISTO</span>
+                                <?php endif; ?>
+                            </div>
                             <span class="tipo-etiqueta">EMBALAGEM</span>
                         </div>
                         <div class="etiqueta-titulo"><?= htmlspecialchars($item['equipamento']) ?></div>
@@ -452,8 +491,10 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <script>
+        const csrfToken = <?= json_encode(gerarTokenCSRF()) ?>;
+
         function coletarItens() {
-            return Array.from(document.querySelectorAll('.etiqueta')).map(function (el) {
+            return Array.from(document.querySelectorAll('.etiqueta')).map(function(el) {
                 return {
                     id_item: el.dataset.id,
                     tabela_origem: el.dataset.origem,
@@ -464,12 +505,20 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         function prepararImpressao(motivo) {
             fetch('registrar_impressao_etiqueta.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ itens: coletarItens(), motivo: motivo || '' })
-            })
-                .then(function (resp) { return resp.json(); })
-                .then(function (data) {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        itens: coletarItens(),
+                        motivo: motivo || '',
+                        csrf_token: csrfToken
+                    })
+                })
+                .then(function(resp) {
+                    return resp.json();
+                })
+                .then(function(data) {
                     if (data.success) {
                         window.print();
                     } else if (data.precisa_motivo) {
@@ -478,7 +527,7 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         alert('Erro ao registrar impressão: ' + (data.error || 'desconhecido'));
                     }
                 })
-                .catch(function (err) {
+                .catch(function(err) {
                     alert('Erro ao registrar impressão: ' + err.message);
                 });
         }

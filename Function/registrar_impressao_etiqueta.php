@@ -6,6 +6,11 @@ header('Content-Type: application/json');
 
 $dados = json_decode(file_get_contents("php://input"), true);
 
+if (!validarTokenCSRF($dados['csrf_token'] ?? null)) {
+    echo json_encode(['success' => false, 'error' => 'Sessão expirada ou inválida. Recarregue a página e tente de novo.']);
+    exit;
+}
+
 if (!isset($dados['itens']) || !is_array($dados['itens']) || empty($dados['itens'])) {
     echo json_encode(['success' => false, 'error' => 'Nenhuma etiqueta informada.']);
     exit;

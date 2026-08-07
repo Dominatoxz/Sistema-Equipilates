@@ -2,6 +2,7 @@
 require_once '../config/Database.php';
 require_once '../Function/trava.php';
 
+verificarAcessoSetor(CARGOS_ADMIN_USUARIOS);
 
 $database = new Database();
 $db = $database->getConnection();
@@ -294,6 +295,7 @@ $pdo = $db;
         <?php endif; ?>
 
         <form action="../Function/processa_cadastro.php" method="POST" autocomplete="off">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(gerarTokenCSRF()) ?>">
             <div class="form-group">
                 <label for="usuario">ID do Usuário (Login)</label>
                 <input type="text" id="usuario" name="usuario" placeholder="Ex: carlos.producao" required>

@@ -46,6 +46,10 @@ require_once '../Function/trava.php';
             text-align: center;
             font-size: 16px;
             text-transform: uppercase;
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         td {
@@ -234,7 +238,9 @@ require_once '../Function/trava.php';
 
         function atualizarContadores() {
             const linhasTabela = document.querySelectorAll('#tabela-controle-body tr[id^="linha-"]');
-            let todos = 0, normal = 0, os = 0;
+            let todos = 0,
+                normal = 0,
+                os = 0;
 
             linhasTabela.forEach(tr => {
                 todos++;
@@ -252,7 +258,7 @@ require_once '../Function/trava.php';
             const botaoAtivo = document.querySelector('.btn-filtro.active');
             const filtroSelecionado = botaoAtivo.getAttribute('data-filter');
             const termoBusca = inputPesquisa.value.toLowerCase();
-            
+
             const linhasTabela = document.querySelectorAll('#tabela-controle-body tr[id^="linha-"]');
             let encontrouAlgum = false;
 
