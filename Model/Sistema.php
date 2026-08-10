@@ -915,71 +915,77 @@ class Sistema
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function mostrarFilaProducao(): array
-    {
-        $query = "SELECT id, numero_pedido, prazo_producao, status AS status_item, 'NORMAL' AS origem
-                    FROM itens_producao 
-                    WHERE equipamento NOT LIKE '%Emb.%'
-                    
-                    UNION ALL
-                    
-                    SELECT id, numero_pedido, prazo_producao, status AS status_item, 'OS' AS origem
-                    FROM itens_os
-                    WHERE equipamento NOT LIKE '%Emb.%'
-                    
-                    ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC";
+public function mostrarFilaProducao(): array
+{
+    $query = "SELECT id, numero_pedido, prazo_producao, status AS status_item, 'NORMAL' AS origem
+                FROM itens_producao 
+                WHERE equipamento NOT LIKE '%Emb.%'
+                
+                UNION ALL
+                
+                SELECT id, numero_pedido, prazo_producao, status AS status_item, 'OS' AS origem
+                FROM itens_os
+                WHERE equipamento NOT LIKE '%Emb.%'
+                
+                ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC";
 
-        try {
-            $stmt = $this->conn->prepare($query);
-            $stmt->execute();
-            $todosItens = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $todosItens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            $pedidosAgrupados = [];
-            $itensProcessadosPorPedido = [];
+        $pedidosAgrupados = [];
+        $itensProcessadosPorPedido = [];
 
-            foreach ($todosItens as $item) {
-                $numPedido = $item['numero_pedido'];
-                $idItem = $item['id'];
-                $origem = $item['origem'];
+        foreach ($todosItens as $item) {
+            $numPedido = $item['numero_pedido'];
+            $idItem = $item['id'];
+            $origem = $item['origem'];
 
-                if (empty($numPedido)) {
-                    continue;
-                }
-
-                if (!isset($itensProcessadosPorPedido[$numPedido])) {
-                    $itensProcessadosPorPedido[$numPedido] = [];
-                }
-
-                if (in_array($idItem, $itensProcessadosPorPedido[$numPedido])) {
-                    continue;
-                }
-
-                $itensProcessadosPorPedido[$numPedido][] = $idItem;
-
-                if (!isset($pedidosAgrupados[$numPedido])) {
-                    $pedidosAgrupados[$numPedido] = [
-                        'numero_pedido'   => $numPedido,
-                        'origem'          => $origem,
-                        'prazo_producao'  => $item['prazo_producao'],
-                        'total_itens'     => 0,
-                        'itens_concluidos' => 0
-                    ];
-                }
-
-                $pedidosAgrupados[$numPedido]['total_itens']++;
-
-                if ($item['status_item'] === 'Embalado' || $item['status_item'] === 'E') {
-                    $pedidosAgrupados[$numPedido]['itens_concluidos']++;
-                }
+            if (empty($numPedido)) {
+                continue;
             }
 
-            return array_values($pedidosAgrupados);
-        } catch (PDOException $e) {
-            echo "Erro ao buscar fila de produção: " . $e->getMessage();
-            return [];
-        }
-    }
+            $chaveGrupo = $numPedido . '-' . $origem;
 
+            if (!isset($itensProcessadosPorPedido[$chaveGrupo])) {
+                $itensProcessadosPorPedido[$chaveGrupo] = [];
+            }
+
+            if (in_array($idItem, $itensProcessadosPorPedido[$chaveGrupo])) {
+                continue;
+            }
+
+            $itensProcessadosPorPedido[$chaveGrupo][] = $idItem;
+
+            if (!isset($pedidosAgrupados[$chaveGrupo])) {
+                $pedidosAgrupados[$chaveGrupo] = [
+                    'numero_pedido'    => $numPedido,
+                    'origem'           => $origem,
+                    'prazo_producao'   => $item['prazo_producao'],
+                    'total_itens'      => 0,
+                    'itens_concluidos'  => 0, 
+                    'itens_armazenados' => 0  
+                ];
+            }
+
+            $pedidosAgrupados[$chaveGrupo]['total_itens']++;
+
+            $status = strtoupper(trim($item['status_item']));
+
+            if ($status === 'ARMAZENADO' || $status === 'A') {
+                $pedidosAgrupados[$chaveGrupo]['itens_armazenados']++;
+            } elseif ($status === 'EMBALADO' || $status === 'E') {
+                $pedidosAgrupados[$chaveGrupo]['itens_concluidos']++;
+            }
+        }
+
+        return array_values($pedidosAgrupados);
+    } catch (PDOException $e) {
+        echo "Erro ao buscar fila de produção: " . $e->getMessage();
+        return [];
+    }
+}
     public function pedidosMistos(string $tabela = 'itens_producao'): array
     {
         $tabela = ($tabela === 'itens_os') ? 'itens_os' : 'itens_producao';

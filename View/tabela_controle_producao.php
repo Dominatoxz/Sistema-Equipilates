@@ -86,6 +86,12 @@ require_once '../Function/trava.php';
             border: 1px solid #c3e6cb;
         }
 
+        .status-armazenado {
+            background-color: #f0b8ff;
+            color: #3a0242;
+            border: 1px solid #f0b8ff;
+        }
+
         .badge-origem {
             padding: 4px 10px;
             border-radius: 4px;
@@ -288,8 +294,10 @@ require_once '../Function/trava.php';
         <button class="btn-filtro" data-filter="Embalado">
             Embalados <span id="qtd-embalado" style="background: #c3e6cb; color: #155724;">0</span>
         </button>
+        <button class="btn-filtro" data-filter="Armazenado">
+            Armazenados <span id="qtd-armazenado" style="background: #f0b8ff; color: #3a0242;">0</span>
+        </button>
         <input type="text" id="inputPesquisa" class="input-pesquisa" placeholder="🔍 Buscar por Pedido / OS...">
-
     </div>
 
     <table>
@@ -314,22 +322,33 @@ require_once '../Function/trava.php';
 
             if (!empty($pedidos)):
                 foreach ($pedidos as $p):
-                    $total = $p['total_itens'];
-                    $concluidos = $p['itens_concluidos'];
+                    $total = (int) ($p['total_itens'] ?? 0);
+                    $concluidos = (int) ($p['itens_concluidos'] ?? 0);
+                    $armazenados = (int) ($p['itens_armazenados'] ?? 0); 
+                    
+                    $totalFinalizados = $concluidos + $armazenados;
+
                     $numPedido = $p['numero_pedido'];
                     $origem = $p['origem'];
+                    $statusBanco = $p['status'] ?? $p['status_pedido'] ?? '';
 
                     $idUnicoLinha = $numPedido . '-' . $origem;
 
-                    if ($concluidos == 0) {
-                        $statusProducao = "Pendente";
-                        $classeClasse   = "status-pendente";
-                    } elseif ($concluidos > 0 && $concluidos < $total) {
-                        $statusProducao = "Em produção";
-                        $classeClasse   = "status-em-andamento";
-                    } else {
+                    if ($statusBanco === 'Armazenado' || ($armazenados >= $total && $total > 0)) {
+                        $statusProducao = "Armazenado";
+                        $classeClasse   = "status-armazenado";
+                    } 
+                    elseif ($totalFinalizados >= $total && $total > 0) {
                         $statusProducao = "Embalado";
                         $classeClasse   = "status-concluido";
+                    } 
+                    elseif ($totalFinalizados > 0 && $totalFinalizados < $total) {
+                        $statusProducao = "Em produção";
+                        $classeClasse   = "status-em-andamento";
+                    } 
+                    else {
+                        $statusProducao = "Pendente";
+                        $classeClasse   = "status-pendente";
                     }
 
                     $classeOrigem = ($origem === 'OS') ? 'origem-os' : 'origem-producao';
@@ -378,7 +397,7 @@ require_once '../Function/trava.php';
                                 if ($prazoData) {
                                     $prazoData->setTime(0, 0, 0);
 
-                                    if ($prazoData < $hoje && $statusProducao !== "Embalado") {
+                                    if ($prazoData < $hoje && !in_array($statusProducao, ['Embalado', 'Armazenado'])) {
                                         echo '<span class="badge-atrasado">' . $prazoData->format('d/m/Y') . '</span>';
                                     } else {
                                         echo $prazoData->format('d/m/Y');
@@ -396,7 +415,7 @@ require_once '../Function/trava.php';
                             <span class="badge <?= $classeClasse ?> badge-andamento"
                                 data-pedido="<?= htmlspecialchars($numPedido) ?>"
                                 data-origem="<?= htmlspecialchars($origem) ?>">
-                                <?= $statusProducao ?> (<?= $concluidos ?>/<?= $total ?>)
+                                <?= $statusProducao ?> (<?= $totalFinalizados ?>/<?= $total ?>)
                             </span>
                         </td>
                     </tr>
@@ -453,24 +472,28 @@ require_once '../Function/trava.php';
                 atrasados = 0,
                 pendentes = 0,
                 producao = 0,
-                embalados = 0;
+                embalados = 0,
+                armazenados = 0;
 
             linhasTabela.forEach(tr => {
                 todos++;
                 const status = tr.getAttribute('data-status');
                 const temBadgeAtrasado = tr.querySelector('.badge-atrasado') !== null;
+                const estaFinalizado = (status === 'Embalado' || status === 'Armazenado');
 
-                if (temBadgeAtrasado) atrasados++;
+                if (temBadgeAtrasado && !estaFinalizado) atrasados++;
                 if (status === 'Pendente') pendentes++;
                 if (status === 'Em produção') producao++;
                 if (status === 'Embalado') embalados++;
+                if (status === 'Armazenado') armazenados++;
             });
 
             document.getElementById('qtd-todos').textContent = todos;
             document.getElementById('qtd-atrasado').textContent = atrasados;
             document.getElementById('qtd-pendente').textContent = pendentes;
             document.getElementById('qtd-producao').textContent = producao;
-            document.getElementById('qtd-embalado').textContent = embalados;
+            document.getElementById('qtd-embalado').textContent = embalados; 
+            document.getElementById('qtd-armazenado').textContent = armazenados;
         }
 
         function aplicarFiltrosCombinados() {
@@ -483,13 +506,16 @@ require_once '../Function/trava.php';
             linhasTabela.forEach(tr => {
                 const statusLinha = tr.getAttribute('data-status');
                 const temBadgeAtrasado = tr.querySelector('.badge-atrasado') !== null;
+                const estaFinalizado = (statusLinha === 'Embalado' || statusLinha === 'Armazenado');
+                const ehAtrasadoReal = temBadgeAtrasado && !estaFinalizado;
+
                 const textoPedido = tr.getElementsByTagName('td')[0].textContent.toLowerCase();
 
                 let atendeStatus = false;
                 if (filtroSelecionado === 'todos') {
                     atendeStatus = true;
                 } else if (filtroSelecionado === 'atrasado') {
-                    atendeStatus = temBadgeAtrasado;
+                    atendeStatus = ehAtrasadoReal;
                 } else {
                     atendeStatus = (statusLinha === filtroSelecionado);
                 }
@@ -564,6 +590,7 @@ require_once '../Function/trava.php';
                             if (item.status === 'Em produção' || item.status === 'Produzindo') corStatus = '#b8daff; color: #004085;';
                             if (item.status === 'Embalado') corStatus = '#c3e6cb; color: #155724;';
                             if (item.status === 'Produzido') corStatus = '#b8daff; color: #004085;';
+                            if (item.status === 'Armazenado') corStatus = '#f0b8ff; color: #3a0242;';
 
                             return `<li>
                             <span style="font-weight:600; color:#34495e; padding-right: 15px;">${item.nome}</span>
