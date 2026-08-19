@@ -128,7 +128,13 @@ class Sistema
     /*
      * O pedido entra na tela de Expedição assim que o PRIMEIRO item dele for
      * embalado — não precisa esperar o pedido inteiro terminar. A tela some
-     * de vez só quando o pedido sobe pro Financeiro (todo item Armazenado).
+     * de vez só quando TODO item do pedido vira Armazenado (ver
+     * condicaoAindaNaoTudoArmazenado logo abaixo) — não tem mais relação com
+     * o pedido já ter subido ou não pro Financeiro. Desde a mudança de fluxo
+     * de 2026-08, o pedido sobe pro Financeiro assim que tudo fica Embalado
+     * (bem antes de tudo ficar Armazenado), então as duas filas — Financeiro
+     * e Expedição/armazém — rodam em paralelo, cada uma com seu próprio
+     * critério de saída.
      */
     private function condicaoAlgumEmbaladoOuArmazenado(string $colunaPedido, array $equipamentos, string $tabelaItens = 'itens_producao'): string
     {
@@ -137,6 +143,23 @@ class Sistema
                     SELECT 1 FROM $tabelaItens ip
                     WHERE ip.numero_pedido = $colunaPedido AND ip.equipamento IN ($placeholders)
                       AND ip.status IN ('Embalado', 'Armazenado')
+                )";
+    }
+
+    /*
+     * Complemento de condicaoAlgumEmbaladoOuArmazenado: diz se o pedido
+     * AINDA tem algum item (dentro da lista de equipamentos informada) que
+     * não está Armazenado — ou seja, ainda precisa aparecer na tela de
+     * armazém/expedição pra ser bipado. Fica falso (pedido sai da tela) só
+     * quando todo item da lista já foi conferido/armazenado fisicamente.
+     */
+    private function condicaoAindaNaoTudoArmazenado(string $colunaPedido, array $equipamentos, string $tabelaItens = 'itens_producao'): string
+    {
+        $placeholders = implode(',', array_fill(0, count($equipamentos), '?'));
+        return "EXISTS (
+                    SELECT 1 FROM $tabelaItens ip
+                    WHERE ip.numero_pedido = $colunaPedido AND ip.equipamento IN ($placeholders)
+                      AND ip.status != 'Armazenado'
                 )";
     }
 
@@ -181,14 +204,17 @@ class Sistema
      * Espelho de mostrarTabela(), mas pro lado da Expedição: mostra o pedido
      * assim que o PRIMEIRO item principal ou acessório da linha Contemporânea
      * é embalado na produção — ele continua aparecendo em mostrarTabela()
-     * também até o último item ser embalado, e some daqui só quando sobe pro
-     * Financeiro (todo item Armazenado).
+     * também até o último item ser embalado, e some daqui só quando TODO
+     * item do pedido vira Armazenado (não depende mais de o pedido já ter
+     * subido pro Financeiro — as duas filas correm em paralelo).
      */
     public function mostrarTabelaExpedicaoContemporaneo()
     {
         $todosItens = array_merge(self::EQUIPAMENTOS_PRINCIPAIS_CONTEMPORANEO, self::ACESSORIOS_CONTEMPORANEO);
         $condicaoProntoNormal = $this->condicaoAlgumEmbaladoOuArmazenado('`NUMERO PEDIDO`', $todosItens, 'itens_producao');
         $condicaoProntoOs = $this->condicaoAlgumEmbaladoOuArmazenado('`NUMERO PEDIDO`', $todosItens, 'itens_os');
+        $condicaoNaoTudoArmazenadoNormal = $this->condicaoAindaNaoTudoArmazenado('`NUMERO PEDIDO`', $todosItens, 'itens_producao');
+        $condicaoNaoTudoArmazenadoOs = $this->condicaoAindaNaoTudoArmazenado('`NUMERO PEDIDO`', $todosItens, 'itens_os');
 
         // Pedidos normais e de OS caem na mesma tela de Expedição — só muda
         // qual tabela de itens (itens_producao/itens_os) é checada.
@@ -210,9 +236,9 @@ class Sistema
                          'Carrinho',
                          'Gaiola'
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
-                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND $presenca
                   AND $condicaoProntoNormal
+                  AND $condicaoNaoTudoArmazenadoNormal
 
                   UNION ALL
 
@@ -226,13 +252,13 @@ class Sistema
                          'Carrinho',
                          'Gaiola'
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) LIKE '%os%'
-                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND $presenca
                   AND $condicaoProntoOs
+                  AND $condicaoNaoTudoArmazenadoOs
 
                   ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero ASC";
         $stmt = $this->conn->prepare($query);
-        $stmt->execute(array_merge($todosItens, $todosItens));
+        $stmt->execute(array_merge($todosItens, $todosItens, $todosItens, $todosItens));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -281,6 +307,8 @@ class Sistema
     {
         $condicaoProntoNormal = $this->condicaoAlgumEmbaladoOuArmazenado('`NUMERO PEDIDO`', self::ACESSORIOS_CONTEMPORANEO, 'itens_producao');
         $condicaoProntoOs = $this->condicaoAlgumEmbaladoOuArmazenado('`NUMERO PEDIDO`', self::ACESSORIOS_CONTEMPORANEO, 'itens_os');
+        $condicaoNaoTudoArmazenadoNormal = $this->condicaoAindaNaoTudoArmazenado('`NUMERO PEDIDO`', self::ACESSORIOS_CONTEMPORANEO, 'itens_producao');
+        $condicaoNaoTudoArmazenadoOs = $this->condicaoAindaNaoTudoArmazenado('`NUMERO PEDIDO`', self::ACESSORIOS_CONTEMPORANEO, 'itens_os');
 
         $query = "SELECT `NUMERO PEDIDO` as numero,
                          `PRAZO DE PRODUCAO` as prazo_producao,
@@ -295,7 +323,6 @@ class Sistema
                   FROM tabela_adaptada
                   WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%'
                     AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
-                    AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                     AND (
                         (NULLIF(TRIM(`Wall Unit`), '') IS NOT NULL AND TRIM(`Wall Unit`) != '0') OR
                         (NULLIF(TRIM(`Caixa Mini`), '') IS NOT NULL AND TRIM(`Caixa Mini`) != '0') OR
@@ -307,6 +334,7 @@ class Sistema
                         (NULLIF(TRIM(`prancha de alongamento`), '') IS NOT NULL AND TRIM(`prancha de alongamento`) != '0')
                     )
                     AND $condicaoProntoNormal
+                    AND $condicaoNaoTudoArmazenadoNormal
 
                   UNION ALL
 
@@ -323,7 +351,6 @@ class Sistema
                   FROM tabela_adaptada
                   WHERE LOWER(`NUMERO PEDIDO`) LIKE 'os%'
                     AND LOWER(`NUMERO PEDIDO`) LIKE '%os%'
-                    AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                     AND (
                         (NULLIF(TRIM(`Wall Unit`), '') IS NOT NULL AND TRIM(`Wall Unit`) != '0') OR
                         (NULLIF(TRIM(`Caixa Mini`), '') IS NOT NULL AND TRIM(`Caixa Mini`) != '0') OR
@@ -335,11 +362,17 @@ class Sistema
                         (NULLIF(TRIM(`prancha de alongamento`), '') IS NOT NULL AND TRIM(`prancha de alongamento`) != '0')
                     )
                     AND $condicaoProntoOs
+                    AND $condicaoNaoTudoArmazenadoOs
 
                   ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero ASC";
 
         $stmt = $this->conn->prepare($query);
-        $stmt->execute(array_merge(self::ACESSORIOS_CONTEMPORANEO, self::ACESSORIOS_CONTEMPORANEO));
+        $stmt->execute(array_merge(
+            self::ACESSORIOS_CONTEMPORANEO,
+            self::ACESSORIOS_CONTEMPORANEO,
+            self::ACESSORIOS_CONTEMPORANEO,
+            self::ACESSORIOS_CONTEMPORANEO
+        ));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -501,13 +534,17 @@ class Sistema
      * pedido assim que o PRIMEIRO item principal ou acessório da linha
      * Clássica é embalado na produção — ele continua aparecendo em
      * mostrarTabelaClassico() também até o último item ser embalado, e some
-     * daqui só quando sobe pro Financeiro (todo item Armazenado).
+     * daqui só quando TODO item do pedido vira Armazenado (não depende mais
+     * de o pedido já ter subido pro Financeiro — as duas filas correm em
+     * paralelo).
      */
     public function mostrarTabelaExpedicaoClassico()
     {
         $todosItens = array_merge(self::EQUIPAMENTOS_PRINCIPAIS_CLASSICO, self::ACESSORIOS_CLASSICO);
         $condicaoProntoNormal = $this->condicaoAlgumEmbaladoOuArmazenado('`NUMERO PEDIDO`', $todosItens, 'itens_producao');
         $condicaoProntoOs = $this->condicaoAlgumEmbaladoOuArmazenado('`NUMERO PEDIDO`', $todosItens, 'itens_os');
+        $condicaoNaoTudoArmazenadoNormal = $this->condicaoAindaNaoTudoArmazenado('`NUMERO PEDIDO`', $todosItens, 'itens_producao');
+        $condicaoNaoTudoArmazenadoOs = $this->condicaoAindaNaoTudoArmazenado('`NUMERO PEDIDO`', $todosItens, 'itens_os');
 
         $colunas = "`NUMERO PEDIDO` as numero,
                          `PRAZO DE PRODUCAO` as prazo_producao,
@@ -552,21 +589,21 @@ class Sistema
 
         $query = "SELECT $colunas
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
-                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND $presenca
                   AND $condicaoProntoNormal
+                  AND $condicaoNaoTudoArmazenadoNormal
 
                   UNION ALL
 
                   SELECT $colunas
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) LIKE '%os%'
-                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND $presenca
                   AND $condicaoProntoOs
+                  AND $condicaoNaoTudoArmazenadoOs
 
                   ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero ASC";
         $stmt = $this->conn->prepare($query);
-        $stmt->execute(array_merge($todosItens, $todosItens));
+        $stmt->execute(array_merge($todosItens, $todosItens, $todosItens, $todosItens));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -663,6 +700,8 @@ class Sistema
     {
         $condicaoProntoNormal = $this->condicaoAlgumEmbaladoOuArmazenado('`NUMERO PEDIDO`', self::ACESSORIOS_CLASSICO, 'itens_producao');
         $condicaoProntoOs = $this->condicaoAlgumEmbaladoOuArmazenado('`NUMERO PEDIDO`', self::ACESSORIOS_CLASSICO, 'itens_os');
+        $condicaoNaoTudoArmazenadoNormal = $this->condicaoAindaNaoTudoArmazenado('`NUMERO PEDIDO`', self::ACESSORIOS_CLASSICO, 'itens_producao');
+        $condicaoNaoTudoArmazenadoOs = $this->condicaoAindaNaoTudoArmazenado('`NUMERO PEDIDO`', self::ACESSORIOS_CLASSICO, 'itens_os');
 
         $colunas = "`NUMERO PEDIDO` as numero,
                          `PRAZO DE PRODUCAO` as prazo_producao,
@@ -738,21 +777,26 @@ class Sistema
 
         $query = "SELECT $colunas
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
-                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND $presenca
                   AND $condicaoProntoNormal
+                  AND $condicaoNaoTudoArmazenadoNormal
 
                   UNION ALL
 
                   SELECT $colunas
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) LIKE '%os%'
-                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND $presenca
                   AND $condicaoProntoOs
+                  AND $condicaoNaoTudoArmazenadoOs
 
                   ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero ASC";
         $stmt = $this->conn->prepare($query);
-        $stmt->execute(array_merge(self::ACESSORIOS_CLASSICO, self::ACESSORIOS_CLASSICO));
+        $stmt->execute(array_merge(
+            self::ACESSORIOS_CLASSICO,
+            self::ACESSORIOS_CLASSICO,
+            self::ACESSORIOS_CLASSICO,
+            self::ACESSORIOS_CLASSICO
+        ));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

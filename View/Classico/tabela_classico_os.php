@@ -208,8 +208,6 @@ require_once '../../Function/trava.php';
 
             $lista_acessorios = [
                 'CAIXA DO REFORMER CLÁSSICA',
-                'SPINE CORRECTOR',
-                'SMALL BARREL',
                 'SUPORTE SPINE CORRECTOR',
                 'MINI EXTENSÃO MOVE FLOW',
                 'PLATAFORMA BARREL CLÁSSICO',
@@ -228,7 +226,6 @@ require_once '../../Function/trava.php';
                 'TOE EXERCISER',
                 'AIR PLANE BOARD',
                 'FINGER EXERCISE',
-                'PUSH UP DEVICE (PAR)',
                 'MINI BARREL',
                 'MINI SPINE',
                 'TRAV. CILINDRICO',
@@ -237,7 +234,6 @@ require_once '../../Function/trava.php';
                 'TRAV. CABEC. 40 mm',
                 'CAPA PROT. BARREL CLÁSS.',
                 'SHEEPSKIN COVER',
-                'BASTÃO ALUMÍNIO 1,5 M',
                 'PUXADOR DE ALUMINIO',
                 'ANEL DE PILATES ARCHIVE AÇO',
                 'MAGIC SQUARE',

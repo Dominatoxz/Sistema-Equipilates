@@ -341,14 +341,6 @@ require_once '../../Function/trava.php';
                 <h3>Acessórios do Clássico</h3>
                 <p>Acessórios da linha clássica</p>
             </a>
-
-            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_FINANCEIRO_NAV)): ?>
-                <a href="../tabela_financeiro.php" class="card-botao pos-venda">
-                    <div class="icon-box">💰</div>
-                    <h3>Financeiro</h3>
-                    <p>Fila para o controle do financeiro</p>
-                </a>
-            <?php endif; ?>
         </div>
     </div>
 

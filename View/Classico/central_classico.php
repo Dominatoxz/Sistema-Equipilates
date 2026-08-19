@@ -370,7 +370,7 @@ require_once '../../Function/trava.php';
             <?php endif; ?>
 
             <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_EXPEDICAO_NAV)): ?>
-                <a href="../tabela_expedição.php" class="card-botao pos-venda">
+                <a href="../tabela_expedicao.php" class="card-botao pos-venda">
                     <div class="icon-box">✈️</div>
                     <h3>Expedição</h3>
                     <p>Fila de organização de pedidos para expedição</p>

@@ -2,6 +2,7 @@
 require_once '../Function/trava.php';
 header('Content-Type: application/json');
 require_once '../config/Database.php';
+require_once '../Function/notificar_pos_producao.php';
 $db = (new Database())->getConnection();
 
 $codigoLido = $_GET['id'] ?? null;
@@ -78,9 +79,9 @@ if ($codigoLido) {
             $dataHoraPHP = date('Y-m-d H:i:s');
 
             if ($colunaData !== '') {
-                $query = "UPDATE $tabelaAlvo SET status = :status, $colunaData = :data_registro WHERE id = :id";
+                $query = "UPDATE $tabelaAlvo SET status = :status, $colunaData = :data_registro WHERE id = :id AND status = :status_esperado";
             } else {
-                $query = "UPDATE $tabelaAlvo SET status = :status WHERE id = :id";
+                $query = "UPDATE $tabelaAlvo SET status = :status WHERE id = :id AND status = :status_esperado";
             }
             $stmt = $db->prepare($query);
             $stmt->bindParam(':status', $novoStatus);
@@ -88,8 +89,19 @@ if ($codigoLido) {
                 $stmt->bindParam(':data_registro', $dataHoraPHP);
             }
             $stmt->bindParam(':id', $id);
+            $stmt->bindParam(':status_esperado', $statusAtual);
 
-            if ($stmt->execute()) {
+            if (!$stmt->execute()) {
+                echo json_encode(['success' => false, 'error' => 'Falha ao atualizar o item no banco.']);
+                exit;
+            }
+
+            if ($stmt->rowCount() === 0) {
+                echo json_encode(['success' => false, 'error' => 'Este item já foi atualizado por outra bipagem. Recarregue a tela e tente novamente.']);
+                exit;
+            }
+
+            {
                 $idRealRetorno = ($tabelaAlvo === 'itens_os') ? 'OS' . $id : $id;
 
                 $nrPedidoDoBanco = $item['numero_pedido'] ?? $item['numero_os'] ?? $item['numero'] ?? 'Desconhecido';
@@ -99,12 +111,18 @@ if ($codigoLido) {
                     unlink($arquivoCache);
                 }
 
+                $notificacaoPosProducao = null;
+                if (in_array($novoStatus, ['Embalado', 'Armazenado'], true) && $nrPedidoDoBanco !== 'Desconhecido') {
+                    $notificacaoPosProducao = notificarPosProducao($db, (string) $nrPedidoDoBanco);
+                }
+
                 echo json_encode([
                     'success' => true,
                     'idReal' => $idRealRetorno,
                     'statusGerado' => $novoStatus,
                     'pedidoReal' => $nrPedidoDoBanco,
-                    'equipamentoReal' => $nomeEquipamentoDoBanco
+                    'equipamentoReal' => $nomeEquipamentoDoBanco,
+                    'posProducao' => $notificacaoPosProducao
                 ]);
                 exit;
             }

@@ -26,6 +26,13 @@ if (!isset($_SESSION['criado_em'])) {
     exit();
 }
 
+if (!isset($_SESSION['ultima_regeneracao'])) {
+     $_SESSION['ultima_regeneracao'] = time();
+} else if (time() - $_SESSION['ultima_regeneracao'] > 1800) {
+    session_regenerate_id(true);
+    $_SESSION['ultima_regeneracao'] = time();
+}
+
 /**
  * @param array 
  */

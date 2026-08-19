@@ -459,6 +459,72 @@ require_once '../Function/trava.php';
         </div>
     </div>
 
+    <div id="modalMensagem" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); align-items:center; justify-content:center; z-index:1100;">
+        <div style="background:#fff; padding:25px; border-radius:12px; max-width:420px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.2); text-align:center;">
+            <div id="modalMensagemIcone" style="width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 15px auto; font-size:26px;"></div>
+            <h3 id="modalMensagemTitulo" style="margin-top:0; color:#0f172a;"></h3>
+            <p id="modalMensagemTexto" style="color:#64748b; font-size:0.9rem; line-height:1.5;"></p>
+            <button type="button" id="modalMensagemBotao" onclick="fecharModalMensagem()" style="border:none; color:#fff; padding:10px 24px; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; margin-top:10px;">Entendi</button>
+        </div>
+    </div>
+
+    <div id="modalConfirmacao" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); align-items:center; justify-content:center; z-index:1100;">
+        <div style="background:#fff; padding:25px; border-radius:12px; max-width:420px; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.2); text-align:center;">
+            <h3 id="modalConfirmacaoTitulo" style="margin-top:0; color:#0f172a;">Confirmar ação</h3>
+            <p id="modalConfirmacaoTexto" style="color:#64748b; font-size:0.9rem; line-height:1.5;"></p>
+            <div style="display:flex; justify-content:center; gap:10px; margin-top:15px;">
+                <button type="button" onclick="_resolverModalConfirmacao(false)" style="background:#e2e8f0; color:#334155; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.8rem;">Cancelar</button>
+                <button type="button" onclick="_resolverModalConfirmacao(true)" style="background:#10b981; color:#fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.8rem;">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal de mensagem (substitui alert()) — tipo 'erro' ou 'sucesso'.
+        function mostrarModalMensagem(mensagem, opcoes) {
+            opcoes = opcoes || {};
+            const tipo = opcoes.tipo || 'erro';
+            const ehErro = tipo === 'erro';
+
+            const icone = document.getElementById('modalMensagemIcone');
+            const titulo = document.getElementById('modalMensagemTitulo');
+            const texto = document.getElementById('modalMensagemTexto');
+            const botao = document.getElementById('modalMensagemBotao');
+
+            icone.textContent = ehErro ? '⚠️' : '✅';
+            icone.style.background = ehErro ? '#fee2e2' : '#d1fae5';
+            titulo.textContent = opcoes.titulo || (ehErro ? 'Não foi possível concluir' : 'Sucesso');
+            texto.textContent = mensagem || (ehErro ? 'Ocorreu um erro inesperado. Tente novamente.' : '');
+            botao.style.background = ehErro ? '#dc2626' : '#10b981';
+
+            document.getElementById('modalMensagem').style.display = 'flex';
+        }
+
+        function fecharModalMensagem() {
+            document.getElementById('modalMensagem').style.display = 'none';
+        }
+
+        // Modal de confirmação (substitui confirm()) — uso: await mostrarModalConfirmacao('Enviar pedido?')
+        let _resolverConfirmacaoAtual = null;
+
+        function mostrarModalConfirmacao(mensagem, titulo) {
+            document.getElementById('modalConfirmacaoTitulo').textContent = titulo || 'Confirmar ação';
+            document.getElementById('modalConfirmacaoTexto').textContent = mensagem || '';
+            document.getElementById('modalConfirmacao').style.display = 'flex';
+            return new Promise((resolve) => {
+                _resolverConfirmacaoAtual = resolve;
+            });
+        }
+
+        function _resolverModalConfirmacao(valor) {
+            document.getElementById('modalConfirmacao').style.display = 'none';
+            if (_resolverConfirmacaoAtual) {
+                _resolverConfirmacaoAtual(valor);
+                _resolverConfirmacaoAtual = null;
+            }
+        }
+    </script>
+
     <script>
         const csrfToken = <?= json_encode(gerarTokenCSRF()) ?>;
         let idReprogramarAtual = null;
@@ -477,7 +543,7 @@ require_once '../Function/trava.php';
         function confirmarReprogramacao() {
             const motivo = document.getElementById('inputMotivoReprogramar').value.trim();
             if (!motivo) {
-                alert('Informe o motivo da reprogramação.');
+                mostrarModalMensagem('Informe o motivo da reprogramação.', { titulo: 'Campo obrigatório' });
                 return;
             }
             if (!idReprogramarAtual) return;
@@ -523,12 +589,12 @@ require_once '../Function/trava.php';
                             }
                         }, 600);
                     } else {
-                        alert('Erro ao reprogramar pedido: ' + data.error);
                         fecharModalReprogramar();
+                        mostrarModalMensagem('Erro ao reprogramar pedido: ' + data.error);
                     }
                 })
                 .catch(err => {
-                    alert('Erro na comunicação: ' + err.message);
+                    mostrarModalMensagem('Erro na comunicação: ' + err.message);
                 });
         }
 
@@ -577,7 +643,7 @@ require_once '../Function/trava.php';
             const timeObs = document.getElementById(`time-obs-${id}`);
 
             if (!elementoInput) {
-                alert("Erro ao identificar o campo de digitação.");
+                mostrarModalMensagem('Erro ao identificar o campo de digitação.');
                 return;
             }
 
@@ -602,17 +668,18 @@ require_once '../Function/trava.php';
                         if (timeObs) {
                             timeObs.innerHTML = `⏱️ Última alteração salva em: <strong>${agora}</strong>`;
                         }
-                        alert("Observação guardada com sucesso no banco de dados!");
+                        mostrarModalMensagem('Observação guardada com sucesso no banco de dados!', { tipo: 'sucesso', titulo: 'Salvo' });
                         toggleSanfona(id);
                     } else {
-                        alert("Erro ao salvar nota: " + data.error);
+                        mostrarModalMensagem('Erro ao salvar nota: ' + data.error);
                     }
                 })
                 .catch(err => console.error("Erro na comunicação:", err));
         }
 
-        function liberarPedido(id) {
-            if (confirm("Enviar pedido para a Expedição?")) {
+        async function liberarPedido(id) {
+            const confirmado = await mostrarModalConfirmacao('Enviar pedido para a Expedição?');
+            if (confirmado) {
 
                 const dadosEnviar = {
                     id_pedido: id,
@@ -653,7 +720,7 @@ require_once '../Function/trava.php';
                                 }
                             }, 10000);
                         } else {
-                            alert("Erro ao dar baixa no sistema: " + data.error);
+                            mostrarModalMensagem('Erro ao dar baixa no sistema: ' + data.error);
                         }
                     })
                     .catch(err => console.error("Erro na comunicação:", err));
@@ -679,7 +746,11 @@ require_once '../Function/trava.php';
                         const itemSumiu = idsAtuais.some(id => !novosIds.includes(id));
 
                         if (temNovoItem || itemSumiu) {
+                            // A notificação push já é disparada pelo servidor no momento em
+                            // que o pedido entra nesta fila (ver Function/dar_baixa_financeiro.php),
+                            // então aqui só precisamos recarregar a lista.
                             window.location.reload();
+                            return;
                         }
                     }
                 })
@@ -687,6 +758,51 @@ require_once '../Function/trava.php';
         }
 
         setInterval(verificarAtualizacoesEmSegundoPlano, 60000);
+
+            async function registrarWebPush() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            console.warn('Web Push não suportado neste navegador.');
+            return;
+        }
+
+        try {
+            const reg = await navigator.serviceWorker.register('../sw.js');
+            const permission = await Notification.requestPermission();
+            
+            if (permission !== 'granted') {
+                console.log('Permissão para notificações negada.');
+                return;
+            }
+
+            let sub = await reg.pushManager.getSubscription();
+            
+            if (!sub) {
+                const publicKey = "BCAC-rK4x0HiHSXAjjgt_GsuRVk4Gj3nZaiAnLxeYebmWZtZb82pb0QmOrF764zwtOauecHHP7BvsxdjKjvVgTM"; 
+                sub = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(publicKey)
+                });
+            }
+
+            await fetch('../Function/salvar_subscricao.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(sub)
+            });
+
+        } catch (err) {
+            console.error('Erro ao registrar Push:', err);
+        }
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+    }
+
+    document.addEventListener('DOMContentLoaded', registrarWebPush);
     </script>
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>

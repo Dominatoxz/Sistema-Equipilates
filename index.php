@@ -326,13 +326,6 @@ date_default_timezone_set('America/Sao_Paulo');
                 <h3>Armazem Expedição</h3>
             </a>
             <?php endif; ?>
-
-            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_ADMIN_USUARIOS)): ?>
-                <a href="View/cadastro.php" class="card-botao linha-cadastro">
-                    <div class="icon-box">📋</div>
-                    <h3>Novo Usuário</h3>
-                </a>
-            <?php endif; ?>
         </div>
     </div>
 

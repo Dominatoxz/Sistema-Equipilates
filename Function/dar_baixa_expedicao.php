@@ -52,6 +52,25 @@ try {
     $numeroPedidoReal = $dadosPedido['numero_pedido'];
     $prazoProducao = $dadosPedido['prazo_producao'];
 
+    $isOS = (stripos($numeroPedidoReal, 'os') !== false);
+    $tabelaItens = $isOS ? 'itens_os' : 'itens_producao';
+
+    $sqlPendentes = "SELECT COUNT(*) FROM $tabelaItens
+                      WHERE numero_pedido = ?
+                        AND equipamento NOT LIKE 'Emb.%'
+                        AND status != 'Armazenado'";
+    $stmtPendentes = $db->prepare($sqlPendentes);
+    $stmtPendentes->execute([$numeroPedidoReal]);
+    $totalNaoArmazenados = (int) $stmtPendentes->fetchColumn();
+
+    if ($totalNaoArmazenados > 0) {
+        echo json_encode([
+            'success' => false,
+            'error' => "Não é possível finalizar: ainda há {$totalNaoArmazenados} item(ns) deste pedido que não foram conferidos/armazenados no depósito."
+        ]);
+        exit;
+    }
+
     date_default_timezone_set('America/Sao_Paulo');
     $dataConclusaoPHP = date('Y-m-d H:i:s');
 

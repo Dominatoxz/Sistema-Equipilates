@@ -1,6 +1,8 @@
 <?php
 require_once '../config/Database.php';
 require_once '../Model/Sistema.php';
+require_once '../Function/disparar_notificacao.php';
+require_once '../Function/cargos.php';
 require_once 'trava.php';
 
 header('Content-Type: application/json');
@@ -42,13 +44,26 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
-    $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Expedição', data_conclusao = :data_conclusao WHERE id = :id");
+    $stmtBusca = $db->prepare("SELECT numero_pedido FROM pedidos_prontos WHERE id = ?");
+    $stmtBusca->execute([$idPedido]);
+    $numeroPedido = $stmtBusca->fetchColumn();
+
+    $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Expedicao', data_conclusao = :data_conclusao WHERE id = :id");
     $resultado = $stmt->execute([
         'data_conclusao' => $dataConclusaoPHP,
         'id' => $idPedido
     ]);
 
     if ($resultado) {
+        if ($numeroPedido) {
+            enviarNotificacaoPorSetor(
+                CARGOS_EXPEDICAO_ACAO,
+                "Novo Pedido na Expedição! 🚚",
+                "O pedido {$numeroPedido} chegou na expedição.",
+                "../View/tabela_expedicao.php"
+            );
+        }
+
         echo json_encode(['success' => true]);
     } else {
         echo json_encode(['success' => false, 'error' => 'O banco não sofreu alterações. O ID existe?']);

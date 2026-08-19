@@ -1,6 +1,8 @@
 <?php
 require_once '../config/Database.php';
 require_once '../Model/Sistema.php';
+require_once '../Function/disparar_notificacao.php';
+require_once '../Function/cargos.php';
 require_once 'trava.php';
 
 header('Content-Type: application/json');
@@ -42,6 +44,10 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
+    $stmtBusca = $db->prepare("SELECT numero_pedido FROM pedidos_prontos WHERE id = ?");
+    $stmtBusca->execute([$idPedido]);
+    $numeroPedido = $stmtBusca->fetchColumn();
+
     $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Pós-venda', data_conclusao = :data_conclusao WHERE id = :id");
     $resultado = $stmt->execute([
         'data_conclusao' => $dataConclusaoPHP,
@@ -49,6 +55,18 @@ try {
     ]);
 
     if ($resultado) {
+        // Pedido saiu do Financeiro e entrou na fila do Pós-venda agora —
+        // notifica o Pós-venda diretamente daqui, no momento da transição
+        // real, em vez de depender do polling da tela deles perceber.
+        if ($numeroPedido) {
+            enviarNotificacaoPorSetor(
+                CARGOS_POSVENDA_ACAO,
+                "Novo Pedido no Pós-Venda! 📦",
+                "O pedido {$numeroPedido} foi enviado para o setor de Pós-Venda.",
+                "../View/tabela_posVenda.php"
+            );
+        }
+
         echo json_encode(['success' => true]);
     } else {
         echo json_encode(['success' => false, 'error' => 'O banco não sofreu alterações. O ID existe?']);
@@ -59,5 +77,4 @@ try {
         'error' => 'Erro no MySQL: ' . $e->getMessage() . ' | Linha: ' . $e->getLine()
     ]);
 }
-exit();
 exit();
