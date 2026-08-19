@@ -63,7 +63,17 @@ if ($codigoLido) {
                     exit;
                 }
             } else {
+                $nomeEquipamentoAtual = trim($item['equipamento'] ?? '');
+
                 if ($statusAtual === 'Produzido') {
+                    $novoStatus = 'Embalado';
+                    $colunaData = 'data_fim';
+                    $podeAtualizar = true;
+                } elseif ($statusAtual === 'Pendente' && $nomeEquipamentoAtual === 'Gaiola Cadilac') {
+                    // Gaiola Cadilac não tem etiqueta física de produção — ela
+                    // entra no sistema já considerada "produzida", então a
+                    // primeira bipagem (etiqueta de embalagem) já leva direto
+                    // pra Embalado, sem passar por Produzido.
                     $novoStatus = 'Embalado';
                     $colunaData = 'data_fim';
                     $podeAtualizar = true;

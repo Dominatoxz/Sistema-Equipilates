@@ -35,9 +35,13 @@ function notificarPosProducao(PDO $db, ?string $pedido): array
         $isOS = (stripos($pedido, 'os') !== false);
         $tabelaItens = $isOS ? 'itens_os' : 'itens_producao';
 
+        // Gaiola Cadilac não conta mais pra fechar o pedido: desde 2026-08 ela
+        // deixou de estar vinculada a um pedido específico e virou contador
+        // agregado de quantidade pendente (ver Sistema::contarGaiolasCadilac*).
         $sql = "SELECT COUNT(*) FROM $tabelaItens
                 WHERE numero_pedido = ?
                   AND equipamento NOT LIKE 'Emb.%'
+                  AND equipamento != 'Gaiola Cadilac'
                   AND status NOT IN ('Embalado', 'Armazenado')";
         $stmt = $db->prepare($sql);
         $stmt->execute([$pedido]);

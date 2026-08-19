@@ -13,6 +13,15 @@ class Sistema
      * precise saber "quais são os itens principais de cada linha" deve usar
      * essas constantes em vez de recriar a lista.
      */
+    /*
+     * Gaiola Cadilac saiu dessa lista em 2026-08: deixou de ser um item
+     * vinculado a um pedido específico (que travava a subida pro Financeiro
+     * até ser embalada) e virou um contador agregado de quantidade pendente
+     * — ver contarGaiolasCadilacPendentesProducao() e
+     * contarGaiolasCadilacPendentesArmazenagem(). Continua sendo bipada
+     * unidade por unidade como qualquer outro item, só não bloqueia mais
+     * nenhum pedido nem aparece com ícone por pedido nas telas.
+     */
     const EQUIPAMENTOS_PRINCIPAIS_CONTEMPORANEO = [
         'Reformer Excellence',
         'Reformer Torre',
@@ -22,7 +31,6 @@ class Sistema
         'Wall Unit',
         'Carrinho Excellence',
         'Carrinho Torre',
-        'Gaiola Cadilac',
     ];
 
     const EQUIPAMENTOS_PRINCIPAIS_CLASSICO = [
@@ -167,6 +175,35 @@ class Sistema
     public function __construct($db)
     {
         $this->conn = $db;
+    }
+
+    /*
+     * Total de Gaiola Cadilac ainda não embaladas (ou seja, faltando
+     * produzir) — número agregado, não vinculado a nenhum pedido específico.
+     * Usado nas telas de produção do Contemporâneo (normal e OS) no lugar do
+     * antigo ícone por pedido.
+     */
+    public function contarGaiolasCadilacPendentesProducao(string $tabelaItens = 'itens_producao'): int
+    {
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM $tabelaItens WHERE equipamento = 'Gaiola Cadilac' AND status NOT IN ('Embalado', 'Armazenado')");
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
+    }
+
+    /*
+     * Total de Gaiola Cadilac já embaladas mas ainda não conferidas/armazenadas
+     * no galpão — soma itens_producao e itens_os porque a tela de Expedição
+     * do Contemporâneo mistura pedidos normais e de OS na mesma listagem.
+     */
+    public function contarGaiolasCadilacPendentesArmazenagem(): int
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT
+                (SELECT COUNT(*) FROM itens_producao WHERE equipamento = 'Gaiola Cadilac' AND status != 'Armazenado') +
+                (SELECT COUNT(*) FROM itens_os WHERE equipamento = 'Gaiola Cadilac' AND status != 'Armazenado') AS total"
+        );
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
     }
 
     //função de mostrar a tabela com todos os seus dados

@@ -391,11 +391,20 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <input type="date" name="filtro_data_fim" id="filtro_data_fim" value="<?= htmlspecialchars($filtro_data_fim) ?>">
             </div>
 
+            <?php
+            // Gaiola Cadilac não tem etiqueta de produção física — se o
+            // filtro de item já está buscando "gaiola", nem faz sentido
+            // oferecer a opção "Apenas PRODUÇÃO".
+            $filtroEhGaiola = (stripos($filtro_item, 'gaiola') !== false);
+            if ($filtroEhGaiola && $filtro_tipo_eti === 'producao') {
+                $filtro_tipo_eti = 'todos';
+            }
+            ?>
             <div class="filter-group">
                 <label for="filtro_tipo_eti">Tipo de Etiqueta:</label>
                 <select name="filtro_tipo_eti" id="filtro_tipo_eti">
                     <option value="todos" <?= $filtro_tipo_eti === 'todos' ? 'selected' : '' ?>>Mostrar Ambas</option>
-                    <option value="producao" <?= $filtro_tipo_eti === 'producao' ? 'selected' : '' ?>>Apenas PRODUÇÃO</option>
+                    <option value="producao" data-oculta-para-gaiola="1" <?= $filtroEhGaiola ? 'style="display:none;" disabled' : '' ?> <?= $filtro_tipo_eti === 'producao' ? 'selected' : '' ?>>Apenas PRODUÇÃO</option>
                     <option value="embalagem" <?= $filtro_tipo_eti === 'embalagem' ? 'selected' : '' ?>>Apenas EMBALAGEM</option>
                 </select>
             </div>
@@ -434,7 +443,10 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 $corExibir = (!empty($item['cor']) && $item['cor'] !== 'COD. COR') ? htmlspecialchars($item['cor']) : 'NÃO INFORMADA';
 
                 $nomeEquipamento = trim($item['equipamento']);
-                $apenasEmbalagem = (strcasecmp($nomeEquipamento, 'Carrinho') === 0 || strcasecmp($nomeEquipamento, 'Gaiola') === 0);
+                // Gaiola Cadilac não tem etiqueta de produção física — ela já
+                // entra "produzida" no sistema (ver atualizar_etapa.php), só
+                // imprime a etiqueta de embalagem.
+                $apenasEmbalagem = (strcasecmp($nomeEquipamento, 'Carrinho') === 0 || strcasecmp($nomeEquipamento, 'Gaiola') === 0 || strcasecmp($nomeEquipamento, 'Gaiola Cadilac') === 0);
 
                 if (($filtro_tipo_eti === 'todos' || $filtro_tipo_eti === 'producao') && !$apenasEmbalagem):
         ?>
@@ -492,6 +504,30 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <script>
         const csrfToken = <?= json_encode(gerarTokenCSRF()) ?>;
+
+        // Gaiola Cadilac não tem etiqueta de produção física: enquanto o
+        // usuário digita "gaiola" no filtro de item, some com a opção
+        // "Apenas PRODUÇÃO" e, se ela estava selecionada, volta pra "Mostrar
+        // Ambas" — sem precisar recarregar a página.
+        (function() {
+            const inputItem = document.getElementById('filtro_item');
+            const selectTipo = document.getElementById('filtro_tipo_eti');
+            const opcaoProducao = selectTipo ? selectTipo.querySelector('option[data-oculta-para-gaiola]') : null;
+
+            if (!inputItem || !selectTipo || !opcaoProducao) return;
+
+            function atualizarOpcaoProducao() {
+                const ehGaiola = inputItem.value.toLowerCase().includes('gaiola');
+                opcaoProducao.disabled = ehGaiola;
+                opcaoProducao.style.display = ehGaiola ? 'none' : '';
+                if (ehGaiola && selectTipo.value === 'producao') {
+                    selectTipo.value = 'todos';
+                }
+            }
+
+            inputItem.addEventListener('input', atualizarOpcaoProducao);
+            atualizarOpcaoProducao();
+        })();
 
         function coletarItens() {
             return Array.from(document.querySelectorAll('.etiqueta')).map(function(el) {

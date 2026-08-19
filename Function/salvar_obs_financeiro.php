@@ -28,19 +28,10 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
-    $stmtNumero = $db->prepare("SELECT numero_pedido FROM pedidos_prontos WHERE id = :id_pedido");
-    $stmtNumero->bindParam(':id_pedido', $id_pedido);
-    $stmtNumero->execute();
-    $numero_pedido = $stmtNumero->fetchColumn();
-
-    if (!$numero_pedido) {
-        echo json_encode(['success' => false, 'error' => 'Pedido não encontrado para o id informado.']);
-        exit;
-    }
-
-    $stmtIns = $db->prepare("INSERT INTO observacoes_financeiro (id_pedido, numero_pedido, observacao) VALUES (:id_pedido, :numero_pedido, :observacao)");
+    // Confirmado em 2026-08: nenhuma das 3 tabelas observacoes_* tem
+    // coluna numero_pedido. Não assumir isso de novo sem checar cada uma.
+    $stmtIns = $db->prepare("INSERT INTO observacoes_financeiro (id_pedido, observacao) VALUES (:id_pedido, :observacao)");
     $stmtIns->bindParam(':id_pedido', $id_pedido);
-    $stmtIns->bindParam(':numero_pedido', $numero_pedido);
     $stmtIns->bindParam(':observacao', $observacao);
     $stmtIns->execute();
 

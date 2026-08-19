@@ -77,6 +77,17 @@ require_once '../../Function/trava.php';
             font-size: 16px;
         }
 
+        .linha-resumo-gaiola td {
+            position: -webkit-sticky;
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+            background-color: #ffffff;
+            text-align: left;
+            font-size: 18px;
+            box-shadow: inset 0 2px 0 #1c1c1c;
+        }
+
         .column-data {
             font-weight: bold;
             font-size: 20px;
@@ -217,7 +228,6 @@ require_once '../../Function/trava.php';
                 <th>Torre</th>
                 <th>Carrinho (Tor)</th>
                 <th>Cadilac</th>
-                <th>Gaiola</th>
                 <th>Step</th>
                 <th>Barrel</th>
                 <th>Wall Unit</th>
@@ -232,11 +242,15 @@ require_once '../../Function/trava.php';
                 'Reformer Torre',
                 'Carrinho Torre',
                 'Cadilac Excelence',
-                'Gaiola Cadilac',
                 'Step Chair Excelence',
                 'Lader Barrel Excelence',
                 'Wall Unit',
             ];
+
+            // Gaiola Cadilac não é mais um item por pedido: é um total
+            // agregado de quantas ainda faltam produzir (ver
+            // Sistema::contarGaiolasCadilacPendentesProducao).
+            $totalGaiolasPendentes = $sistema->contarGaiolasCadilacPendentesProducao('itens_os');
 
             $lista_acessorios = [
                 'Caixa Mini',
@@ -256,7 +270,7 @@ require_once '../../Function/trava.php';
 
             <?php if (empty($pedidos)): ?>
                 <tr>
-                    <td colspan="12" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
+                    <td colspan="11" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
                 </tr>
             <?php else: ?>
 
@@ -354,6 +368,9 @@ require_once '../../Function/trava.php';
                     </tr>
                 <?php endforeach; ?>
             <?php endif; ?>
+            <tr class="linha-resumo-gaiola">
+                <td colspan="11">Total de Gaiola Cadilac pendentes de produção: <strong><?= $totalGaiolasPendentes ?></strong></td>
+            </tr>
         </tbody>
     </table>
 
