@@ -347,6 +347,14 @@ require_once '../../Function/trava.php';
                 <p>Fila da produção dos pedidos</p>
             </a>
 
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_RASTREAMENTO)): ?>
+                <a href="../rastreamento_pedido.php" class="card-botao pos-venda">
+                    <div class="icon-box">🧭</div>
+                    <h3>Rastreamento</h3>
+                    <p>Onde o pedido está em cada fila do sistema</p>
+                </a>
+            <?php endif; ?>
+
             <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_FINANCEIRO_NAV)): ?>
                 <a href="../tabela_financeiro.php" class="card-botao pos-venda">
                     <div class="icon-box">💰</div>

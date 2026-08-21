@@ -275,6 +275,74 @@ require_once '../Function/trava.php';
             padding: 20px 0;
         }
 
+        .pedido-numero {
+            cursor: default;
+        }
+
+        .linha-itens-pedido {
+            background-color: #fdfefe;
+            display: none;
+        }
+
+        .linha-itens-pedido td {
+            text-align: left;
+            padding: 0 30px;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+            background: #fafbfe;
+        }
+
+        .wrapper-sanfona-itens {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s ease;
+            padding: 0;
+        }
+
+        .linha-itens-pedido.aberta .wrapper-sanfona-itens {
+            max-height: 260px;
+            overflow-y: auto;
+            padding: 16px 0;
+        }
+
+        .lista-itens-pedido {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .item-status-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid var(--border-tech);
+            font-size: 0.85rem;
+        }
+
+        .item-status-card .nome-item {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .item-status-card .badge-status-item {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .lista-itens-pedido .aviso-carregando,
+        .lista-itens-pedido .aviso-vazio {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+
         .container-obs {
             display: flex;
             gap: 15px;
@@ -408,9 +476,18 @@ require_once '../Function/trava.php';
                         'Clássico' => 'badge-linha-classico',
                         default => 'badge-linha-indefinido',
                     };
+                    $origemItens = (stripos($p['numero_pedido'], 'os') !== false) ? 'OS' : 'PRODUCAO';
                 ?>
                     <tr id="Linha-<?= $p['id'] ?>" class="linha-pedido">
-                        <td style="font-weight: bold; color: #2980b9; font-size: 18px;"><?= htmlspecialchars($p['numero_pedido']) ?></td>
+                        <td style="font-weight: bold; color: #2980b9; font-size: 18px;">
+                            <span class="pedido-numero"
+                                data-pedido="<?= htmlspecialchars($p['numero_pedido']) ?>"
+                                data-origem="<?= $origemItens ?>"
+                                onmouseenter="abrirSanfonaItens(<?= $p['id'] ?>, this)"
+                                onmouseleave="agendarFechamentoSanfonaItens(<?= $p['id'] ?>)">
+                                <?= htmlspecialchars($p['numero_pedido']) ?>
+                            </span>
+                        </td>
                         <td>
                             <span class="<?= $badgeLinhaClasse ?>"><?= htmlspecialchars($linhaPedido) ?></span>
                         </td>
@@ -425,6 +502,15 @@ require_once '../Function/trava.php';
                         <?php endif; ?>
                         <td>
                             <button class="btn-mais" onclick="toggleSanfona(<?= $p['id'] ?>)">...</button>
+                        </td>
+                    </tr>
+                    <tr id="ItensRow-<?= $p['id'] ?>" class="linha-itens-pedido">
+                        <td colspan="7">
+                            <div class="wrapper-sanfona-itens">
+                                <div class="lista-itens-pedido" id="lista-itens-<?= $p['id'] ?>">
+                                    <span class="aviso-carregando">Passe o mouse no número do pedido para carregar os itens...</span>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                     <tr id="ObsRow-<?= $p['id'] ?>" class="linha-observacao">
@@ -507,8 +593,12 @@ require_once '../Function/trava.php';
         // Mantido pelo nome antigo usado nesta tela (dar_baixa_expedicao.php
         // já chamava mostrarModalErro) — repassa pro modal genérico.
         function mostrarModalErro(mensagem, titulo) {
-            mostrarModalMensagem(mensagem, { titulo: titulo, tipo: 'erro' });
+            mostrarModalMensagem(mensagem, {
+                titulo: titulo,
+                tipo: 'erro'
+            });
         }
+
         function fecharModalErro() {
             fecharModalMensagem();
         }
@@ -552,7 +642,9 @@ require_once '../Function/trava.php';
         function confirmarReprogramacao() {
             const motivo = document.getElementById('inputMotivoReprogramar').value.trim();
             if (!motivo) {
-                mostrarModalMensagem('Informe o motivo da reprogramação.', { titulo: 'Campo obrigatório' });
+                mostrarModalMensagem('Informe o motivo da reprogramação.', {
+                    titulo: 'Campo obrigatório'
+                });
                 return;
             }
             if (!idReprogramarAtual) return;
@@ -578,6 +670,7 @@ require_once '../Function/trava.php';
 
                         const linha = document.getElementById(`Linha-${id}`);
                         const linhaObs = document.getElementById(`ObsRow-${id}`);
+                        const linhaItens = document.getElementById(`ItensRow-${id}`);
 
                         if (linha) {
                             linha.style.transition = "all 0.5s ease";
@@ -588,12 +681,17 @@ require_once '../Function/trava.php';
                             linhaObs.style.transition = "all 0.5s ease";
                             linhaObs.style.opacity = "0";
                         }
+                        if (linhaItens) {
+                            linhaItens.style.transition = "all 0.5s ease";
+                            linhaItens.style.opacity = "0";
+                        }
 
                         setTimeout(() => {
                             if (linha) linha.remove();
                             if (linhaObs) linhaObs.remove();
+                            if (linhaItens) linhaItens.remove();
 
-                            if (document.querySelectorAll('tbody tr:not(.linha-observacao)').length === 0) {
+                            if (document.querySelectorAll('tbody tr:not(.linha-observacao):not(.linha-itens-pedido)').length === 0) {
                                 window.location.reload();
                             }
                         }, 600);
@@ -614,6 +712,7 @@ require_once '../Function/trava.php';
             linhasPedido.forEach(linha => {
                 const idPedido = linha.id.replace('Linha-', '');
                 const linhaObs = document.getElementById(`ObsRow-${idPedido}`);
+                const linhaItens = document.getElementById(`ItensRow-${idPedido}`);
 
                 const textoPedido = linha.getElementsByTagName('td')[0].textContent.toLowerCase();
 
@@ -627,8 +726,78 @@ require_once '../Function/trava.php';
                     if (linhaObs) {
                         linhaObs.style.display = "none";
                     }
+                    if (linhaItens) {
+                        linhaItens.classList.remove('aberta');
+                        linhaItens.style.display = "none";
+                    }
                 }
             });
+        });
+
+        const temposEsperaFecharItens = {};
+        const pedidosItensCarregados = new Set();
+
+        function abrirSanfonaItens(id, spanPedido) {
+            clearTimeout(temposEsperaFecharItens[id]);
+
+            const linhaItens = document.getElementById(`ItensRow-${id}`);
+            if (!linhaItens) return;
+
+            linhaItens.style.display = "table-row";
+            requestAnimationFrame(() => linhaItens.classList.add('aberta'));
+
+            if (pedidosItensCarregados.has(id)) return;
+            pedidosItensCarregados.add(id);
+
+            const pedido = spanPedido.getAttribute('data-pedido');
+            const origem = spanPedido.getAttribute('data-origem');
+            const container = document.getElementById(`lista-itens-${id}`);
+
+            fetch(`../Function/buscar_itens_popup.php?pedido=${encodeURIComponent(pedido)}&origem=${encodeURIComponent(origem)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success || data.itens.length === 0) {
+                        container.innerHTML = '<span class="aviso-vazio">Nenhum item encontrado para este pedido.</span>';
+                        pedidosItensCarregados.delete(id);
+                        return;
+                    }
+
+                    container.innerHTML = data.itens.map(item => {
+                        let corStatus = '#ffeeba; color: #856404;';
+                        if (item.status === 'Em produção' || item.status === 'Produzindo') corStatus = '#b8daff; color: #004085;';
+                        if (item.status === 'Produzido') corStatus = '#b8daff; color: #004085;';
+                        if (item.status === 'Embalado') corStatus = '#c3e6cb; color: #155724;';
+                        if (item.status === 'Armazenado') corStatus = '#f0b8ff; color: #3a0242;';
+
+                        return `<div class="item-status-card">
+                            <span class="nome-item">${item.nome}</span>
+                            <span class="badge-status-item" style="background:${corStatus}">${item.status}</span>
+                        </div>`;
+                    }).join('');
+                })
+                .catch(err => {
+                    console.error('Erro ao buscar itens do pedido:', err);
+                    container.innerHTML = '<span class="aviso-vazio">Erro ao carregar itens.</span>';
+                    pedidosItensCarregados.delete(id);
+                });
+        }
+
+        function agendarFechamentoSanfonaItens(id) {
+            temposEsperaFecharItens[id] = setTimeout(() => {
+                const linhaItens = document.getElementById(`ItensRow-${id}`);
+                if (!linhaItens) return;
+                linhaItens.classList.remove('aberta');
+                setTimeout(() => {
+                    linhaItens.style.display = "none";
+                }, 350);
+            }, 200);
+        }
+
+
+        document.querySelectorAll('tr.linha-itens-pedido').forEach(tr => {
+            const id = tr.id.replace('ItensRow-', '');
+            tr.addEventListener('mouseenter', () => clearTimeout(temposEsperaFecharItens[id]));
+            tr.addEventListener('mouseleave', () => agendarFechamentoSanfonaItens(id));
         });
 
         function toggleSanfona(id) {
@@ -678,7 +847,10 @@ require_once '../Function/trava.php';
                         if (timeObs) {
                             timeObs.innerHTML = `⏱️ Última alteração salva em: <strong>${agora}</strong>`;
                         }
-                        mostrarModalMensagem('Observação guardada com sucesso no banco de dados!', { tipo: 'sucesso', titulo: 'Salvo' });
+                        mostrarModalMensagem('Observação guardada com sucesso no banco de dados!', {
+                            tipo: 'sucesso',
+                            titulo: 'Salvo'
+                        });
                         toggleSanfona(id);
                     } else {
                         mostrarModalMensagem('Erro ao salvar nota: ' + data.error);
@@ -707,6 +879,7 @@ require_once '../Function/trava.php';
                         if (data.success) {
                             const linha = document.getElementById(`Linha-${id}`);
                             const linhaObs = document.getElementById(`ObsRow-${id}`);
+                            const linhaItens = document.getElementById(`ItensRow-${id}`);
 
                             localStorage.removeItem(`obs_pedido_${id}`);
 
@@ -719,14 +892,19 @@ require_once '../Function/trava.php';
                                 linhaObs.style.transition = "all 0.5s ease";
                                 linhaObs.style.opacity = "0";
                             }
+                            if (linhaItens) {
+                                linhaItens.style.transition = "all 0.5s ease";
+                                linhaItens.style.opacity = "0";
+                            }
 
                             setTimeout(() => {
                                 if (linha) linha.remove();
                                 if (linhaObs) linhaObs.remove();
+                                if (linhaItens) linhaItens.remove();
 
                                 idsAtuais = idsAtuais.filter(itemId => itemId !== id.toString());
 
-                                if (document.querySelectorAll('tbody tr:not(.linha-observacao)').length === 0) {
+                                if (document.querySelectorAll('tbody tr:not(.linha-observacao):not(.linha-itens-pedido)').length === 0) {
                                     window.location.reload();
                                 }
                             }, 500);
@@ -757,9 +935,9 @@ require_once '../Function/trava.php';
                         const itemSumiu = idsAtuais.some(id => !novosIds.includes(id));
 
                         if (temNovoItem || itemSumiu) {
-                        window.location.reload();
-                        return;
-                    }
+                            window.location.reload();
+                            return;
+                        }
                     }
                 })
                 .catch(err => console.error("Erro na sincronização rápida:", err));
@@ -772,44 +950,46 @@ require_once '../Function/trava.php';
                 return;
             }
 
-    try {
-        const reg = await navigator.serviceWorker.register('../sw.js');
-        const permission = await Notification.requestPermission();
-        
-        if (permission !== 'granted') {
-            console.log('Permissão para notificações negada.');
-            return;
+            try {
+                const reg = await navigator.serviceWorker.register('../sw.js');
+                const permission = await Notification.requestPermission();
+
+                if (permission !== 'granted') {
+                    console.log('Permissão para notificações negada.');
+                    return;
+                }
+
+                let sub = await reg.pushManager.getSubscription();
+
+                if (!sub) {
+                    const publicKey = "BCAC-rK4x0HiHSXAjjgt_GsuRVk4Gj3nZaiAnLxeYebmWZtZb82pb0QmOrF764zwtOauecHHP7BvsxdjKjvVgTM";
+                    sub = await reg.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(publicKey)
+                    });
+                }
+
+                await fetch('../Function/salvar_subscricao.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(sub)
+                });
+
+            } catch (err) {
+                console.error('Erro ao registrar Push:', err);
+            }
         }
 
-        let sub = await reg.pushManager.getSubscription();
-        
-        if (!sub) {
-            const publicKey = "BCAC-rK4x0HiHSXAjjgt_GsuRVk4Gj3nZaiAnLxeYebmWZtZb82pb0QmOrF764zwtOauecHHP7BvsxdjKjvVgTM"; 
-            sub = await reg.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(publicKey)
-            });
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
         }
 
-        await fetch('../Function/salvar_subscricao.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(sub)
-        });
-
-    } catch (err) {
-        console.error('Erro ao registrar Push:', err);
-    }
-}
-
-function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
-}
-
-document.addEventListener('DOMContentLoaded', registrarWebPush);
+        document.addEventListener('DOMContentLoaded', registrarWebPush);
     </script>
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>

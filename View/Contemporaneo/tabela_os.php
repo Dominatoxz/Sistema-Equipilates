@@ -248,9 +248,9 @@ require_once '../../Function/trava.php';
             ];
 
             // Gaiola Cadilac não é mais um item por pedido: é um total
-            // agregado de quantas ainda faltam produzir (ver
-            // Sistema::contarGaiolasCadilacPendentesProducao).
-            $totalGaiolasPendentes = $sistema->contarGaiolasCadilacPendentesProducao('itens_os');
+            // agregado (planejado da semana x real já embalado), ver
+            // Sistema::contarGaiolasCadilacProducao.
+            $gaiolasProducao = $sistema->contarGaiolasCadilacProducao('itens_os');
 
             $lista_acessorios = [
                 'Caixa Mini',
@@ -369,7 +369,7 @@ require_once '../../Function/trava.php';
                 <?php endforeach; ?>
             <?php endif; ?>
             <tr class="linha-resumo-gaiola">
-                <td colspan="11">Total de Gaiola Cadilac pendentes de produção: <strong><?= $totalGaiolasPendentes ?></strong></td>
+                <td colspan="11">Gaiola Cadilac da semana — Planejado: <strong><?= $gaiolasProducao['planejado'] ?></strong> &nbsp;|&nbsp; Real: <strong><?= $gaiolasProducao['real'] ?></strong></td>
             </tr>
         </tbody>
     </table>

@@ -479,7 +479,6 @@ require_once '../Function/trava.php';
     </div>
 
     <script>
-        // Modal de mensagem (substitui alert()) — tipo 'erro' ou 'sucesso'.
         function mostrarModalMensagem(mensagem, opcoes) {
             opcoes = opcoes || {};
             const tipo = opcoes.tipo || 'erro';
@@ -503,7 +502,6 @@ require_once '../Function/trava.php';
             document.getElementById('modalMensagem').style.display = 'none';
         }
 
-        // Modal de confirmação (substitui confirm()) — uso: await mostrarModalConfirmacao('Enviar pedido?')
         let _resolverConfirmacaoAtual = null;
 
         function mostrarModalConfirmacao(mensagem, titulo) {
@@ -744,9 +742,7 @@ require_once '../Function/trava.php';
                         const itemSumiu = idsAtuais.some(id => !novosIds.includes(id));
 
                         if (temNovoItem || itemSumiu) {
-                            // A notificação push já é disparada pelo servidor no momento em
-                            // que o pedido entra nesta fila (ver Function/notificar_pos_producao.php),
-                            // então aqui só precisamos recarregar a lista.
+ 
                             window.location.reload();
                             return;
                         }

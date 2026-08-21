@@ -18,3 +18,5 @@ const CARGOS_HISTORICO_IMPRESSOES = ['Desenvolvedor', 'Diretor', 'PCP'];
 const CARGOS_PEDIDOS_REPROGRAMADOS = ['PCP', 'Desenvolvedor', 'Diretor'];
 
 const CARGOS_ARMAZEM = ['Expedicao', 'Desenvolvedor', 'Diretor'];
+
+const CARGOS_RASTREAMENTO = ['PCP', 'Diretor', 'CEO', 'Desenvolvedor', 'Financeiro', 'Pos-venda', 'Expedicao'];

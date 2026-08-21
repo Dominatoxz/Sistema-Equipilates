@@ -6,6 +6,19 @@ class Sistema
     private $conn;
 
     /*
+     * Corte de data pras telas de bipagem da Expedição do Contemporâneo
+     * (produção e acessórios): pedidos com prazo anterior a essa data não
+     * aparecem mais, ponto final. Existe porque um backlog antigo de itens
+     * presos em "Embalado" sem nunca terem sido conferidos no armazém
+     * (herança do modelo antigo da Gaiola, que travava pedido pra sempre —
+     * ver contarGaiolasCadilacPendentes*) inundou essas telas em 2026-08. O
+     * backlog anterior a essa data foi fechado manualmente com um UPDATE
+     * direto no banco; esse corte evita que lixo antigo semelhante volte a
+     * aparecer.
+     */
+    const CORTE_EXPEDICAO_CONTEMPORANEO = '2026-08-04';
+
+    /*
      * Listas mestras dos equipamentos "principais" (não-acessório) de cada
      * linha. Ficam aqui, num só lugar, porque já causaram bugs reais quando
      * reescritas à mão em vários arquivos (ex: a Gaiola Cadilac que sumia da
@@ -16,11 +29,11 @@ class Sistema
     /*
      * Gaiola Cadilac saiu dessa lista em 2026-08: deixou de ser um item
      * vinculado a um pedido específico (que travava a subida pro Financeiro
-     * até ser embalada) e virou um contador agregado de quantidade pendente
-     * — ver contarGaiolasCadilacPendentesProducao() e
-     * contarGaiolasCadilacPendentesArmazenagem(). Continua sendo bipada
-     * unidade por unidade como qualquer outro item, só não bloqueia mais
-     * nenhum pedido nem aparece com ícone por pedido nas telas.
+     * até ser embalada) e virou um contador agregado Planejado x Real — ver
+     * contarGaiolasCadilacProducao() e contarGaiolasCadilacPendentesArmazenagem().
+     * Continua sendo bipada unidade por unidade como qualquer outro item, só
+     * não bloqueia mais nenhum pedido nem aparece com ícone por pedido nas
+     * telas.
      */
     const EQUIPAMENTOS_PRINCIPAIS_CONTEMPORANEO = [
         'Reformer Excellence',
@@ -74,8 +87,6 @@ class Sistema
 
     const ACESSORIOS_CLASSICO = [
         'CAIXA DO REFORMER CLÁSSICA',
-        'SPINE CORRECTOR',
-        'SMALL BARREL',
         'SUPORTE SPINE CORRECTOR',
         'MINI EXTENSÃO MOVE FLOW',
         'PLATAFORMA BARREL CLÁSSICO',
@@ -92,7 +103,6 @@ class Sistema
         'TRAV. CABEC. 40 mm',
         'CAPA PROT. BARREL CLÁSS.',
         'SHEEPSKIN COVER',
-        'BASTÃO ALUMÍNIO 1,5 M',
         'PUXADOR DE ALUMINIO',
         'ANEL DE PILATES ARCHIVE AÇO',
         'MAGIC SQUARE',
@@ -104,7 +114,6 @@ class Sistema
         'TOE EXERCISER',
         'AIR PLANE BOARD',
         'FINGER EXERCISE',
-        'PUSH UP DEVICE (PAR)',
         'MINI BARREL',
         'MINI SPINE',
     ];
@@ -176,18 +185,27 @@ class Sistema
     {
         $this->conn = $db;
     }
-
     /*
-     * Total de Gaiola Cadilac ainda não embaladas (ou seja, faltando
-     * produzir) — número agregado, não vinculado a nenhum pedido específico.
-     * Usado nas telas de produção do Contemporâneo (normal e OS) no lugar do
-     * antigo ícone por pedido.
+     * Planejado x Real de Gaiola Cadilac pra semana, nas telas de produção do
+     * Contemporâneo (normal e OS) — número agregado, não vinculado a nenhum
+     * pedido específico:
+     *   - "planejado" = total de gaiolas cadastradas pra essa tabela (meta da
+     *     semana), fixo — não muda quando alguém bipa.
+     *   - "real" = quantas já foram efetivamente embaladas (bipagem da
+     *     etiqueta de embalagem), começa em 0 e sobe 1 a 1 a cada bipagem.
      */
-    public function contarGaiolasCadilacPendentesProducao(string $tabelaItens = 'itens_producao'): int
+    public function contarGaiolasCadilacProducao(string $tabelaItens = 'itens_producao'): array
     {
-        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM $tabelaItens WHERE equipamento = 'Gaiola Cadilac' AND status NOT IN ('Embalado', 'Armazenado')");
+        $stmt = $this->conn->prepare(
+            "SELECT COUNT(*) AS planejado, SUM(status IN ('Embalado', 'Armazenado')) AS `real`
+             FROM $tabelaItens WHERE equipamento = 'Gaiola Cadilac'"
+        );
         $stmt->execute();
-        return (int) $stmt->fetchColumn();
+        $linha = $stmt->fetch(PDO::FETCH_ASSOC);
+        return [
+            'planejado' => (int) ($linha['planejado'] ?? 0),
+            'real' => (int) ($linha['real'] ?? 0),
+        ];
     }
 
     /*
@@ -274,6 +292,7 @@ class Sistema
                          'Gaiola'
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
                   AND $presenca
+                  AND STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') >= '" . self::CORTE_EXPEDICAO_CONTEMPORANEO . "'
                   AND $condicaoProntoNormal
                   AND $condicaoNaoTudoArmazenadoNormal
 
@@ -290,6 +309,7 @@ class Sistema
                          'Gaiola'
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) LIKE '%os%'
                   AND $presenca
+                  AND STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') >= '" . self::CORTE_EXPEDICAO_CONTEMPORANEO . "'
                   AND $condicaoProntoOs
                   AND $condicaoNaoTudoArmazenadoOs
 
@@ -370,6 +390,7 @@ class Sistema
                         (NULLIF(TRIM(`Caixa da cadeira`), '') IS NOT NULL AND TRIM(`Caixa da cadeira`) != '0') OR
                         (NULLIF(TRIM(`prancha de alongamento`), '') IS NOT NULL AND TRIM(`prancha de alongamento`) != '0')
                     )
+                    AND STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') >= '" . self::CORTE_EXPEDICAO_CONTEMPORANEO . "'
                     AND $condicaoProntoNormal
                     AND $condicaoNaoTudoArmazenadoNormal
 
@@ -398,6 +419,7 @@ class Sistema
                         (NULLIF(TRIM(`Caixa da cadeira`), '') IS NOT NULL AND TRIM(`Caixa da cadeira`) != '0') OR
                         (NULLIF(TRIM(`prancha de alongamento`), '') IS NOT NULL AND TRIM(`prancha de alongamento`) != '0')
                     )
+                    AND STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') >= '" . self::CORTE_EXPEDICAO_CONTEMPORANEO . "'
                     AND $condicaoProntoOs
                     AND $condicaoNaoTudoArmazenadoOs
 
@@ -989,11 +1011,110 @@ class Sistema
     {
         $query = "SELECT id, numero_pedido, prazo_producao, status_posvenda, data_conclusao
                   FROM pedidos_expedidos
-                  WHERE status_posvenda LIKE 'Finalizado' 
+                  WHERE status_posvenda LIKE 'Finalizado'
                   ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function rastrearPedidos(?string $numeroBusca = null): array
+    {
+        $subItens = "
+            SELECT numero_pedido,
+                   MIN(prazo_producao) AS prazo_producao,
+                   COUNT(*) AS total_itens,
+                   SUM(status IN ('Embalado', 'Armazenado')) AS itens_embalados,
+                   SUM(status = 'Armazenado') AS itens_armazenados
+            FROM itens_producao
+            WHERE equipamento NOT LIKE 'Emb.%'
+            GROUP BY numero_pedido
+            UNION ALL
+            SELECT numero_pedido,
+                   MIN(prazo_producao) AS prazo_producao,
+                   COUNT(*) AS total_itens,
+                   SUM(status IN ('Embalado', 'Armazenado')) AS itens_embalados,
+                   SUM(status = 'Armazenado') AS itens_armazenados
+            FROM itens_os
+            WHERE equipamento NOT LIKE 'Emb.%'
+            GROUP BY numero_pedido
+        ";
+
+        $query = "
+            SELECT
+                base.numero_pedido,
+                pp.status_posvenda AS status_pipeline,
+                COALESCE(pp.prazo_producao, prod.prazo_producao) AS prazo_pipeline,
+                pe.status_posvenda AS status_finalizado,
+                prod.total_itens,
+                COALESCE(prod.itens_embalados, 0) AS itens_embalados,
+                COALESCE(prod.itens_armazenados, 0) AS itens_armazenados
+            FROM (
+                SELECT numero_pedido FROM pedidos_prontos
+                UNION
+                SELECT numero_pedido FROM itens_producao
+                UNION
+                SELECT numero_pedido FROM itens_os
+            ) base
+            LEFT JOIN pedidos_prontos pp ON pp.numero_pedido = base.numero_pedido
+            LEFT JOIN pedidos_expedidos pe ON pe.numero_pedido = base.numero_pedido
+            LEFT JOIN ($subItens) prod ON prod.numero_pedido = base.numero_pedido
+        ";
+
+        $params = [];
+        if ($numeroBusca !== null && trim($numeroBusca) !== '') {
+            $query .= " WHERE base.numero_pedido LIKE ?";
+            $params[] = '%' . trim($numeroBusca) . '%';
+        } else {
+            $query .= " WHERE NOT (
+                            (COALESCE(pp.status_posvenda, '') = 'Expedido' OR COALESCE(pe.status_posvenda, '') = 'Finalizado')
+                            AND COALESCE(prod.itens_armazenados, 0) >= COALESCE(prod.total_itens, 0)
+                            AND COALESCE(prod.total_itens, 0) > 0
+                        )";
+        }
+
+        $query .= " ORDER BY STR_TO_DATE(COALESCE(pp.prazo_producao, prod.prazo_producao, '01/01/2000'), '%d/%m/%Y') DESC, base.numero_pedido ASC";
+
+        if ($numeroBusca === null || trim($numeroBusca) === '') {
+            $query .= " LIMIT 300";
+        }
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute($params);
+        $linhas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $resultado = [];
+        foreach ($linhas as $l) {
+            $totalItens = (int) ($l['total_itens'] ?? 0);
+            $itensEmbalados = (int) ($l['itens_embalados'] ?? 0);
+            $itensArmazenados = (int) ($l['itens_armazenados'] ?? 0);
+            $statusPipeline = $l['status_pipeline'];
+            $statusFinalizado = $l['status_finalizado'];
+
+            $resultado[] = [
+                'numero_pedido' => $l['numero_pedido'],
+                'linha' => $this->linhaDoPedido($l['numero_pedido']),
+                'prazo_producao' => $l['prazo_pipeline'],
+                'producao' => [
+                    'total_itens' => $totalItens,
+                    'itens_embalados' => $itensEmbalados,
+                    'concluida' => $totalItens > 0 && $itensEmbalados >= $totalItens,
+                    'nao_iniciada' => $totalItens === 0,
+                ],
+                'armazenagem' => [
+                    'itens_embalados' => $itensEmbalados,
+                    'itens_armazenados' => $itensArmazenados,
+                    'concluida' => $itensEmbalados > 0 && $itensArmazenados >= $itensEmbalados,
+                    'pendente' => $itensEmbalados > $itensArmazenados,
+                ],
+                'financeiro' => $statusPipeline === 'Financeiro',
+                'pos_venda' => $statusPipeline === 'Pós-venda',
+                'expedicao_fila' => $statusPipeline === 'Expedicao',
+                'finalizado' => $statusFinalizado === 'Finalizado' || $statusPipeline === 'Expedido',
+            ];
+        }
+
+        return $resultado;
     }
 
 public function mostrarFilaProducao(): array
@@ -1096,19 +1217,13 @@ public function mostrarFilaProducao(): array
     {
         $tabela = (stripos($numeroPedido, 'os') !== false) ? 'itens_os' : 'itens_producao';
 
+        // 1ª checagem: equipamentos principais (mais confiável, nomes não se
+        // repetem entre as linhas).
         $equipamentosContemporaneo = self::EQUIPAMENTOS_PRINCIPAIS_CONTEMPORANEO;
         $equipamentosClassico = self::EQUIPAMENTOS_PRINCIPAIS_CLASSICO;
 
-        $placeholdersContemporaneo = implode(',', array_fill(0, count($equipamentosContemporaneo), '?'));
-        $placeholdersClassico = implode(',', array_fill(0, count($equipamentosClassico), '?'));
-
-        $stmtContemporaneo = $this->conn->prepare("SELECT COUNT(*) FROM $tabela WHERE numero_pedido = ? AND equipamento IN ($placeholdersContemporaneo)");
-        $stmtContemporaneo->execute(array_merge([$numeroPedido], $equipamentosContemporaneo));
-        $temContemporaneo = (int) $stmtContemporaneo->fetchColumn() > 0;
-
-        $stmtClassico = $this->conn->prepare("SELECT COUNT(*) FROM $tabela WHERE numero_pedido = ? AND equipamento IN ($placeholdersClassico)");
-        $stmtClassico->execute(array_merge([$numeroPedido], $equipamentosClassico));
-        $temClassico = (int) $stmtClassico->fetchColumn() > 0;
+        $temContemporaneo = $this->pedidoTemAlgumItem($tabela, $numeroPedido, $equipamentosContemporaneo);
+        $temClassico = $this->pedidoTemAlgumItem($tabela, $numeroPedido, $equipamentosClassico);
 
         if ($temContemporaneo && $temClassico) {
             return 'Misto';
@@ -1119,7 +1234,41 @@ public function mostrarFilaProducao(): array
         if ($temClassico) {
             return 'Clássico';
         }
+
+        $acessoriosExclusivosContemporaneo = array_diff(self::ACESSORIOS_CONTEMPORANEO, self::ACESSORIOS_CLASSICO);
+        $acessoriosExclusivosClassico = array_diff(self::ACESSORIOS_CLASSICO, self::ACESSORIOS_CONTEMPORANEO);
+        $acessoriosCompartilhados = array_intersect(self::ACESSORIOS_CONTEMPORANEO, self::ACESSORIOS_CLASSICO);
+
+        $temAcessorioContemporaneo = $this->pedidoTemAlgumItem($tabela, $numeroPedido, $acessoriosExclusivosContemporaneo);
+        $temAcessorioClassico = $this->pedidoTemAlgumItem($tabela, $numeroPedido, $acessoriosExclusivosClassico);
+
+        if ($temAcessorioContemporaneo && $temAcessorioClassico) {
+            return 'Misto';
+        }
+        if ($temAcessorioContemporaneo) {
+            return 'Contemporâneo';
+        }
+        if ($temAcessorioClassico) {
+            return 'Clássico';
+        }
+
+        if ($this->pedidoTemAlgumItem($tabela, $numeroPedido, $acessoriosCompartilhados)) {
+            return 'Indefinido (acessório comum)';
+        }
+
         return 'Indefinido';
+    }
+
+    private function pedidoTemAlgumItem(string $tabela, string $numeroPedido, array $itens): bool
+    {
+        $itens = array_values($itens);
+        if (empty($itens)) {
+            return false;
+        }
+        $placeholders = implode(',', array_fill(0, count($itens), '?'));
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM $tabela WHERE numero_pedido = ? AND equipamento IN ($placeholders)");
+        $stmt->execute(array_merge([$numeroPedido], $itens));
+        return (int) $stmt->fetchColumn() > 0;
     }
 
     public function mostrarPedidosReprogramados(array $filtros = []): array
