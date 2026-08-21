@@ -186,21 +186,29 @@ class Sistema
         $this->conn = $db;
     }
     /*
-     * Planejado x Real de Gaiola Cadilac pra semana, nas telas de produção do
+     * Planejado x Real de Gaiola Cadilac pra semana ATUAL (segunda a
+     * domingo, pelo prazo_producao do item), nas telas de produção do
      * Contemporâneo (normal e OS) — número agregado, não vinculado a nenhum
      * pedido específico:
-     *   - "planejado" = total de gaiolas cadastradas pra essa tabela (meta da
-     *     semana), fixo — não muda quando alguém bipa.
-     *   - "real" = quantas já foram efetivamente embaladas (bipagem da
-     *     etiqueta de embalagem), começa em 0 e sobe 1 a 1 a cada bipagem.
+     *   - "planejado" = total de gaiolas com prazo dentro da semana atual
+     *     (meta da semana), fixo — não muda quando alguém bipa.
+     *   - "real" = quantas dessas já foram efetivamente embaladas (bipagem
+     *     da etiqueta de embalagem), começa em 0 e sobe 1 a 1 a cada bipagem.
      */
     public function contarGaiolasCadilacProducao(string $tabelaItens = 'itens_producao'): array
     {
+        $hoje = new DateTime('today');
+        $diaSemanaIso = (int) $hoje->format('N'); // 1 = segunda ... 7 = domingo
+        $inicioSemana = (clone $hoje)->modify('-' . ($diaSemanaIso - 1) . ' days')->format('Y-m-d');
+        $fimSemana = (clone $hoje)->modify('+' . (7 - $diaSemanaIso) . ' days')->format('Y-m-d');
+
         $stmt = $this->conn->prepare(
             "SELECT COUNT(*) AS planejado, SUM(status IN ('Embalado', 'Armazenado')) AS `real`
-             FROM $tabelaItens WHERE equipamento = 'Gaiola Cadilac'"
+             FROM $tabelaItens
+             WHERE equipamento = 'Gaiola Cadilac'
+               AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :inicio AND :fim"
         );
-        $stmt->execute();
+        $stmt->execute(['inicio' => $inicioSemana, 'fim' => $fimSemana]);
         $linha = $stmt->fetch(PDO::FETCH_ASSOC);
         return [
             'planejado' => (int) ($linha['planejado'] ?? 0),
@@ -1102,10 +1110,16 @@ class Sistema
                     'nao_iniciada' => $totalItens === 0,
                 ],
                 'armazenagem' => [
+                    'total_itens' => $totalItens,
                     'itens_embalados' => $itensEmbalados,
                     'itens_armazenados' => $itensArmazenados,
-                    'concluida' => $itensEmbalados > 0 && $itensArmazenados >= $itensEmbalados,
-                    'pendente' => $itensEmbalados > $itensArmazenados,
+                    // Concluída só quando TODO item do pedido (não só os que já
+                    // chegaram a ser embalados) está Armazenado — senão um
+                    // pedido com só os acessórios embalados aparecia como
+                    // "armazenagem concluída" mesmo faltando os equipamentos
+                    // principais nem terem sido produzidos ainda.
+                    'concluida' => $totalItens > 0 && $itensArmazenados >= $totalItens,
+                    'pendente' => $itensArmazenados < $totalItens,
                 ],
                 'financeiro' => $statusPipeline === 'Financeiro',
                 'pos_venda' => $statusPipeline === 'Pós-venda',

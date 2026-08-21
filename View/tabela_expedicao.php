@@ -186,6 +186,12 @@ require_once '../Function/trava.php';
             letter-spacing: 0.5px;
         }
 
+        .badge-pronto.badge-armazenado {
+            background-color: #f3e8ff;
+            color: #6b21a8;
+            border: 1px solid #d8b4fe;
+        }
+
         .badge-linha-misto {
             background-color: #f3e8ff;
             color: #6b21a8;
@@ -477,6 +483,16 @@ require_once '../Function/trava.php';
                         default => 'badge-linha-indefinido',
                     };
                     $origemItens = (stripos($p['numero_pedido'], 'os') !== false) ? 'OS' : 'PRODUCAO';
+
+                    // Essa fila só lista pedido com 100% Embalado (é o
+                    // critério de entrada). Aqui só checamos se, além disso,
+                    // já virou 100% Armazenado — pra trocar a badge quando o
+                    // galpão terminar de conferir tudo.
+                    $tabelaItensPedido = ($origemItens === 'OS') ? 'itens_os' : 'itens_producao';
+                    $stmtArm = $db->prepare("SELECT COUNT(*) AS total, SUM(status = 'Armazenado') AS armazenados FROM $tabelaItensPedido WHERE numero_pedido = ? AND equipamento NOT LIKE 'Emb.%'");
+                    $stmtArm->execute([$p['numero_pedido']]);
+                    $infoArm = $stmtArm->fetch(PDO::FETCH_ASSOC);
+                    $totalmenteArmazenado = ((int) $infoArm['total'] > 0) && ((int) $infoArm['armazenados'] >= (int) $infoArm['total']);
                 ?>
                     <tr id="Linha-<?= $p['id'] ?>" class="linha-pedido">
                         <td style="font-weight: bold; color: #2980b9; font-size: 18px;">
@@ -493,7 +509,7 @@ require_once '../Function/trava.php';
                         </td>
                         <td><?= htmlspecialchars(substr($p['prazo_producao'], 0, 10)) ?></td>
                         <td><?= (new DateTime($p['data_conclusao']))->format('d/m/Y H:i') ?></td>
-                        <td><span class="badge-pronto">100% Embalado</span></td>
+                        <td><span class="badge-pronto<?= $totalmenteArmazenado ? ' badge-armazenado' : '' ?>"><?= $totalmenteArmazenado ? '100% Armazenado' : '100% Embalado' ?></span></td>
                         <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_EXPEDICAO_ACAO)): ?>
                             <td>
                                 <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Finalizar Pedido</button>

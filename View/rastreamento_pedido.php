@@ -331,7 +331,7 @@ if (!isset($_SESSION['nivel_acesso']) || !in_array($_SESSION['nivel_acesso'], CA
         } elseif ($arm['concluida']) {
             $badgeArmazenagem = '<span class="estagio estagio-concluido">Concluída</span>';
         } else {
-            $badgeArmazenagem = '<span class="estagio estagio-em-andamento">Pendente (' . $arm['itens_armazenados'] . '/' . $arm['itens_embalados'] . ')</span>';
+            $badgeArmazenagem = '<span class="estagio estagio-em-andamento">Pendente (' . $arm['itens_armazenados'] . '/' . $arm['total_itens'] . ')</span>';
         }
 
         $badgeFinanceiro = $p['financeiro']
@@ -445,7 +445,7 @@ if (!isset($_SESSION['nivel_acesso']) || !in_array($_SESSION['nivel_acesso'], CA
             } else if (p.armazenagem.concluida) {
                 badgeArmazenagem = '<span class="estagio estagio-concluido">Concluída</span>';
             } else {
-                badgeArmazenagem = `<span class="estagio estagio-em-andamento">Pendente (${p.armazenagem.itens_armazenados}/${p.armazenagem.itens_embalados})</span>`;
+                badgeArmazenagem = `<span class="estagio estagio-em-andamento">Pendente (${p.armazenagem.itens_armazenados}/${p.armazenagem.total_itens})</span>`;
             }
 
             const badgeFinanceiro = p.financeiro
