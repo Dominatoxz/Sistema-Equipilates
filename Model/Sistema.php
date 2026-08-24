@@ -130,42 +130,123 @@ class Sistema
     {
         $this->conn = $db;
     }
-    public function contarGaiolasCadilacProducao(string $tabelaItens = 'itens_producao'): array
+    /*
+     * Começo (segunda) e fim (domingo) da semana ISO que contém $referencia.
+     * Usado por toda a família de métodos de Gaiola Cadilac abaixo.
+     */
+    private function limitesSemana(DateTime $referencia): array
     {
-        $hoje = new DateTime('today');
-        $diaSemanaIso = (int) $hoje->format('N'); // 1 = segunda ... 7 = domingo
-        $inicioSemana = (clone $hoje)->modify('-' . ($diaSemanaIso - 1) . ' days')->format('Y-m-d');
-        $fimSemana = (clone $hoje)->modify('+' . (7 - $diaSemanaIso) . ' days')->format('Y-m-d');
+        $diaSemanaIso = (int) $referencia->format('N'); // 1 = segunda ... 7 = domingo
+        $inicio = (clone $referencia)->modify('-' . ($diaSemanaIso - 1) . ' days')->format('Y-m-d');
+        $fim = (clone $referencia)->modify('+' . (7 - $diaSemanaIso) . ' days')->format('Y-m-d');
+        return [$inicio, $fim];
+    }
+
+    /*
+     * Planejado x Real "crus" de uma semana pra Gaiola Cadilac:
+     *   - "planejado" = quantas gaiolas tinham prazo_producao dentro dessa
+     *     semana (a meta) — baseado na DATA PREVISTA.
+     *   - "real" = quantas gaiolas foram DE FATO embaladas (bipadas) dentro
+     *     dessa semana, usando data_fim (quando a bipagem realmente
+     *     aconteceu) — não o prazo original. É isso que permite Real >
+     *     Planejado: se a produção bipar gaiolas atrasadas de semanas
+     *     passadas nesta semana, elas contam aqui como produção real desta
+     *     semana, mesmo com prazo antigo.
+     */
+    private function planejadoRealSemana(string $tabelaItens, string $inicioSemana, string $fimSemana): array
+    {
         $inicioSemanaDT = $inicioSemana . ' 00:00:00';
         $fimSemanaDT = $fimSemana . ' 23:59:59';
 
         $stmt = $this->conn->prepare(
-            "SELECT COUNT(*) AS planejado, SUM(status IN ('Embalado', 'Armazenado')) AS `real`
+            "SELECT
+                SUM(CASE WHEN STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :inicio AND :fim THEN 1 ELSE 0 END) AS planejado,
+                SUM(CASE WHEN status IN ('Embalado', 'Armazenado') AND data_fim BETWEEN :inicioDt AND :fimDt THEN 1 ELSE 0 END) AS `real`
              FROM $tabelaItens
-             WHERE equipamento = 'Gaiola Cadilac'
-               AND (
-                     STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :inicio AND :fim
-                     OR (
-                           STR_TO_DATE(prazo_producao, '%d/%m/%Y') < :inicio2
-                           AND (
-                                 status NOT IN ('Embalado', 'Armazenado')
-                                 OR (data_fim IS NOT NULL AND data_fim BETWEEN :inicioDt AND :fimDt)
-                               )
-                        )
-                   )"
+             WHERE equipamento = 'Gaiola Cadilac'"
         );
         $stmt->execute([
             'inicio' => $inicioSemana,
             'fim' => $fimSemana,
-            'inicio2' => $inicioSemana,
             'inicioDt' => $inicioSemanaDT,
             'fimDt' => $fimSemanaDT,
         ]);
         $linha = $stmt->fetch(PDO::FETCH_ASSOC);
+
         return [
             'planejado' => (int) ($linha['planejado'] ?? 0),
             'real' => (int) ($linha['real'] ?? 0),
         ];
+    }
+
+    /*
+     * Planejado / Real de Gaiola Cadilac da semana ATUAL (segunda a
+     * domingo), nas telas de produção do Contemporâneo (normal e OS) —
+     * número agregado, não vinculado a nenhum pedido específico. Ver
+     * planejadoRealSemana() pra definição exata de cada campo.
+     *   - "atrasados" = saldo acumulado gravado toda semana pelo fechamento
+     *     de sábado (ver fecharSemanaGaiolaCadilac() /
+     *     Function/fechar_semana_gaiola.php, chamado por cron) — não é
+     *     calculado ao vivo aqui, só lido de gaiola_atrasos_semanais.
+     */
+    public function contarGaiolasCadilacProducao(string $tabelaItens = 'itens_producao'): array
+    {
+        [$inicioSemana, $fimSemana] = $this->limitesSemana(new DateTime('today'));
+        $numeros = $this->planejadoRealSemana($tabelaItens, $inicioSemana, $fimSemana);
+        $numeros['atrasados'] = $this->totalAtrasoAcumuladoGaiola($tabelaItens);
+        return $numeros;
+    }
+
+    /*
+     * Fecha a semana atual de Gaiola Cadilac: calcula planejado - real
+     * dessa semana (ver planejadoRealSemana()) e grava (ou atualiza, se já
+     * rodou) uma linha em gaiola_atrasos_semanais. Feito pra rodar uma vez
+     * por semana via cron (todo sábado) — ver
+     * Function/fechar_semana_gaiola.php. `$deficit` nunca fica negativo — se
+     * a semana produziu igual ou mais que o planejado, só grava 0 (não
+     * desconta do total acumulado; ele só soma, nunca diminui).
+     */
+    public function fecharSemanaGaiolaCadilac(string $tabelaItens = 'itens_producao'): array
+    {
+        [$inicioSemana, $fimSemana] = $this->limitesSemana(new DateTime('today'));
+        $numeros = $this->planejadoRealSemana($tabelaItens, $inicioSemana, $fimSemana);
+        $planejado = $numeros['planejado'];
+        $real = $numeros['real'];
+        $deficit = max(0, $planejado - $real);
+
+        $stmtGrava = $this->conn->prepare(
+            "INSERT INTO gaiola_atrasos_semanais (tabela_itens, semana_inicio, semana_fim, planejado, `real`, deficit)
+             VALUES (:tabela, :inicio, :fim, :planejado, :real, :deficit)
+             ON DUPLICATE KEY UPDATE planejado = :planejado2, `real` = :real2, deficit = :deficit2, semana_fim = :fim2"
+        );
+        $stmtGrava->execute([
+            'tabela' => $tabelaItens,
+            'inicio' => $inicioSemana,
+            'fim' => $fimSemana,
+            'planejado' => $planejado,
+            'real' => $real,
+            'deficit' => $deficit,
+            'planejado2' => $planejado,
+            'real2' => $real,
+            'deficit2' => $deficit,
+            'fim2' => $fimSemana,
+        ]);
+
+        return ['semana_inicio' => $inicioSemana, 'semana_fim' => $fimSemana, 'planejado' => $planejado, 'real' => $real, 'deficit' => $deficit];
+    }
+
+    /*
+     * Soma de todos os fechamentos semanais gravados (ver
+     * fecharSemanaGaiolaCadilac()) — só acumula. Uma semana em dia ou
+     * acima do planejado grava déficit 0 e não desconta nada do total.
+     */
+    public function totalAtrasoAcumuladoGaiola(string $tabelaItens = 'itens_producao'): int
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT COALESCE(SUM(deficit), 0) FROM gaiola_atrasos_semanais WHERE tabela_itens = ?"
+        );
+        $stmt->execute([$tabelaItens]);
+        return max(0, (int) $stmt->fetchColumn());
     }
 
     /*

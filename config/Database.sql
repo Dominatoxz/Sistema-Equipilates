@@ -203,3 +203,16 @@ CREATE TABLE IF NOT EXISTS `push_subscriptions` (
   UNIQUE KEY `uniq_endpoint` (`endpoint`(255)),
   KEY `idx_nivel_acesso` (`nivel_acesso`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `gaiola_atrasos_semanais` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tabela_itens` varchar(20) NOT NULL,
+  `semana_inicio` date NOT NULL,
+  `semana_fim` date NOT NULL,
+  `planejado` int(11) NOT NULL,
+  `real` int(11) NOT NULL,
+  `deficit` int(11) NOT NULL,
+  `criado_em` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_semana` (`tabela_itens`,`semana_inicio`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -230,9 +230,6 @@ require_once '../../Function/trava.php';
                     'Wall Unit',
                 ];
 
-                // Gaiola Cadilac não é mais um item por pedido: é um total
-                // agregado (planejado da semana x real já embalado), igual em
-                // toda a tabela (ver Sistema::contarGaiolasCadilacProducao).
                 $gaiolasProducao = $sistema->contarGaiolasCadilacProducao('itens_producao');
 
                 $lista_acessorios = [
@@ -338,7 +335,7 @@ require_once '../../Function/trava.php';
                     <?php endforeach; ?>
                 <?php endif; ?>
                 <tr class="linha-resumo-gaiola">
-                    <td colspan="11">Gaiola Cadilac da semana — Planejado: <strong><?= $gaiolasProducao['planejado'] ?></strong> &nbsp;|&nbsp; Real: <strong><?= $gaiolasProducao['real'] ?></strong></td>
+                    <td colspan="11">Gaiola Cadilac da semana — Planejado: <strong><?= $gaiolasProducao['planejado'] ?></strong> &nbsp;|&nbsp; Real: <strong><?= $gaiolasProducao['real'] ?></strong> &nbsp;|&nbsp; <span style="color: #c0392b;">Atrasados: <strong><?= $gaiolasProducao['atrasados'] ?></strong></span></td>
                 </tr>
             </tbody>
         </table>
