@@ -308,7 +308,7 @@ date_default_timezone_set('America/Sao_Paulo');
 
     <div class="container">
         <h1>Linhas</h1>
-        <p class="subtitle">"Olhos e Mente na Tarefa."</p>
+        <p class="subtitle">"A mudança acontece através do movimento."</p>
         <div class="grid-painel">
             <a href="View/Contemporaneo/central_contemporaneo.php" class="card-botao linha-contemporanea">
                 <div class="icon-box">🧬</div>

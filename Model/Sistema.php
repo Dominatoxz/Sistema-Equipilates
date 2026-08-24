@@ -5,36 +5,8 @@ class Sistema
 {
     private $conn;
 
-    /*
-     * Corte de data pras telas de bipagem da Expedição do Contemporâneo
-     * (produção e acessórios): pedidos com prazo anterior a essa data não
-     * aparecem mais, ponto final. Existe porque um backlog antigo de itens
-     * presos em "Embalado" sem nunca terem sido conferidos no armazém
-     * (herança do modelo antigo da Gaiola, que travava pedido pra sempre —
-     * ver contarGaiolasCadilacPendentes*) inundou essas telas em 2026-08. O
-     * backlog anterior a essa data foi fechado manualmente com um UPDATE
-     * direto no banco; esse corte evita que lixo antigo semelhante volte a
-     * aparecer.
-     */
     const CORTE_EXPEDICAO_CONTEMPORANEO = '2026-08-04';
 
-    /*
-     * Listas mestras dos equipamentos "principais" (não-acessório) de cada
-     * linha. Ficam aqui, num só lugar, porque já causaram bugs reais quando
-     * reescritas à mão em vários arquivos (ex: a Gaiola Cadilac que sumia da
-     * checagem de conclusão do pedido). Qualquer lugar do sistema que
-     * precise saber "quais são os itens principais de cada linha" deve usar
-     * essas constantes em vez de recriar a lista.
-     */
-    /*
-     * Gaiola Cadilac saiu dessa lista em 2026-08: deixou de ser um item
-     * vinculado a um pedido específico (que travava a subida pro Financeiro
-     * até ser embalada) e virou um contador agregado Planejado x Real — ver
-     * contarGaiolasCadilacProducao() e contarGaiolasCadilacPendentesArmazenagem().
-     * Continua sendo bipada unidade por unidade como qualquer outro item, só
-     * não bloqueia mais nenhum pedido nem aparece com ícone por pedido nas
-     * telas.
-     */
     const EQUIPAMENTOS_PRINCIPAIS_CONTEMPORANEO = [
         'Reformer Excellence',
         'Reformer Torre',
@@ -118,14 +90,6 @@ class Sistema
         'MINI SPINE',
     ];
 
-    /*
-     * Monta duas cláusulas EXISTS/NOT EXISTS reaproveitáveis: uma que diz
-     * "esse pedido ainda tem item pendente (ou nem tem itens_producao
-     * ainda)" — usada pelas telas de origem para esconder o pedido assim que
-     * ele termina — e outra que diz o oposto, "todo item já foi Embalado ou
-     * Armazenado" — usada pelas telas de Expedição pra mostrar só o que já
-     * foi entregue à produção mas ainda não foi conferido no armazém.
-     */
     private function condicaoItemPendente(string $colunaPedido, array $equipamentos, string $tabelaItens = 'itens_producao'): string
     {
         $placeholders = implode(',', array_fill(0, count($equipamentos), '?'));
@@ -142,17 +106,6 @@ class Sistema
                 )";
     }
 
-    /*
-     * O pedido entra na tela de Expedição assim que o PRIMEIRO item dele for
-     * embalado — não precisa esperar o pedido inteiro terminar. A tela some
-     * de vez só quando TODO item do pedido vira Armazenado (ver
-     * condicaoAindaNaoTudoArmazenado logo abaixo) — não tem mais relação com
-     * o pedido já ter subido ou não pro Financeiro. Desde a mudança de fluxo
-     * de 2026-08, o pedido sobe pro Financeiro assim que tudo fica Embalado
-     * (bem antes de tudo ficar Armazenado), então as duas filas — Financeiro
-     * e Expedição/armazém — rodam em paralelo, cada uma com seu próprio
-     * critério de saída.
-     */
     private function condicaoAlgumEmbaladoOuArmazenado(string $colunaPedido, array $equipamentos, string $tabelaItens = 'itens_producao'): string
     {
         $placeholders = implode(',', array_fill(0, count($equipamentos), '?'));
@@ -163,13 +116,6 @@ class Sistema
                 )";
     }
 
-    /*
-     * Complemento de condicaoAlgumEmbaladoOuArmazenado: diz se o pedido
-     * AINDA tem algum item (dentro da lista de equipamentos informada) que
-     * não está Armazenado — ou seja, ainda precisa aparecer na tela de
-     * armazém/expedição pra ser bipado. Fica falso (pedido sai da tela) só
-     * quando todo item da lista já foi conferido/armazenado fisicamente.
-     */
     private function condicaoAindaNaoTudoArmazenado(string $colunaPedido, array $equipamentos, string $tabelaItens = 'itens_producao'): string
     {
         $placeholders = implode(',', array_fill(0, count($equipamentos), '?'));
@@ -180,35 +126,41 @@ class Sistema
                 )";
     }
 
-    //instancia o banco de dados e a conexão para usar no model
     public function __construct($db)
     {
         $this->conn = $db;
     }
-    /*
-     * Planejado x Real de Gaiola Cadilac pra semana ATUAL (segunda a
-     * domingo, pelo prazo_producao do item), nas telas de produção do
-     * Contemporâneo (normal e OS) — número agregado, não vinculado a nenhum
-     * pedido específico:
-     *   - "planejado" = total de gaiolas com prazo dentro da semana atual
-     *     (meta da semana), fixo — não muda quando alguém bipa.
-     *   - "real" = quantas dessas já foram efetivamente embaladas (bipagem
-     *     da etiqueta de embalagem), começa em 0 e sobe 1 a 1 a cada bipagem.
-     */
     public function contarGaiolasCadilacProducao(string $tabelaItens = 'itens_producao'): array
     {
         $hoje = new DateTime('today');
         $diaSemanaIso = (int) $hoje->format('N'); // 1 = segunda ... 7 = domingo
         $inicioSemana = (clone $hoje)->modify('-' . ($diaSemanaIso - 1) . ' days')->format('Y-m-d');
         $fimSemana = (clone $hoje)->modify('+' . (7 - $diaSemanaIso) . ' days')->format('Y-m-d');
+        $inicioSemanaDT = $inicioSemana . ' 00:00:00';
+        $fimSemanaDT = $fimSemana . ' 23:59:59';
 
         $stmt = $this->conn->prepare(
             "SELECT COUNT(*) AS planejado, SUM(status IN ('Embalado', 'Armazenado')) AS `real`
              FROM $tabelaItens
              WHERE equipamento = 'Gaiola Cadilac'
-               AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :inicio AND :fim"
+               AND (
+                     STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :inicio AND :fim
+                     OR (
+                           STR_TO_DATE(prazo_producao, '%d/%m/%Y') < :inicio2
+                           AND (
+                                 status NOT IN ('Embalado', 'Armazenado')
+                                 OR (data_fim IS NOT NULL AND data_fim BETWEEN :inicioDt AND :fimDt)
+                               )
+                        )
+                   )"
         );
-        $stmt->execute(['inicio' => $inicioSemana, 'fim' => $fimSemana]);
+        $stmt->execute([
+            'inicio' => $inicioSemana,
+            'fim' => $fimSemana,
+            'inicio2' => $inicioSemana,
+            'inicioDt' => $inicioSemanaDT,
+            'fimDt' => $fimSemanaDT,
+        ]);
         $linha = $stmt->fetch(PDO::FETCH_ASSOC);
         return [
             'planejado' => (int) ($linha['planejado'] ?? 0),
