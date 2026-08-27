@@ -512,7 +512,9 @@ require_once '../Function/trava.php';
                         <td><span class="badge-pronto<?= $totalmenteArmazenado ? ' badge-armazenado' : '' ?>"><?= $totalmenteArmazenado ? '100% Armazenado' : '100% Embalado' ?></span></td>
                         <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_EXPEDICAO_ACAO)): ?>
                             <td>
-                                <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Finalizar Pedido</button>
+                                <?php if ($totalmenteArmazenado): ?>
+                                    <button class="btn-baixa" onclick="liberarPedido(<?= $p['id'] ?>)">Finalizar Pedido</button>
+                                <?php endif; ?>
                                 <button class="btn-reprogramar" onclick="abrirModalReprogramar(<?= $p['id'] ?>)">Remover Pedido</button>
                             </td>
                         <?php endif; ?>
