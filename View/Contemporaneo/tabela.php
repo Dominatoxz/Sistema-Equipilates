@@ -335,7 +335,7 @@ require_once '../../Function/trava.php';
                     <?php endforeach; ?>
                 <?php endif; ?>
                 <tr class="linha-resumo-gaiola">
-                    <td colspan="11">Gaiola Cadilac da semana — Planejado: <strong><?= $gaiolasProducao['planejado'] ?></strong> &nbsp;|&nbsp; Real: <strong><?= $gaiolasProducao['real'] ?></strong> &nbsp;|&nbsp; <span style="color: #c0392b;">Atrasados: <strong><?= $gaiolasProducao['atrasados'] ?></strong></span></td>
+                    <td colspan="11">Gaiola Cadilac da semana (todas as linhas) — Planejado: <strong><?= $gaiolasProducao['planejado'] ?></strong> &nbsp;|&nbsp; Real: <strong><?= $gaiolasProducao['real'] ?></strong> &nbsp;|&nbsp; <span style="color: #c0392b;">Atrasados: <strong><?= $gaiolasProducao['atrasados'] ?></strong></span></td>
                 </tr>
             </tbody>
         </table>

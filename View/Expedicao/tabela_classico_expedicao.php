@@ -16,13 +16,18 @@ require_once '../../Function/trava.php';
             color: #333;
             margin: 10px;
             max-width: 100vw;
-            overflow-x: hidden;
+            height: calc(100vh - 20px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
         }
+
 
         .table-container {
             width: 100%;
-            height: calc(100vh - 20px);
-            max-height: calc(100vh - 20px);
+            height: calc(100vh - 100px);
+            max-height: calc(100vh - 100px);
             overflow-y: auto;
             overflow-x: auto;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -42,8 +47,7 @@ require_once '../../Function/trava.php';
         table {
             width: 100%;
             table-layout: fixed;
-            border-collapse: separate;
-            border-spacing: 0;
+            border-collapse: collapse;
             background: #fff;
         }
 
@@ -53,7 +57,7 @@ require_once '../../Function/trava.php';
             color: black;
             padding: 10px 5px;
             text-transform: uppercase;
-            font-size: 13px;
+            font-size: 18px;
             word-wrap: break-word;
             position: -webkit-sticky;
             position: sticky;
@@ -66,7 +70,7 @@ require_once '../../Function/trava.php';
             padding: 8px 4px;
             border: 1px solid #1c1c1c;
             text-align: center;
-            font-size: 20px;
+            font-size: 18px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -76,13 +80,24 @@ require_once '../../Function/trava.php';
         th:first-child {
             font-weight: bold;
             color: blue;
-            width: 60px;
+            width: 80px;
+            font-size: 20px;
+        }
+
+        .linha-resumo-gaiola td {
+            position: -webkit-sticky;
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+            background-color: #ffffff;
+            text-align: left;
             font-size: 18px;
+            box-shadow: inset 0 2px 0 #1c1c1c;
         }
 
         .column-data {
             font-weight: bold;
-            font-size: 18px;
+            font-size: 20px;
             color: #bb4242;
         }
 
@@ -93,19 +108,6 @@ require_once '../../Function/trava.php';
             padding: 2px 8px;
             border-radius: 6px;
         }
-
-        .qr-link {
-            background: #2ecc71;
-            color: white;
-            padding: 2px 4px;
-            border-radius: 4px;
-            font-size: 10px;
-            text-decoration: none;
-            font-weight: bold;
-            display: block;
-            margin: 2px 0;
-        }
-
 
         input#input-pistola {
             position: fixed;
@@ -159,10 +161,11 @@ require_once '../../Function/trava.php';
         }
 
         .footer {
-            margin-top: 20px;
-            margin-bottom: 20px;
+            margin-top: 10px;
+            margin-bottom: 5px;
             font-size: 0.85rem;
             color: #bdc3c7;
+            flex-shrink: 0;
         }
     </style>
 </head>
@@ -182,10 +185,24 @@ require_once '../../Function/trava.php';
             $sistema = new Sistema($db);
             $pedidosMistos = array_merge($sistema->pedidosMistos('itens_producao'), $sistema->pedidosMistos('itens_os'));
 
-            $dados_tabela = $sistema->mostrarTabelaExpedicaoClassico();
+            $arquivo_cache = __DIR__ . '/../../cache/dados_painel_expedicao_classico.json';
+            $tempo_expiracao = 30;
+
+            if (file_exists($arquivo_cache) && (time() - filemtime($arquivo_cache) < $tempo_expiracao)) {
+                $dados_tabela = json_decode(file_get_contents($arquivo_cache), true);
+            } else {
+                $dados_tabela = $sistema->mostrarTabelaExpedicaoClassico();
+
+                if (!is_dir(__DIR__ . '/../../cache')) {
+                    mkdir(__DIR__ . '/../../cache', 0777, true);
+                }
+                file_put_contents($arquivo_cache, json_encode($dados_tabela, JSON_UNESCAPED_UNICODE));
+            }
 
             $pedidos = !empty($dados_tabela) ? $dados_tabela : [];
             $pedidos_agrupados = $pedidos;
+
+            $totalGaiolasPendentesArmazenagem = $sistema->contarGaiolasCadilacPendentesArmazenagem();
 
             $equipamentos = [
                 'REF. CLASSICO ALUMINIO'      => 'Reformer Alumin',
@@ -314,7 +331,7 @@ require_once '../../Function/trava.php';
                                 </div>
                             </td>
 
-                            <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 5)) ?></td>
+                            <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
 
                             <?php foreach ($equipamentosVisiveis as $nome_equipamento => $rotulo):
                                 $pecas = $itensPorPedido[$pedido['numero']][$nome_equipamento] ?? [];
@@ -382,6 +399,9 @@ require_once '../../Function/trava.php';
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
+                <tr class="linha-resumo-gaiola">
+                    <td colspan="<?= $totalColunas ?>">Total de Gaiola Cadilac embalada aguardando armazenagem (todas as linhas): <strong><?= $totalGaiolasPendentesArmazenagem ?></strong></td>
+                </tr>
             </tbody>
         </table>
     </div>

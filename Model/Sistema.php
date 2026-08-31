@@ -7,6 +7,15 @@ class Sistema
 
     const CORTE_EXPEDICAO_CONTEMPORANEO = '2026-08-04';
 
+    /*
+     * Gaiola Cadilac (Contemporâneo) e Gaiola Classico / Gaiola Cadilac
+     * Tauari (Clássico) são fisicamente o mesmo item — só entram no sistema
+     * com nomes diferentes por conta da linha do pedido. Toda a família de
+     * métodos de Gaiola Cadilac abaixo conta os três juntos, num total único
+     * por tabela de itens (produção normal x OS), independente da linha.
+     */
+    const EQUIPAMENTOS_GAIOLA_CADILAC = ['Gaiola Cadilac', 'GAIOLA CLASSICO', 'GAIOLA CADILCAC TAUARI'];
+
     const EQUIPAMENTOS_PRINCIPAIS_CONTEMPORANEO = [
         'Reformer Excellence',
         'Reformer Torre',
@@ -153,24 +162,23 @@ class Sistema
      *     passadas nesta semana, elas contam aqui como produção real desta
      *     semana, mesmo com prazo antigo.
      */
-    private function planejadoRealSemana(string $tabelaItens, string $inicioSemana, string $fimSemana): array
+    private function planejadoRealSemana(string $tabelaItens, string $inicioSemana, string $fimSemana, array $equipamentos = self::EQUIPAMENTOS_GAIOLA_CADILAC): array
     {
         $inicioSemanaDT = $inicioSemana . ' 00:00:00';
         $fimSemanaDT = $fimSemana . ' 23:59:59';
+        $placeholdersEquip = implode(',', array_fill(0, count($equipamentos), '?'));
 
         $stmt = $this->conn->prepare(
             "SELECT
-                SUM(CASE WHEN STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :inicio AND :fim THEN 1 ELSE 0 END) AS planejado,
-                SUM(CASE WHEN status IN ('Embalado', 'Armazenado') AND data_fim BETWEEN :inicioDt AND :fimDt THEN 1 ELSE 0 END) AS `real`
+                SUM(CASE WHEN STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN ? AND ? THEN 1 ELSE 0 END) AS planejado,
+                SUM(CASE WHEN status IN ('Embalado', 'Armazenado') AND data_fim BETWEEN ? AND ? THEN 1 ELSE 0 END) AS `real`
              FROM $tabelaItens
-             WHERE equipamento = 'Gaiola Cadilac'"
+             WHERE equipamento IN ($placeholdersEquip)"
         );
-        $stmt->execute([
-            'inicio' => $inicioSemana,
-            'fim' => $fimSemana,
-            'inicioDt' => $inicioSemanaDT,
-            'fimDt' => $fimSemanaDT,
-        ]);
+        $stmt->execute(array_merge(
+            [$inicioSemana, $fimSemana, $inicioSemanaDT, $fimSemanaDT],
+            $equipamentos
+        ));
         $linha = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return [
@@ -180,10 +188,12 @@ class Sistema
     }
 
     /*
-     * Planejado / Real de Gaiola Cadilac da semana ATUAL (segunda a
-     * domingo), nas telas de produção do Contemporâneo (normal e OS) —
-     * número agregado, não vinculado a nenhum pedido específico. Ver
-     * planejadoRealSemana() pra definição exata de cada campo.
+     * Planejado / Real / Atrasados de Gaiola Cadilac da semana ATUAL
+     * (segunda a domingo), nas telas de produção (normal e OS) — número
+     * agregado, não vinculado a nenhum pedido específico, e somando as três
+     * linhas juntas (Contemporâneo + Clássico + Clássico Tauari — ver
+     * EQUIPAMENTOS_GAIOLA_CADILAC), já que fisicamente é o mesmo item. Ver
+     * planejadoRealSemana() pra definição exata de "planejado"/"real".
      *   - "atrasados" = saldo acumulado gravado toda semana pelo fechamento
      *     de sábado (ver fecharSemanaGaiolaCadilac() /
      *     Function/fechar_semana_gaiola.php, chamado por cron) — não é
@@ -198,13 +208,14 @@ class Sistema
     }
 
     /*
-     * Fecha a semana atual de Gaiola Cadilac: calcula planejado - real
-     * dessa semana (ver planejadoRealSemana()) e grava (ou atualiza, se já
-     * rodou) uma linha em gaiola_atrasos_semanais. Feito pra rodar uma vez
-     * por semana via cron (todo sábado) — ver
-     * Function/fechar_semana_gaiola.php. `$deficit` nunca fica negativo — se
-     * a semana produziu igual ou mais que o planejado, só grava 0 (não
-     * desconta do total acumulado; ele só soma, nunca diminui).
+     * Fecha a semana atual de Gaiola Cadilac (soma das três linhas — ver
+     * EQUIPAMENTOS_GAIOLA_CADILAC): calcula planejado - real dessa semana
+     * (ver planejadoRealSemana()) e grava (ou atualiza, se já rodou) uma
+     * linha em gaiola_atrasos_semanais. Feito pra rodar uma vez por semana
+     * via cron (todo sábado) — ver Function/fechar_semana_gaiola.php.
+     * `$deficit` nunca fica negativo — se a semana produziu igual ou mais
+     * que o planejado, só grava 0 (não desconta do total acumulado; ele só
+     * soma, nunca diminui).
      */
     public function fecharSemanaGaiolaCadilac(string $tabelaItens = 'itens_producao'): array
     {
@@ -250,18 +261,21 @@ class Sistema
     }
 
     /*
-     * Total de Gaiola Cadilac já embaladas mas ainda não conferidas/armazenadas
-     * no galpão — soma itens_producao e itens_os porque a tela de Expedição
-     * do Contemporâneo mistura pedidos normais e de OS na mesma listagem.
+     * Total de Gaiola Cadilac (soma das três linhas — ver
+     * EQUIPAMENTOS_GAIOLA_CADILAC) já embaladas mas ainda não
+     * conferidas/armazenadas no galpão — soma itens_producao e itens_os
+     * porque a tela de Expedição mistura pedidos normais e de OS na mesma
+     * listagem.
      */
     public function contarGaiolasCadilacPendentesArmazenagem(): int
     {
+        $placeholders = implode(',', array_fill(0, count(self::EQUIPAMENTOS_GAIOLA_CADILAC), '?'));
         $stmt = $this->conn->prepare(
             "SELECT
-                (SELECT COUNT(*) FROM itens_producao WHERE equipamento = 'Gaiola Cadilac' AND status != 'Armazenado') +
-                (SELECT COUNT(*) FROM itens_os WHERE equipamento = 'Gaiola Cadilac' AND status != 'Armazenado') AS total"
+                (SELECT COUNT(*) FROM itens_producao WHERE equipamento IN ($placeholders) AND status != 'Armazenado') +
+                (SELECT COUNT(*) FROM itens_os WHERE equipamento IN ($placeholders) AND status != 'Armazenado') AS total"
         );
-        $stmt->execute();
+        $stmt->execute(array_merge(self::EQUIPAMENTOS_GAIOLA_CADILAC, self::EQUIPAMENTOS_GAIOLA_CADILAC));
         return (int) $stmt->fetchColumn();
     }
 

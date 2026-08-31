@@ -346,7 +346,7 @@ require_once '../../Function/trava.php';
                     <?php endforeach; ?>
                 <?php endif; ?>
                 <tr class="linha-resumo-gaiola">
-                    <td colspan="11">Total de Gaiola Cadilac embaladas aguardando armazenagem: <strong><?= $totalGaiolasPendentesArmazenagem ?></strong></td>
+                    <td colspan="11">Total de Gaiola Cadilac embalada aguardando armazenagem (todas as linhas): <strong><?= $totalGaiolasPendentesArmazenagem ?></strong></td>
                 </tr>
             </tbody>
         </table>

@@ -22,6 +22,27 @@ $filtro_tipo_eti  = isset($_GET['filtro_tipo_eti']) ? trim($_GET['filtro_tipo_et
 $filtro_data_ini  = isset($_GET['filtro_data_ini']) ? trim($_GET['filtro_data_ini']) : '';
 $filtro_data_fim  = isset($_GET['filtro_data_fim']) ? trim($_GET['filtro_data_fim']) : '';
 
+// Nomes de equipamento se sobrepõem por prefixo (ex: "CARRINHO CLASSICO" é
+// prefixo de "CARRINHO CLASSICO TORRE"/"TAUARI"/"HIBRIDO"), então um LIKE
+// '%...%' sempre pega os dois. Só usamos LIKE quando o texto digitado não
+// bate exatamente com nenhum nome de equipamento já cadastrado — quando
+// bate, é sinal de que o usuário quer só aquele item específico.
+$stmtItensDisponiveis = $db->query(
+    "SELECT DISTINCT equipamento FROM itens_producao WHERE equipamento NOT LIKE 'Emb.%'
+     UNION
+     SELECT DISTINCT equipamento FROM itens_os WHERE equipamento NOT LIKE 'Emb.%'
+     ORDER BY equipamento ASC"
+);
+$itensDisponiveis = $stmtItensDisponiveis->fetchAll(PDO::FETCH_COLUMN);
+
+$filtroItemExato = false;
+foreach ($itensDisponiveis as $nomeDisponivel) {
+    if (mb_strtolower(trim($nomeDisponivel)) === mb_strtolower($filtro_item)) {
+        $filtroItemExato = true;
+        break;
+    }
+}
+
 $params = [];
 
 $sql_producao = "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, 'PRODUCAO' AS tabela_origem 
@@ -33,8 +54,8 @@ if (!empty($filtro_pedido)) {
     $params[':pedido1'] = '%' . $filtro_pedido . '%';
 }
 if (!empty($filtro_item)) {
-    $sql_producao .= " AND equipamento LIKE :item1";
-    $params[':item1'] = '%' . $filtro_item . '%';
+    $sql_producao .= $filtroItemExato ? " AND equipamento = :item1" : " AND equipamento LIKE :item1";
+    $params[':item1'] = $filtroItemExato ? $filtro_item : '%' . $filtro_item . '%';
 }
 
 if (!empty($filtro_data_ini) && !empty($filtro_data_fim)) {
@@ -58,8 +79,8 @@ if (!empty($filtro_pedido)) {
     $params[':pedido2'] = '%' . $filtro_pedido . '%';
 }
 if (!empty($filtro_item)) {
-    $sql_os .= " AND equipamento LIKE :item2";
-    $params[':item2'] = '%' . $filtro_item . '%';
+    $sql_os .= $filtroItemExato ? " AND equipamento = :item2" : " AND equipamento LIKE :item2";
+    $params[':item2'] = $filtroItemExato ? $filtro_item : '%' . $filtro_item . '%';
 }
 
 if (!empty($filtro_data_ini) && !empty($filtro_data_fim)) {
@@ -378,7 +399,12 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             <div class="filter-group">
                 <label for="filtro_item">Nome do Item:</label>
-                <input type="text" name="filtro_item" id="filtro_item" value="<?= htmlspecialchars($filtro_item) ?>" placeholder="Ex: Reformer">
+                <input type="text" name="filtro_item" id="filtro_item" value="<?= htmlspecialchars($filtro_item) ?>" placeholder="Ex: Reformer" list="listaItensDisponiveis" autocomplete="off">
+                <datalist id="listaItensDisponiveis">
+                    <?php foreach ($itensDisponiveis as $nomeDisponivel): ?>
+                        <option value="<?= htmlspecialchars($nomeDisponivel) ?>">
+                    <?php endforeach; ?>
+                </datalist>
             </div>
 
             <div class="filter-group">

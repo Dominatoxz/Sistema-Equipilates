@@ -1,9 +1,11 @@
 <?php
 /*
- * Fecha a semana atual da Gaiola Cadilac (planejado - real) e grava o saldo
- * em gaiola_atrasos_semanais, pra alimentar o contador "Atrasados" nas
- * telas de produção do Contemporâneo. Feito pra rodar via CRON toda
- * semana (sábado) — CLI apenas, não é acessível por URL/navegador.
+ * Fecha a semana atual da Gaiola Cadilac (planejado - real, somando
+ * Contemporâneo + Clássico + Clássico Tauari — ver
+ * Sistema::EQUIPAMENTOS_GAIOLA_CADILAC) e grava o saldo em
+ * gaiola_atrasos_semanais, pra alimentar o contador "Atrasados" nas telas
+ * de produção. Feito pra rodar via CRON toda semana (sábado) — CLI
+ * apenas, não é acessível por URL/navegador.
  *
  * Configuração no painel da Hostinger (hPanel > Avançado > Cron Jobs):
  *   Frequência: toda semana, sábado, no horário desejado (ex: 23:00)
@@ -35,4 +37,5 @@ foreach (['itens_producao', 'itens_os'] as $tabela) {
         $resultado['real'],
         $resultado['deficit']
     );
+
 }

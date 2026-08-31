@@ -42,8 +42,7 @@ require_once '../../Function/trava.php';
         table {
             width: 100%;
             table-layout: fixed;
-            border-collapse: separate;
-            border-spacing: 0;
+            border-collapse: collapse;
             background: #fff;
         }
 
@@ -53,7 +52,7 @@ require_once '../../Function/trava.php';
             color: black;
             padding: 10px 5px;
             text-transform: uppercase;
-            font-size: 15px;
+            font-size: 18px;
             word-wrap: break-word;
             position: -webkit-sticky;
             position: sticky;
@@ -76,8 +75,19 @@ require_once '../../Function/trava.php';
         td:first-child {
             font-weight: bold;
             color: blue;
-            width: 60px;
+            width: 80px;
             font-size: 16px;
+        }
+
+        .linha-resumo-gaiola td {
+            position: -webkit-sticky;
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+            background-color: #ffffff;
+            text-align: left;
+            font-size: 18px;
+            box-shadow: inset 0 2px 0 #1c1c1c;
         }
 
         .column-data {
@@ -121,20 +131,41 @@ require_once '../../Function/trava.php';
             z-index: -1;
         }
 
-        #flash-effect {
+        #feedback-box {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(46, 204, 113, 0.6);
+            display: table;
+            text-align: center;
+            z-index: 9999;
             opacity: 0;
             pointer-events: none;
-            z-index: 9999;
+            transition: opacity 0.4s ease;
         }
 
-        .flash-active {
-            animation: pulseFlash 0.2s ease-out;
+        #feedback-box.active {
+            opacity: 1;
+        }
+
+        #feedback-content {
+            display: table-cell;
+            text-align: center;
+            vertical-align: middle;
+            color: white;
+            font-size: 45px;
+            font-weight: bold;
+            padding: 20px;
+        }
+
+        #feedback-content .sub-item {
+            font-size: 45px;
+            margin-top: 25px;
+            background: rgba(0, 0, 0, 0.2);
+            display: inline-block;
+            padding: 15px 40px;
+            border-radius: 50px;
         }
 
         .footer {
@@ -175,11 +206,24 @@ require_once '../../Function/trava.php';
             $sistema = new Sistema($db);
             $pedidosMistos = $sistema->pedidosMistos('itens_os');
 
-            $pedidos = $sistema->mostrarTabelaClassicoOs();
-            if (!isset($pedidos)) {
-                $pedidos = [];
+            $arquivo_cache = __DIR__ . '/../../cache/dados_painel_classico_os.json';
+            $tempo_expiracao = 30;
+
+            if (file_exists($arquivo_cache) && (time() - filemtime($arquivo_cache) < $tempo_expiracao)) {
+                $dados_tabela = json_decode(file_get_contents($arquivo_cache), true);
+            } else {
+                $dados_tabela = $sistema->mostrarTabelaClassicoOs();
+
+                if (!is_dir(__DIR__ . '/../../cache')) {
+                    mkdir(__DIR__ . '/../../cache', 0777, true);
+                }
+                file_put_contents($arquivo_cache, json_encode($dados_tabela, JSON_UNESCAPED_UNICODE));
             }
+
+            $pedidos = !empty($dados_tabela) ? $dados_tabela : [];
             $pedidos_agrupados = $pedidos;
+
+            $gaiolasProducao = $sistema->contarGaiolasCadilacProducao('itens_os');
 
             $equipamentos = [
                 'REF. CLASSICO ALUMINIO'    => 'Reformer Alumin',
@@ -296,7 +340,7 @@ require_once '../../Function/trava.php';
                                 </div>
                             </td>
 
-                            <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 5)) ?></td>
+                            <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
 
                             <?php foreach ($equipamentosVisiveis as $nome_equipamento => $rotulo):
                                 $pecas = $itensPorPedido[$pedido['numero']][$nome_equipamento] ?? [];
@@ -362,12 +406,16 @@ require_once '../../Function/trava.php';
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
+                <tr class="linha-resumo-gaiola">
+                    <td colspan="<?= $totalColunas ?>">Gaiola Cadilac da semana (todas as linhas) — Planejado: <strong><?= $gaiolasProducao['planejado'] ?></strong> &nbsp;|&nbsp; Real: <strong><?= $gaiolasProducao['real'] ?></strong> &nbsp;|&nbsp; <span style="color: #c0392b;">Atrasados: <strong><?= $gaiolasProducao['atrasados'] ?></strong></span></td>
+                </tr>
             </tbody>
         </table>
     </div>
 
-    <div id="flash-effect"></div>
-
+    <div id="feedback-box">
+        <div id="feedback-content"></div>
+    </div>
 
     <script>
         let pedidosAtuais = Array.from(document.querySelectorAll('tbody tr[id^="linha-"]'))

@@ -113,20 +113,41 @@ require_once '../../Function/trava.php';
             z-index: -1;
         }
 
-        #flash-effect {
+        #feedback-box {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(46, 204, 113, 0.6);
+            display: table;
+            text-align: center;
+            z-index: 9999;
             opacity: 0;
             pointer-events: none;
-            z-index: 9999;
+            transition: opacity 0.4s ease;
         }
 
-        .flash-active {
-            animation: pulseFlash 0.2s ease-out;
+        #feedback-box.active {
+            opacity: 1;
+        }
+
+        #feedback-content {
+            display: table-cell;
+            text-align: center;
+            vertical-align: middle;
+            color: white;
+            font-size: 45px;
+            font-weight: bold;
+            padding: 20px;
+        }
+
+        #feedback-content .sub-item {
+            font-size: 45px;
+            margin-top: 25px;
+            background: rgba(0, 0, 0, 0.2);
+            display: inline-block;
+            padding: 15px 40px;
+            border-radius: 50px;
         }
 
         .footer {
@@ -166,10 +187,21 @@ require_once '../../Function/trava.php';
 
             $sistema = new Sistema($db);
 
-            $pedidos = $sistema->mostrarTabelaClassicoAcessoriosOs();
-            if (!isset($pedidos)) {
-                $pedidos = [];
+            $arquivo_cache = __DIR__ . '/../../cache/dados_painel_classico_os_acess.json';
+            $tempo_expiracao = 30;
+
+            if (file_exists($arquivo_cache) && (time() - filemtime($arquivo_cache) < $tempo_expiracao)) {
+                $dados_tabela = json_decode(file_get_contents($arquivo_cache), true);
+            } else {
+                $dados_tabela = $sistema->mostrarTabelaClassicoAcessoriosOs();
+
+                if (!is_dir(__DIR__ . '/../../cache')) {
+                    mkdir(__DIR__ . '/../../cache', 0777, true);
+                }
+                file_put_contents($arquivo_cache, json_encode($dados_tabela, JSON_UNESCAPED_UNICODE));
             }
+
+            $pedidos = !empty($dados_tabela) ? $dados_tabela : [];
             $pedidos_agrupados = $pedidos;
 
             $equipamentos = [
@@ -295,7 +327,9 @@ require_once '../../Function/trava.php';
         </table>
     </div>
 
-    <div id="flash-effect"></div>
+    <div id="feedback-box">
+        <div id="feedback-content"></div>
+    </div>
 
 
     <script>
