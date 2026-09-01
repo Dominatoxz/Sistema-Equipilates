@@ -30,9 +30,17 @@ $sql = "
     SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, 'OS' AS tabela_origem
     FROM itens_os
     WHERE status != 'Embalado' AND equipamento NOT LIKE 'Emb.%'
-    ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC, id ASC
+    ORDER BY equipamento ASC, STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC, id ASC
 ";
 $itens = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+// Agrupa por equipamento (a query já vem ordenada por equipamento, então
+// os grupos ficam contíguos) — dentro de cada grupo a ordem já é
+// prazo/pedido/id, exatamente como a tela manual.
+$itensPorEquipamento = [];
+foreach ($itens as $item) {
+    $itensPorEquipamento[trim($item['equipamento'])][] = $item;
+}
 
 $stmtJaImpressa = $db->prepare(
     "SELECT 1 FROM impressoes_etiquetas WHERE id_item = :id_item AND tabela_origem = :tabela_origem AND tipo_etiqueta = :tipo_etiqueta LIMIT 1"
@@ -84,31 +92,41 @@ function montarZpl(array $item, string $tipo, bool $misto): string
 
 $jobs = [];
 
-foreach ($itens as $item) {
-    $nomeEquipamento = trim($item['equipamento']);
+// Por equipamento (ordem alfabética, vinda da query): primeiro todas as
+// etiquetas de PRODUÇÃO da semana daquele equipamento, depois todas as de
+// EMBALAGEM do mesmo equipamento, só então passa pro próximo equipamento.
+foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
     $apenasEmbalagem = strcasecmp($nomeEquipamento, 'Carrinho') === 0
         || strcasecmp($nomeEquipamento, 'Gaiola') === 0
         || strcasecmp($nomeEquipamento, 'Gaiola Cadilac') === 0;
 
-    $misto = in_array($item['numero_pedido'], $pedidosMistos);
-    $idItem = (int) $item['id'];
-    $tabelaOrigem = $item['tabela_origem'];
-
-    if (!$apenasEmbalagem && !jaFoiImpressa($stmtJaImpressa, $idItem, $tabelaOrigem, 'PRODUCAO')) {
-        $jobs[] = [
-            'id_item' => $idItem,
-            'tabela_origem' => $tabelaOrigem,
-            'tipo_etiqueta' => 'PRODUCAO',
-            'zpl' => montarZpl($item, 'PRODUCAO', $misto),
-        ];
+    if (!$apenasEmbalagem) {
+        foreach ($itensDoEquipamento as $item) {
+            $idItem = (int) $item['id'];
+            $tabelaOrigem = $item['tabela_origem'];
+            if (jaFoiImpressa($stmtJaImpressa, $idItem, $tabelaOrigem, 'PRODUCAO')) {
+                continue;
+            }
+            $jobs[] = [
+                'id_item' => $idItem,
+                'tabela_origem' => $tabelaOrigem,
+                'tipo_etiqueta' => 'PRODUCAO',
+                'zpl' => montarZpl($item, 'PRODUCAO', in_array($item['numero_pedido'], $pedidosMistos)),
+            ];
+        }
     }
 
-    if (!jaFoiImpressa($stmtJaImpressa, $idItem, $tabelaOrigem, 'EMBALAGEM')) {
+    foreach ($itensDoEquipamento as $item) {
+        $idItem = (int) $item['id'];
+        $tabelaOrigem = $item['tabela_origem'];
+        if (jaFoiImpressa($stmtJaImpressa, $idItem, $tabelaOrigem, 'EMBALAGEM')) {
+            continue;
+        }
         $jobs[] = [
             'id_item' => $idItem,
             'tabela_origem' => $tabelaOrigem,
             'tipo_etiqueta' => 'EMBALAGEM',
-            'zpl' => montarZpl($item, 'EMBALAGEM', $misto),
+            'zpl' => montarZpl($item, 'EMBALAGEM', in_array($item['numero_pedido'], $pedidosMistos)),
         ];
     }
 }
