@@ -72,8 +72,9 @@ function codigoBarra(array $item, string $sufixo): string
 
 function zplEscape(string $texto): string
 {
-    $semAcento = iconv('UTF-8', 'ASCII//TRANSLIT', $texto) ?: $texto;
-    return str_replace(['^', '~'], ['', ''], $semAcento);
+    // ^CI28 já ativa UTF-8 na etiqueta, então mantém acentos — só escapa
+    // os caracteres que o ZPL usa como controle (^ e ~).
+    return str_replace(['^', '~'], ['', ''], $texto);
 }
 
 function montarZpl(array $item, string $tipo, bool $misto): string
@@ -92,7 +93,7 @@ function montarZpl(array $item, string $tipo, bool $misto): string
     $numeroPedido = zplEscape('PEDIDO #' . $item['numero_pedido']);
     $equipamento  = zplEscape($item['equipamento']);
     $prazo        = zplEscape(substr((string) $item['prazo_producao'], 0, 10));
-    $subLinha     = zplEscape('Peca: ' . $item['posicao_no_pedido'] . ' | Prazo: ' . $prazo);
+    $subLinha     = zplEscape('Peça: ' . $item['posicao_no_pedido'] . ' | Prazo: ' . $prazo);
     $corExibir    = (!empty($item['cor']) && $item['cor'] !== 'COD. COR') ? $item['cor'] : 'NAO INFORMADA';
     $corLinha     = zplEscape('Cor: ' . $corExibir);
     $sufixo       = $ehEmbalagem ? 'E' : 'P';
@@ -110,8 +111,8 @@ function montarZpl(array $item, string $tipo, bool $misto): string
     $zpl .= "^FO{$baseX},108^A0N,30,30^FD{$equipamento}^FS\n";
     $zpl .= "^FO{$baseX},148^A0N,22,22^FD{$subLinha}^FS\n";
     $zpl .= "^FO{$baseX},176^A0N,22,22^FD{$corLinha}^FS\n";
-    $zpl .= "^BY3\n^FO" . ($baseX + 40) . ",225^BCN,90,N,N,N^FD{$codigo}^FS\n";
-    $zpl .= "^FO{$baseX},325^A0N,20,20^FB{$larguraUtil},1,0,C^FDID: {$codigo}^FS\n";
+    $zpl .= "^FO{$baseX},204^A0N,22,22^FB{$larguraUtil},1,0,C^FDID: {$codigo}^FS\n";
+    $zpl .= "^BY3\n^FO" . ($baseX + 40) . ",232^BCN,90,N,N,N^FD{$codigo}^FS\n";
     $zpl .= "^XZ\n";
 
     return $zpl;
