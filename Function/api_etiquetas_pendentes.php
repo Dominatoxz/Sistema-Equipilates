@@ -120,7 +120,7 @@ function montarZpl(array $item, string $tipo, bool $misto): string
     // largura do modulo.
     $larguraBarcode = ((11 * strlen($codigo)) + 35) * $moduleWidth;
     $xBarcode = $baseX + max(0, (int) (($larguraUtil - $larguraBarcode) / 2));
-    $zpl .= "^BY{$moduleWidth}\n^FO{$xBarcode}," . ($margemTopo + 232) . "^BCN,90,N,N,N^FD{$codigo}^FS\n";
+    $zpl .= "^BY{$moduleWidth}\n^FO{$xBarcode}," . ($margemTopo + 250) . "^BCN,90,N,N,N^FD{$codigo}^FS\n";
     $zpl .= "^XZ\n";
 
     return $zpl;
