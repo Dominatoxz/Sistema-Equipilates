@@ -112,7 +112,7 @@ function montarZpl(array $item, string $tipo, bool $misto): string
     $zpl .= "^FO{$baseX},148^A0N,22,22^FD{$subLinha}^FS\n";
     $zpl .= "^FO{$baseX},176^A0N,22,22^FD{$corLinha}^FS\n";
     $zpl .= "^FO{$baseX},204^A0N,22,22^FB{$larguraUtil},1,0,C^FDID: {$codigo}^FS\n";
-    $zpl .= "^BY5\n^FO" . ($baseX + 20) . ",232^BCN,90,N,N,N^FD{$codigo}^FS\n";
+    $zpl .= "^BY8\n^FO" . ($baseX + 20) . ",232^BCN,90,N,N,N^FD{$codigo}^FS\n";
     $zpl .= "^XZ\n";
 
     return $zpl;
