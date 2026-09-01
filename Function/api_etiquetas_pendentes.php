@@ -3,6 +3,7 @@ require_once '../global.php';
 require_once '../config/Database.php';
 require_once '../Model/Sistema.php';
 
+date_default_timezone_set('America/Sao_Paulo');
 header('Content-Type: application/json');
 
 $tokenEsperado = getenv('AUTO_PRINT_TOKEN');
@@ -22,17 +23,34 @@ $pedidosMistos = array_unique(array_merge(
     $sistema->pedidosMistos('itens_os')
 ));
 
+// Só considera a "semana que vem": segunda a domingo seguintes à data
+// atual, calculado a cada execução. A semana corrente não entra aqui —
+// é tratada manualmente/já foi impressa.
+$inicioSemana = new DateTime('next monday');
+$fimSemana = (clone $inicioSemana)->modify('+6 days');
+$paramDataIni = $inicioSemana->format('Y-m-d');
+$paramDataFim = $fimSemana->format('Y-m-d');
+
 $sql = "
     SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, 'PRODUCAO' AS tabela_origem
     FROM itens_producao
     WHERE status != 'Embalado' AND equipamento NOT LIKE 'Emb.%'
+      AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :data_ini1 AND :data_fim1
     UNION ALL
     SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, 'OS' AS tabela_origem
     FROM itens_os
     WHERE status != 'Embalado' AND equipamento NOT LIKE 'Emb.%'
+      AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :data_ini2 AND :data_fim2
     ORDER BY equipamento ASC, STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC, id ASC
 ";
-$itens = $db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+$stmtItens = $db->prepare($sql);
+$stmtItens->execute([
+    ':data_ini1' => $paramDataIni,
+    ':data_fim1' => $paramDataFim,
+    ':data_ini2' => $paramDataIni,
+    ':data_fim2' => $paramDataFim,
+]);
+$itens = $stmtItens->fetchAll(PDO::FETCH_ASSOC);
 
 // Agrupa por equipamento (a query já vem ordenada por equipamento, então
 // os grupos ficam contíguos) — dentro de cada grupo a ordem já é
