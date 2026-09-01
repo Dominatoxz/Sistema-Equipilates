@@ -86,7 +86,7 @@ function montarZpl(array $item, string $tipo, bool $misto): string
     // destaque, sub-linha peça/prazo, cor, e código de barras no rodapé.
     $ehEmbalagem  = $tipo === 'EMBALAGEM';
     $tituloTipo   = $ehEmbalagem ? 'EMBALAGEM' : 'PRODUCAO';
-    $larguraBarra = $ehEmbalagem ? 50 : 14;
+    $larguraBarra = $ehEmbalagem ? 100 : 14;
     $baseX        = $larguraBarra + 24;
     $larguraUtil  = 807 - $baseX - 20;
 
