@@ -54,7 +54,32 @@
       "Bash(php -l View/Expedicao/tabela_classico_expedicao.php)",
       "Bash(php -l View/Expedicao/tabela_classico_acess_expedicao.php)",
       "Bash(php -l Model/Sistema.php)",
-      "Bash(grep -n \"ORDER BY STR_TO_DATE\\(\\\\`PRAZO DE PRODUCAO\\\\`, '%d/%m/%Y'\\) ASC, \\\\`NUMERO PEDIDO\\\\` ASC\\\\\";\" Model/Sistema.php)"
+      "Bash(grep -n \"ORDER BY STR_TO_DATE\\(\\\\`PRAZO DE PRODUCAO\\\\`, '%d/%m/%Y'\\) ASC, \\\\`NUMERO PEDIDO\\\\` ASC\\\\\";\" Model/Sistema.php)",
+      "Bash(openssl rand *)",
+      "Bash(php -r \"echo password_hash\\('bloqueado-' . bin2hex\\(random_bytes\\(16\\)\\), PASSWORD_BCRYPT\\), PHP_EOL;\")",
+      "Bash(git fetch *)",
+      "Bash(git stash *)",
+      "Bash(git merge *)",
+      "Bash(ssh mint@10.0.0.18 \"mkdir -p ~/etiquetas-auto && chmod 700 ~/etiquetas-auto\")",
+      "Bash(ssh -o ConnectTimeout=10 mint@10.0.0.18 \"echo ok\")",
+      "Bash(ping -n 2 10.0.0.18)",
+      "Bash(ssh mint@10.0.0.18 \"mkdir -p ~/etiquetas-auto && chmod 700 ~/etiquetas-auto && echo CRIADO\")",
+      "Bash(scp \"C:/Users/Equipilates 01/AppData/Local/Temp/claude/C--Sistemas/433a1c25-3296-4919-9d54-d16f9fc52d55/scratchpad/imprimir_etiquetas.py\" mint@10.0.0.18:~/etiquetas-auto/imprimir_etiquetas.py)",
+      "Bash(ssh mint@10.0.0.18 *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(php -l Function/api_etiquetas_pendentes.php)",
+      "Bash(git push *)",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" -H \"X-Auto-Token: e966f3b55c02e8e80e3183d112521ee5b6c40260d46f2490ea6058031ad9d1d8\" https://sistemaequipiltes.com/Function/api_etiquetas_pendentes.php)",
+      "Bash(nslookup sistemaequipiltes.com)",
+      "Bash(curl -v https://sistemaequipiltes.com)",
+      "Bash(nslookup sistemaequipilates.com)",
+      "Bash(curl -s -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\" -H \"X-Auto-Token: e966f3b55c02e8e80e3183d112521ee5b6c40260d46f2490ea6058031ad9d1d8\" https://sistemaequipilates.com/Function/api_etiquetas_pendentes.php)",
+      "Bash(curl -s -D - -o /dev/null -H \"X-Auto-Token: e966f3b55c02e8e80e3183d112521ee5b6c40260d46f2490ea6058031ad9d1d8\" https://sistemaequipilates.com/Function/api_etiquetas_pendentes.php)",
+      "Bash(curl -s -D - -o /dev/null https://sistemaequipilates.com/Function/arquivo_que_nao_existe_teste123.php)",
+      "Bash(curl -s -D - -o /dev/null https://sistemaequipilates.com/Function/imprimir_etiquetas.php)",
+      "Bash(curl -s -D - -o /dev/null https://sistemaequipilates.com/arquivo_raiz_teste123.php)",
+      "Bash(curl -s -D - -o /dev/null https://sistemaequipilates.com/config/Database.php)"
     ]
   }
 }

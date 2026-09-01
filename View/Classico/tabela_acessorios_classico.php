@@ -49,17 +49,28 @@ require_once '../../Function/trava.php';
 
         th {
             background-color: #ffffff;
-            height: 50px;
+            height: 300px;
             color: black;
-            padding: 10px 5px;
+            padding: 8px 4px;
             text-transform: uppercase;
-            font-size: 12px;
-            word-wrap: break-word;
+            font-size: 13px;
+            white-space: nowrap;
+            writing-mode: vertical-lr;
+            transform: rotate(180deg);
             position: -webkit-sticky;
             position: sticky;
             top: 0;
             z-index: 10;
             box-shadow: inset 0 -2px 0 #1c1c1c;
+        }
+
+        /* Pedido e Prazo continuam na horizontal — só os nomes de
+           equipamento/acessório (a maioria das colunas) ficam verticais. */
+        th:first-child,
+        th:nth-child(2) {
+            writing-mode: horizontal-tb;
+            transform: none;
+            white-space: normal;
         }
 
         td {
