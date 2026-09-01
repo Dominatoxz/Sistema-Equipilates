@@ -23,9 +23,6 @@ $pedidosMistos = array_unique(array_merge(
     $sistema->pedidosMistos('itens_os')
 ));
 
-// Só considera a "semana que vem": segunda a domingo seguintes à data
-// atual, calculado a cada execução. A semana corrente não entra aqui —
-// é tratada manualmente/já foi impressa.
 $inicioSemana = new DateTime('next monday');
 $fimSemana = (clone $inicioSemana)->modify('+6 days');
 $paramDataIni = $inicioSemana->format('Y-m-d');
@@ -52,9 +49,6 @@ $stmtItens->execute([
 ]);
 $itens = $stmtItens->fetchAll(PDO::FETCH_ASSOC);
 
-// Agrupa por equipamento (a query já vem ordenada por equipamento, então
-// os grupos ficam contíguos) — dentro de cada grupo a ordem já é
-// prazo/pedido/id, exatamente como a tela manual.
 $itensPorEquipamento = [];
 foreach ($itens as $item) {
     $itensPorEquipamento[trim($item['equipamento'])][] = $item;
@@ -84,35 +78,46 @@ function zplEscape(string $texto): string
 
 function montarZpl(array $item, string $tipo, bool $misto): string
 {
-    $numeroPedido = zplEscape('PEDIDO #' . $item['numero_pedido'] . ($misto ? ' [MISTO]' : ''));
-    $tituloTipo   = $tipo === 'PRODUCAO' ? 'PRODUCAO' : 'EMBALAGEM';
+    // Reproduz a mesma hierarquia visual da tela manual (imprimir_etiquetas.php):
+    // barra lateral marcando o tipo (lá é cor cinza/preta; na térmica, que só
+    // imprime preto, viram fina/grossa), cabeçalho com pedido + badge MISTO à
+    // esquerda e tipo à direita, linha separadora, título do equipamento em
+    // destaque, sub-linha peça/prazo, cor, e código de barras no rodapé.
+    $ehEmbalagem  = $tipo === 'EMBALAGEM';
+    $tituloTipo   = $ehEmbalagem ? 'EMBALAGEM' : 'PRODUCAO';
+    $larguraBarra = $ehEmbalagem ? 50 : 14;
+    $baseX        = $larguraBarra + 24;
+    $larguraUtil  = 807 - $baseX - 20;
+
+    $numeroPedido = zplEscape('PEDIDO #' . $item['numero_pedido']);
     $equipamento  = zplEscape($item['equipamento']);
     $prazo        = zplEscape(substr((string) $item['prazo_producao'], 0, 10));
     $subLinha     = zplEscape('Peca: ' . $item['posicao_no_pedido'] . ' | Prazo: ' . $prazo);
     $corExibir    = (!empty($item['cor']) && $item['cor'] !== 'COD. COR') ? $item['cor'] : 'NAO INFORMADA';
     $corLinha     = zplEscape('Cor: ' . $corExibir);
-    $sufixo       = $tipo === 'PRODUCAO' ? 'P' : 'E';
+    $sufixo       = $ehEmbalagem ? 'E' : 'P';
     $codigo       = codigoBarra($item, $sufixo);
 
-    return "^XA\n"
-        . "^PW807\n"
-        . "^LL400\n"
-        . "^CI28\n"
-        . "^FO20,20^A0N,42,42^FD{$numeroPedido}^FS\n"
-        . "^FO20,70^A0N,32,32^FD{$tituloTipo}^FS\n"
-        . "^FO20,115^A0N,28,28^FD{$equipamento}^FS\n"
-        . "^FO20,150^A0N,22,22^FD{$subLinha}^FS\n"
-        . "^FO20,178^A0N,22,22^FD{$corLinha}^FS\n"
-        . "^BY3\n"
-        . "^FO60,225^BCN,90,Y,N,N^FD{$codigo}^FS\n"
-        . "^XZ\n";
+    $zpl = "^XA\n^PW807\n^LL400\n^CI28\n";
+    $zpl .= "^FO0,0^GB{$larguraBarra},400,{$larguraBarra}^FS\n";
+    $zpl .= "^FO{$baseX},18^A0N,38,38^FD{$numeroPedido}^FS\n";
+    $zpl .= "^FO{$baseX},18^A0N,28,28^FB{$larguraUtil},1,0,R^FD{$tituloTipo}^FS\n";
+    if ($misto) {
+        $zpl .= "^FO{$baseX},62^GB90,26,26^FS\n";
+        $zpl .= "^FO" . ($baseX + 10) . ",66^FR^A0N,18,18^FDMISTO^FS\n";
+    }
+    $zpl .= "^FO{$baseX},96^GB{$larguraUtil},2,2^FS\n";
+    $zpl .= "^FO{$baseX},108^A0N,30,30^FD{$equipamento}^FS\n";
+    $zpl .= "^FO{$baseX},148^A0N,22,22^FD{$subLinha}^FS\n";
+    $zpl .= "^FO{$baseX},176^A0N,22,22^FD{$corLinha}^FS\n";
+    $zpl .= "^BY3\n^FO" . ($baseX + 40) . ",225^BCN,90,Y,N,N^FD{$codigo}^FS\n";
+    $zpl .= "^XZ\n";
+
+    return $zpl;
 }
 
 $jobs = [];
 
-// Por equipamento (ordem alfabética, vinda da query): primeiro todas as
-// etiquetas de PRODUÇÃO da semana daquele equipamento, depois todas as de
-// EMBALAGEM do mesmo equipamento, só então passa pro próximo equipamento.
 foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
     $apenasEmbalagem = strcasecmp($nomeEquipamento, 'Carrinho') === 0
         || strcasecmp($nomeEquipamento, 'Gaiola') === 0
