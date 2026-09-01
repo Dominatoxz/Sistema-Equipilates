@@ -100,25 +100,27 @@ function montarZpl(array $item, string $tipo, bool $misto): string
     $sufixo       = $ehEmbalagem ? 'E' : 'P';
     $codigo       = codigoBarra($item, $sufixo);
 
+    $margemTopo = 25;
+
     $zpl = "^XA\n^PW807\n^LL400\n^CI28\n";
     $zpl .= "^FO0,0^GB{$larguraBarra},400,{$larguraBarra}^FS\n";
-    $zpl .= "^FO{$baseX},18^A0N,38,38^FD{$numeroPedido}^FS\n";
-    $zpl .= "^FO{$baseX},18^A0N,28,28^FB{$larguraUtil},1,0,R^FD{$tituloTipo}^FS\n";
+    $zpl .= "^FO{$baseX}," . ($margemTopo + 18) . "^A0N,38,38^FD{$numeroPedido}^FS\n";
+    $zpl .= "^FO{$baseX}," . ($margemTopo + 18) . "^A0N,28,28^FB{$larguraUtil},1,0,R^FD{$tituloTipo}^FS\n";
     if ($misto) {
-        $zpl .= "^FO{$baseX},62^GB90,26,26^FS\n";
-        $zpl .= "^FO" . ($baseX + 10) . ",66^FR^A0N,18,18^FDMISTO^FS\n";
+        $zpl .= "^FO{$baseX}," . ($margemTopo + 62) . "^GB90,26,26^FS\n";
+        $zpl .= "^FO" . ($baseX + 10) . "," . ($margemTopo + 66) . "^FR^A0N,18,18^FDMISTO^FS\n";
     }
-    $zpl .= "^FO{$baseX},96^GB{$larguraUtil},2,2^FS\n";
-    $zpl .= "^FO{$baseX},108^A0N,30,30^FD{$equipamento}^FS\n";
-    $zpl .= "^FO{$baseX},148^A0N,22,22^FD{$subLinha}^FS\n";
-    $zpl .= "^FO{$baseX},176^A0N,22,22^FD{$corLinha}^FS\n";
-    $zpl .= "^FO{$baseX},204^A0N,22,22^FB{$larguraUtil},1,0,C^FDID: {$codigo}^FS\n";
+    $zpl .= "^FO{$baseX}," . ($margemTopo + 96) . "^GB{$larguraUtil},2,2^FS\n";
+    $zpl .= "^FO{$baseX}," . ($margemTopo + 108) . "^A0N,30,30^FD{$equipamento}^FS\n";
+    $zpl .= "^FO{$baseX}," . ($margemTopo + 148) . "^A0N,22,22^FD{$subLinha}^FS\n";
+    $zpl .= "^FO{$baseX}," . ($margemTopo + 176) . "^A0N,22,22^FD{$corLinha}^FS\n";
+    $zpl .= "^FO{$baseX}," . ($margemTopo + 204) . "^A0N,22,22^FB{$larguraUtil},1,0,C^FDID: {$codigo}^FS\n";
     // Estimativa de largura do Code128 (Subset B) em dots pra centralizar:
     // ~11 modulos por caractere + 35 de start/stop/checksum, vezes a
     // largura do modulo.
     $larguraBarcode = ((11 * strlen($codigo)) + 35) * $moduleWidth;
     $xBarcode = $baseX + max(0, (int) (($larguraUtil - $larguraBarcode) / 2));
-    $zpl .= "^BY{$moduleWidth}\n^FO{$xBarcode},232^BCN,90,N,N,N^FD{$codigo}^FS\n";
+    $zpl .= "^BY{$moduleWidth}\n^FO{$xBarcode}," . ($margemTopo + 232) . "^BCN,90,N,N,N^FD{$codigo}^FS\n";
     $zpl .= "^XZ\n";
 
     return $zpl;
