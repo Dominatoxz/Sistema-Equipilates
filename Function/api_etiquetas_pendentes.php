@@ -86,9 +86,10 @@ function montarZpl(array $item, string $tipo, bool $misto): string
     // destaque, sub-linha peça/prazo, cor, e código de barras no rodapé.
     $ehEmbalagem  = $tipo === 'EMBALAGEM';
     $tituloTipo   = $ehEmbalagem ? 'EMBALAGEM' : 'PRODUCAO';
-    $larguraBarra = $ehEmbalagem ? 50 : 14;
+    $larguraBarra = 50;
     $baseX        = $larguraBarra + 24;
     $larguraUtil  = 807 - $baseX - 20;
+    $moduleWidth  = 5;
 
     $numeroPedido = zplEscape('PEDIDO #' . $item['numero_pedido']);
     $equipamento  = zplEscape($item['equipamento']);
@@ -112,7 +113,12 @@ function montarZpl(array $item, string $tipo, bool $misto): string
     $zpl .= "^FO{$baseX},148^A0N,22,22^FD{$subLinha}^FS\n";
     $zpl .= "^FO{$baseX},176^A0N,22,22^FD{$corLinha}^FS\n";
     $zpl .= "^FO{$baseX},204^A0N,22,22^FB{$larguraUtil},1,0,C^FDID: {$codigo}^FS\n";
-    $zpl .= "^BY6\n^FO" . ($baseX + 20) . ",232^BCN,90,N,N,N^FD{$codigo}^FS\n";
+    // Estimativa de largura do Code128 (Subset B) em dots pra centralizar:
+    // ~11 modulos por caractere + 35 de start/stop/checksum, vezes a
+    // largura do modulo.
+    $larguraBarcode = ((11 * strlen($codigo)) + 35) * $moduleWidth;
+    $xBarcode = $baseX + max(0, (int) (($larguraUtil - $larguraBarcode) / 2));
+    $zpl .= "^BY{$moduleWidth}\n^FO{$xBarcode},232^BCN,90,N,N,N^FD{$codigo}^FS\n";
     $zpl .= "^XZ\n";
 
     return $zpl;
