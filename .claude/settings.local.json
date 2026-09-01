@@ -79,7 +79,11 @@
       "Bash(curl -s -D - -o /dev/null https://sistemaequipilates.com/Function/arquivo_que_nao_existe_teste123.php)",
       "Bash(curl -s -D - -o /dev/null https://sistemaequipilates.com/Function/imprimir_etiquetas.php)",
       "Bash(curl -s -D - -o /dev/null https://sistemaequipilates.com/arquivo_raiz_teste123.php)",
-      "Bash(curl -s -D - -o /dev/null https://sistemaequipilates.com/config/Database.php)"
+      "Bash(curl -s -D - -o /dev/null https://sistemaequipilates.com/config/Database.php)",
+      "Bash(curl -s -D - -H \"X-Auto-Token: e966f3b55c02e8e80e3183d112521ee5b6c40260d46f2490ea6058031ad9d1d8\" https://sistemaequipilates.com/Function/api_etiquetas_pendentes.php)",
+      "Bash(curl -s -D - https://sistemaequipilates.com/Function/api_etiquetas_pendentes.php)",
+      "Bash(git ls-tree *)",
+      "Bash(curl -s -D - -H \"Cache-Control: no-cache\" -H \"Pragma: no-cache\" \"https://sistemaequipilates.com/Function/api_etiquetas_pendentes.php?nocache=$\\(date +%s\\)\")"
     ]
   }
 }

@@ -61,6 +61,7 @@ require_once '../../Function/trava.php';
             position: sticky;
             top: 0;
             z-index: 10;
+            border: 1px solid #1c1c1c;
             box-shadow: inset 0 -2px 0 #1c1c1c;
         }
 
