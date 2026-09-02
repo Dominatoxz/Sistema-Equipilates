@@ -788,7 +788,7 @@ require_once '../Function/trava.php';
                         if (item.status === 'Armazenado') corStatus = '#f0b8ff; color: #3a0242;';
 
                         let seloQualidade = '';
-                        if (item.status === 'Produzido') {
+                        if (item.status === 'Produzido' && item.status_qualidade && item.status_qualidade !== 'N/A') {
                             const corQ = item.status_qualidade === 'Aprovado' ? '#2a7a4f' : '#a9700f';
                             seloQualidade = ` <span title="Qualidade: ${item.status_qualidade}" style="display:inline-block;background:${corQ};color:#fff;font-size:9px;font-weight:bold;border-radius:50%;width:13px;height:13px;line-height:13px;text-align:center;">Q</span>`;
                         } else if (item.status === 'Pendente' && item.qualidade_tentativas > 0) {

@@ -284,8 +284,10 @@ require_once '../../Function/trava.php';
                                                     $texto = '⚠️';
                                                 } elseif ($peca['status'] === 'Produzido') {
                                                     $texto = '✅';
-                                                    $corQ = ($peca['status_qualidade'] ?? '') === 'Aprovado' ? '#2a7a4f' : '#a9700f';
-                                                    $seloQ = ' <span title="Qualidade" style="display:inline-block;background:' . $corQ . ';color:#fff;font-size:10px;font-weight:bold;border-radius:50%;width:14px;height:14px;line-height:14px;text-align:center;vertical-align:top;">Q</span>';
+                                                    if (!in_array($peca['status_qualidade'] ?? 'N/A', ['N/A', ''], true)) {
+                                                        $corQ = ($peca['status_qualidade'] ?? '') === 'Aprovado' ? '#2a7a4f' : '#a9700f';
+                                                        $seloQ = ' <span title="Qualidade" style="display:inline-block;background:' . $corQ . ';color:#fff;font-size:10px;font-weight:bold;border-radius:50%;width:14px;height:14px;line-height:14px;text-align:center;vertical-align:top;">Q</span>';
+                                                    }
                                                 } elseif ($peca['status'] === 'Embalado' || $peca['status'] === 'Armazenado') {
                                                     $texto = 'E';
                                                     $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
