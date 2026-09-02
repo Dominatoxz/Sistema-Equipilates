@@ -266,7 +266,7 @@ require_once '../../Function/trava.php';
                             <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
 
                             <?php foreach ($equipamentos as $nome_equipamento):
-                                $stmt = $db->prepare("SELECT id, status FROM itens_producao WHERE numero_pedido = ? AND equipamento = ?");
+                                $stmt = $db->prepare("SELECT id, status, status_qualidade, qualidade_tentativas FROM itens_producao WHERE numero_pedido = ? AND equipamento = ?");
                                 $stmt->execute([$pedido['numero'], $nome_equipamento]);
                                 $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             ?>
@@ -279,9 +279,14 @@ require_once '../../Function/trava.php';
 
                                                 $texto = '❌';
                                                 $estilo = '';
+                                                $seloQ = '';
 
-                                                if ($peca['status'] === 'Produzido') {
+                                                if ($peca['status'] === 'Pendente' && ((int) ($peca['qualidade_tentativas'] ?? 0)) > 0) {
+                                                    $texto = '⚠️';
+                                                } elseif ($peca['status'] === 'Produzido') {
                                                     $texto = '✅';
+                                                    $corQ = ($peca['status_qualidade'] ?? '') === 'Aprovado' ? '#2a7a4f' : '#a9700f';
+                                                    $seloQ = ' <span title="Qualidade" style="display:inline-block;background:' . $corQ . ';color:#fff;font-size:10px;font-weight:bold;border-radius:50%;width:14px;height:14px;line-height:14px;text-align:center;vertical-align:top;">Q</span>';
                                                 } elseif ($peca['status'] === 'Embalado' || $peca['status'] === 'Armazenado') {
                                                     $texto = 'E';
                                                     $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
@@ -293,7 +298,7 @@ require_once '../../Function/trava.php';
                                                     data-equipamento="<?= htmlspecialchars($nome_equipamento) ?>"
                                                     <?= $estilo ?>
                                                     style="font-size: 20px;">
-                                                    <?= $texto ?>
+                                                    <?= $texto . $seloQ ?>
                                                 </span>
                                             <?php endforeach; ?>
                                         <?php else: ?>

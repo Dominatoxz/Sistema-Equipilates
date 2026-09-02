@@ -305,7 +305,7 @@ require_once '../../Function/trava.php';
                 $placeholdersPedidos = implode(',', array_fill(0, count($numerosPedidos), '?'));
                 $placeholdersEquip = implode(',', array_fill(0, count($nomesEquipamentos), '?'));
 
-                $sqlLote = "SELECT id, status, numero_pedido, equipamento
+                $sqlLote = "SELECT id, status, status_qualidade, qualidade_tentativas, numero_pedido, equipamento
                             FROM itens_os
                             WHERE numero_pedido IN ($placeholdersPedidos)
                               AND equipamento IN ($placeholdersEquip)
@@ -363,9 +363,14 @@ require_once '../../Function/trava.php';
                                             foreach ($pecas as $peca):
                                                 $texto = '❌';
                                                 $estilo = '';
+                                                $seloQ = '';
 
-                                                if ($peca['status'] === 'Produzido') {
+                                                if ($peca['status'] === 'Pendente' && ((int) ($peca['qualidade_tentativas'] ?? 0)) > 0) {
+                                                    $texto = '⚠️';
+                                                } elseif ($peca['status'] === 'Produzido') {
                                                     $texto = '✅';
+                                                    $corQ = ($peca['status_qualidade'] ?? '') === 'Aprovado' ? '#2a7a4f' : '#a9700f';
+                                                    $seloQ = ' <span title="Qualidade" style="display:inline-block;background:' . $corQ . ';color:#fff;font-size:10px;font-weight:bold;border-radius:50%;width:14px;height:14px;line-height:14px;text-align:center;vertical-align:top;">Q</span>';
                                                 } elseif ($peca['status'] === 'Embalado' || $peca['status'] === 'Armazenado') {
                                                     $texto = 'E';
                                                     $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
@@ -375,7 +380,7 @@ require_once '../../Function/trava.php';
                                                     data-id="OS<?= $peca['id'] ?>"
                                                     <?= $estilo ?>
                                                     style="font-size: 25px;">
-                                                    <?= $texto ?>
+                                                    <?= $texto . $seloQ ?>
                                                 </span>
                                             <?php endforeach; ?>
                                         <?php else: ?>

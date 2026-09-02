@@ -45,7 +45,7 @@ foreach ($itensDisponiveis as $nomeDisponivel) {
 
 $params = [];
 
-$sql_producao = "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, 'PRODUCAO' AS tabela_origem 
+$sql_producao = "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, qualidade_tentativas, 'PRODUCAO' AS tabela_origem
                  FROM itens_producao
                  WHERE status != 'Embalado' AND equipamento NOT LIKE 'Emb.%'";
 
@@ -70,7 +70,7 @@ if (!empty($filtro_data_ini) && !empty($filtro_data_fim)) {
     $params[':data_fim1'] = $filtro_data_fim;
 }
 
-$sql_os = "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, 'OS' AS tabela_origem 
+$sql_os = "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, qualidade_tentativas, 'OS' AS tabela_origem
            FROM itens_os
            WHERE status != 'Embalado' AND equipamento NOT LIKE 'Emb.%'";
 
@@ -463,8 +463,14 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 $isOS = ($item['tabela_origem'] === 'OS');
                 $CodigoBarraBase = $isOS ? 'OS' . $item['id'] : $item['id'];
 
-                $barcodeFabrica   = base64_encode($generator->getBarcode($CodigoBarraBase . '-P', $generator::TYPE_CODE_128));
-                $barcodeEmbalagem = base64_encode($generator->getBarcode($CodigoBarraBase . '-E', $generator::TYPE_CODE_128));
+                // Item já reprovado pela qualidade uma vez: etiqueta de reimpressão
+                // leva -PQ/-EQ em vez de -P/-E, pra sinalizar atenção redobrada.
+                $jaReprovado = ((int) ($item['qualidade_tentativas'] ?? 0)) > 0;
+                $sufixoP = $jaReprovado ? '-PQ' : '-P';
+                $sufixoE = $jaReprovado ? '-EQ' : '-E';
+
+                $barcodeFabrica   = base64_encode($generator->getBarcode($CodigoBarraBase . $sufixoP, $generator::TYPE_CODE_128));
+                $barcodeEmbalagem = base64_encode($generator->getBarcode($CodigoBarraBase . $sufixoE, $generator::TYPE_CODE_128));
 
                 $corExibir = (!empty($item['cor']) && $item['cor'] !== 'COD. COR') ? htmlspecialchars($item['cor']) : 'NÃO INFORMADA';
 
@@ -492,7 +498,7 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="barcodeSection">
                             <img src="data:image/png;base64,<?= $barcodeFabrica ?>" class="barcode">
                         </div>
-                        <div class="id-text">ID: <?= $item['id'] ?>-P</div>
+                        <div class="id-text">ID: <?= $item['id'] . $sufixoP ?></div>
                     </div>
                 <?php
                 endif;
@@ -515,7 +521,7 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="barcodeSection">
                             <img src="data:image/png;base64,<?= $barcodeEmbalagem ?>" class="barcode">
                         </div>
-                        <div class="id-text">ID: <?= $item['id'] ?>-E</div>
+                        <div class="id-text">ID: <?= $item['id'] . $sufixoE ?></div>
                     </div>
             <?php
                 endif;

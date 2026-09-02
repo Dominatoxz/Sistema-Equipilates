@@ -91,6 +91,9 @@ CREATE TABLE IF NOT EXISTS `itens_producao` (
   `posicao_no_pedido` int(11) NOT NULL,
   `cor` varchar(100) DEFAULT NULL,
   `status` varchar(50) DEFAULT 'Pendente',
+  `status_qualidade` enum('N/A','Aguardando','Aprovado','Reprovado') NOT NULL DEFAULT 'N/A',
+  `qualidade_tentativas` int(11) NOT NULL DEFAULT 0,
+  `reimpressao_liberada` tinyint(1) NOT NULL DEFAULT 0,
   `data_inicio` datetime DEFAULT NULL,
   `data_fim` datetime DEFAULT NULL,
   `data_armazem` datetime DEFAULT NULL,
@@ -107,6 +110,9 @@ CREATE TABLE IF NOT EXISTS `itens_os` (
   `posicao_no_pedido` int(11) NOT NULL,
   `cor` varchar(100) DEFAULT NULL,
   `status` varchar(50) DEFAULT 'Pendente',
+  `status_qualidade` enum('N/A','Aguardando','Aprovado','Reprovado') NOT NULL DEFAULT 'N/A',
+  `qualidade_tentativas` int(11) NOT NULL DEFAULT 0,
+  `reimpressao_liberada` tinyint(1) NOT NULL DEFAULT 0,
   `data_inicio` datetime DEFAULT NULL,
   `data_fim` datetime DEFAULT NULL,
   `data_armazem` datetime DEFAULT NULL,
@@ -210,6 +216,28 @@ CREATE TABLE IF NOT EXISTS `push_subscriptions` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_endpoint` (`endpoint`(255)),
   KEY `idx_nivel_acesso` (`nivel_acesso`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `qualidade_inspecoes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tabela_origem` enum('itens_producao','itens_os') NOT NULL,
+  `item_id` int(11) NOT NULL,
+  `tentativa` int(11) NOT NULL,
+  `decisao` enum('Aprovado','Reprovado') NOT NULL,
+  `telegram_user` varchar(100) NOT NULL,
+  `telegram_chat_id` varchar(50) NOT NULL,
+  `criado_em` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_item` (`tabela_origem`,`item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `qualidade_telegram_chats` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nome` varchar(100) NOT NULL,
+  `chat_id` varchar(50) NOT NULL,
+  `ativo` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `chat_id` (`chat_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `gaiola_atrasos_semanais` (

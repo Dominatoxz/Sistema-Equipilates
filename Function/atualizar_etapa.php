@@ -3,6 +3,7 @@ require_once '../Function/trava.php';
 header('Content-Type: application/json');
 require_once '../config/Database.php';
 require_once '../Function/notificar_pos_producao.php';
+require_once '../Function/notificar_qualidade.php';
 $db = (new Database())->getConnection();
 
 $codigoLido = $_GET['id'] ?? null;
@@ -12,6 +13,9 @@ if ($codigoLido) {
     $partes = explode('-', $codigoLido);
     $idBruto = $partes[0] ?? null;
     $tipo = $partes[1] ?? null;
+    // Etiquetas de reimpressão (pós-reprovação da qualidade) vêm como -PQ/-EQ;
+    // só o primeiro caractere importa pra máquina de estados abaixo.
+    $tipoBase = $tipo ? strtoupper($tipo[0]) : null;
 
     if (strpos(strtoupper($idBruto),  'OS') === 0) {
         $tabelaAlvo = 'itens_os';
@@ -36,7 +40,7 @@ if ($codigoLido) {
         $novoStatus = '';
         $colunaData = '';
 
-        if ($tipo === 'P') {
+        if ($tipoBase === 'P') {
             if ($origem !== 'producao') {
                 echo json_encode(['success' => false, 'error' => 'Ação não permitida nesta tela.']);
                 exit;
@@ -49,7 +53,7 @@ if ($codigoLido) {
                 echo json_encode(['success' => false, 'error' => 'Este item já foi fabricado!']);
                 exit;
             }
-        } elseif ($tipo === 'E') {
+        } elseif ($tipoBase === 'E') {
             if ($origem === 'expedicao') {
                 if ($statusAtual === 'Embalado') {
                     $novoStatus = 'Armazenado';
@@ -66,6 +70,13 @@ if ($codigoLido) {
                 $nomeEquipamentoAtual = trim($item['equipamento'] ?? '');
 
                 if ($statusAtual === 'Produzido') {
+                    if (($item['status_qualidade'] ?? 'N/A') !== 'Aprovado') {
+                        $mensagemBloqueio = ($item['status_qualidade'] ?? '') === 'Reprovado'
+                            ? 'Item reprovado pela qualidade — aguardando nova produção.'
+                            : 'Item aguardando aprovação da qualidade.';
+                        echo json_encode(['success' => false, 'error' => $mensagemBloqueio]);
+                        exit;
+                    }
                     $novoStatus = 'Embalado';
                     $colunaData = 'data_fim';
                     $podeAtualizar = true;
@@ -88,10 +99,11 @@ if ($codigoLido) {
             date_default_timezone_set('America/Sao_Paulo');
             $dataHoraPHP = date('Y-m-d H:i:s');
 
+            $setQualidade = ($novoStatus === 'Produzido') ? ", status_qualidade = 'Aguardando'" : '';
             if ($colunaData !== '') {
-                $query = "UPDATE $tabelaAlvo SET status = :status, $colunaData = :data_registro WHERE id = :id AND status = :status_esperado";
+                $query = "UPDATE $tabelaAlvo SET status = :status, $colunaData = :data_registro$setQualidade WHERE id = :id AND status = :status_esperado";
             } else {
-                $query = "UPDATE $tabelaAlvo SET status = :status WHERE id = :id AND status = :status_esperado";
+                $query = "UPDATE $tabelaAlvo SET status = :status$setQualidade WHERE id = :id AND status = :status_esperado";
             }
             $stmt = $db->prepare($query);
             $stmt->bindParam(':status', $novoStatus);
@@ -124,6 +136,10 @@ if ($codigoLido) {
                 $notificacaoPosProducao = null;
                 if (in_array($novoStatus, ['Embalado', 'Armazenado'], true) && $nrPedidoDoBanco !== 'Desconhecido') {
                     $notificacaoPosProducao = notificarPosProducao($db, (string) $nrPedidoDoBanco);
+                }
+
+                if ($novoStatus === 'Produzido') {
+                    notificarQualidade($db, $tabelaAlvo, $id);
                 }
 
                 echo json_encode([

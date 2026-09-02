@@ -29,15 +29,17 @@ $paramDataIni = $inicioSemana->format('Y-m-d');
 $paramDataFim = $fimSemana->format('Y-m-d');
 
 $sql = "
-    SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, 'PRODUCAO' AS tabela_origem
+    SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, qualidade_tentativas, reimpressao_liberada, 'PRODUCAO' AS tabela_origem
     FROM itens_producao
     WHERE status != 'Embalado' AND equipamento NOT LIKE 'Emb.%'
       AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :data_ini1 AND :data_fim1
+      AND (qualidade_tentativas = 0 OR reimpressao_liberada = 1)
     UNION ALL
-    SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, 'OS' AS tabela_origem
+    SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, qualidade_tentativas, reimpressao_liberada, 'OS' AS tabela_origem
     FROM itens_os
     WHERE status != 'Embalado' AND equipamento NOT LIKE 'Emb.%'
       AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :data_ini2 AND :data_fim2
+      AND (qualidade_tentativas = 0 OR reimpressao_liberada = 1)
     ORDER BY equipamento ASC, STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC, id ASC
 ";
 $stmtItens = $db->prepare($sql);
@@ -98,6 +100,10 @@ function montarZpl(array $item, string $tipo, bool $misto): string
     $corExibir    = (!empty($item['cor']) && $item['cor'] !== 'COD. COR') ? $item['cor'] : 'NAO INFORMADA';
     $corLinha     = zplEscape('Cor: ' . $corExibir);
     $sufixo       = $ehEmbalagem ? 'E' : 'P';
+    if (((int) ($item['qualidade_tentativas'] ?? 0)) > 0) {
+        // Reimpressão pós-reprovação da qualidade: -PQ/-EQ em vez de -P/-E.
+        $sufixo .= 'Q';
+    }
     $codigo       = codigoBarra($item, $sufixo);
 
     $margemTopo = 25;
@@ -115,9 +121,7 @@ function montarZpl(array $item, string $tipo, bool $misto): string
     $zpl .= "^FO{$baseX}," . ($margemTopo + 148) . "^A0N,22,22^FD{$subLinha}^FS\n";
     $zpl .= "^FO{$baseX}," . ($margemTopo + 176) . "^A0N,22,22^FD{$corLinha}^FS\n";
     $zpl .= "^FO{$baseX}," . ($margemTopo + 204) . "^A0N,22,22^FB{$larguraUtil},1,0,C^FDID: {$codigo}^FS\n";
-    // Estimativa de largura do Code128 (Subset B) em dots pra centralizar:
-    // ~11 modulos por caractere + 35 de start/stop/checksum, vezes a
-    // largura do modulo.
+
     $larguraBarcode = ((11 * strlen($codigo)) + 35) * $moduleWidth;
     $xBarcode = $baseX + max(0, (int) (($larguraUtil - $larguraBarcode) / 2));
     $zpl .= "^BY{$moduleWidth}\n^FO{$xBarcode}," . ($margemTopo + 250) . "^BCN,90,N,N,N^FD{$codigo}^FS\n";
@@ -137,13 +141,19 @@ foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
         foreach ($itensDoEquipamento as $item) {
             $idItem = (int) $item['id'];
             $tabelaOrigem = $item['tabela_origem'];
-            if (jaFoiImpressa($stmtJaImpressa, $idItem, $tabelaOrigem, 'PRODUCAO')) {
+            $tentativas = (int) ($item['qualidade_tentativas'] ?? 0);
+            // Cada rodada de reprovação usa uma chave de dedup própria
+            // (PRODUCAO_Q1, PRODUCAO_Q2, ...), senão a reimpressão nunca
+            // aparece de novo depois que a primeira etiqueta já foi marcada
+            // como impressa em impressoes_etiquetas.
+            $tipoEtiquetaJob = $tentativas > 0 ? "PRODUCAO_Q{$tentativas}" : 'PRODUCAO';
+            if (jaFoiImpressa($stmtJaImpressa, $idItem, $tabelaOrigem, $tipoEtiquetaJob)) {
                 continue;
             }
             $jobs[] = [
                 'id_item' => $idItem,
                 'tabela_origem' => $tabelaOrigem,
-                'tipo_etiqueta' => 'PRODUCAO',
+                'tipo_etiqueta' => $tipoEtiquetaJob,
                 'zpl' => montarZpl($item, 'PRODUCAO', in_array($item['numero_pedido'], $pedidosMistos)),
             ];
         }
@@ -152,13 +162,15 @@ foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
     foreach ($itensDoEquipamento as $item) {
         $idItem = (int) $item['id'];
         $tabelaOrigem = $item['tabela_origem'];
-        if (jaFoiImpressa($stmtJaImpressa, $idItem, $tabelaOrigem, 'EMBALAGEM')) {
+        $tentativas = (int) ($item['qualidade_tentativas'] ?? 0);
+        $tipoEtiquetaJob = $tentativas > 0 ? "EMBALAGEM_Q{$tentativas}" : 'EMBALAGEM';
+        if (jaFoiImpressa($stmtJaImpressa, $idItem, $tabelaOrigem, $tipoEtiquetaJob)) {
             continue;
         }
         $jobs[] = [
             'id_item' => $idItem,
             'tabela_origem' => $tabelaOrigem,
-            'tipo_etiqueta' => 'EMBALAGEM',
+            'tipo_etiqueta' => $tipoEtiquetaJob,
             'zpl' => montarZpl($item, 'EMBALAGEM', in_array($item['numero_pedido'], $pedidosMistos)),
         ];
     }

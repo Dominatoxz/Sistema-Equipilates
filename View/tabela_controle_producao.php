@@ -592,9 +592,17 @@ require_once '../Function/trava.php';
                             if (item.status === 'Produzido') corStatus = '#b8daff; color: #004085;';
                             if (item.status === 'Armazenado') corStatus = '#f0b8ff; color: #3a0242;';
 
+                            let seloQualidade = '';
+                            if (item.status === 'Produzido') {
+                                const corQ = item.status_qualidade === 'Aprovado' ? '#2a7a4f' : '#a9700f';
+                                seloQualidade = ` <span title="Qualidade: ${item.status_qualidade}" style="display:inline-block;background:${corQ};color:#fff;font-size:9px;font-weight:bold;border-radius:50%;width:13px;height:13px;line-height:13px;text-align:center;">Q</span>`;
+                            } else if (item.status === 'Pendente' && item.qualidade_tentativas > 0) {
+                                seloQualidade = ' ⚠️';
+                            }
+
                             return `<li>
                             <span style="font-weight:600; color:#34495e; padding-right: 15px;">${item.nome}</span>
-                            <span style="font-size:11px; padding:2px 8px; border-radius:12px; font-weight:bold; background:${corStatus}; white-space:nowrap;">${item.status}</span>
+                            <span style="font-size:11px; padding:2px 8px; border-radius:12px; font-weight:bold; background:${corStatus}; white-space:nowrap;">${item.status}${seloQualidade}</span>
                         </li>`;
                         }).join('');
                     } else {

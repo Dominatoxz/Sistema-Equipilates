@@ -17,10 +17,10 @@ try {
 
     if ($origem === 'OS') {
         $tabela = 'itens_os';
-        $query = "SELECT equipamento AS nome_produto, status FROM $tabela WHERE numero_pedido = :pedido AND equipamento NOT LIKE '%Emb.%'";
+        $query = "SELECT equipamento AS nome_produto, status, status_qualidade, qualidade_tentativas FROM $tabela WHERE numero_pedido = :pedido AND equipamento NOT LIKE '%Emb.%'";
     } else {
         $tabela = 'itens_producao';
-        $query = "SELECT equipamento AS nome_produto, status FROM $tabela WHERE numero_pedido = :pedido AND equipamento NOT LIKE '%Emb.%'";
+        $query = "SELECT equipamento AS nome_produto, status, status_qualidade, qualidade_tentativas FROM $tabela WHERE numero_pedido = :pedido AND equipamento NOT LIKE '%Emb.%'";
     }
 
     $stmt = $db->prepare($query);
@@ -32,7 +32,9 @@ try {
     foreach ($linhas as $l) {
         $itensFormatados[] = [
             'nome' => $l['nome_produto'] ?? 'Item sem identificação',
-            'status' => trim($l['status'])
+            'status' => trim($l['status']),
+            'status_qualidade' => $l['status_qualidade'] ?? 'N/A',
+            'qualidade_tentativas' => (int) ($l['qualidade_tentativas'] ?? 0),
         ];
     }
 
