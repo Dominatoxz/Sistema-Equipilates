@@ -4,6 +4,7 @@ header('Content-Type: application/json');
 require_once '../config/Database.php';
 require_once '../Function/notificar_pos_producao.php';
 require_once '../Function/notificar_qualidade.php';
+require_once '../Model/Sistema.php';
 $db = (new Database())->getConnection();
 
 date_default_timezone_set('America/Sao_Paulo');
@@ -11,6 +12,13 @@ date_default_timezone_set('America/Sao_Paulo');
 // itens já em produção antes disso seguem o fluxo antigo, direto pro embalo.
 const DATA_CORTE_QUALIDADE = '2026-09-03';
 $gateQualidadeAtivo = date('Y-m-d') >= DATA_CORTE_QUALIDADE;
+
+// Inspeção de qualidade só vale pra equipamento principal (tabela.php /
+// tabela_classico.php) — acessório nunca entra no gate.
+$equipamentosComGateQualidade = array_merge(
+    Sistema::EQUIPAMENTOS_PRINCIPAIS_CONTEMPORANEO,
+    Sistema::EQUIPAMENTOS_PRINCIPAIS_CLASSICO
+);
 
 $codigoLido = $_GET['id'] ?? null;
 $origem = $_GET['origem'] ?? 'producao';
@@ -108,7 +116,9 @@ if ($codigoLido) {
         if ($podeAtualizar) {
             $dataHoraPHP = date('Y-m-d H:i:s');
 
-            $setQualidade = ($novoStatus === 'Produzido' && $gateQualidadeAtivo) ? ", status_qualidade = 'Aguardando'" : '';
+            $ehItemComGateQualidade = in_array(trim($item['equipamento'] ?? ''), $equipamentosComGateQualidade, true);
+            $entraNoGateQualidade = $novoStatus === 'Produzido' && $gateQualidadeAtivo && $ehItemComGateQualidade;
+            $setQualidade = $entraNoGateQualidade ? ", status_qualidade = 'Aguardando'" : '';
             if ($colunaData !== '') {
                 $query = "UPDATE $tabelaAlvo SET status = :status, $colunaData = :data_registro$setQualidade WHERE id = :id AND status = :status_esperado";
             } else {
@@ -147,7 +157,7 @@ if ($codigoLido) {
                     $notificacaoPosProducao = notificarPosProducao($db, (string) $nrPedidoDoBanco);
                 }
 
-                if ($novoStatus === 'Produzido' && $gateQualidadeAtivo) {
+                if ($entraNoGateQualidade) {
                     notificarQualidade($db, $tabelaAlvo, $id);
                 }
 
