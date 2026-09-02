@@ -6,6 +6,12 @@ require_once '../Function/notificar_pos_producao.php';
 require_once '../Function/notificar_qualidade.php';
 $db = (new Database())->getConnection();
 
+date_default_timezone_set('America/Sao_Paulo');
+// Gate de qualidade só vale pra item marcado Produzido a partir desta data —
+// itens já em produção antes disso seguem o fluxo antigo, direto pro embalo.
+const DATA_CORTE_QUALIDADE = '2026-09-03';
+$gateQualidadeAtivo = date('Y-m-d') >= DATA_CORTE_QUALIDADE;
+
 $codigoLido = $_GET['id'] ?? null;
 $origem = $_GET['origem'] ?? 'producao';
 
@@ -70,8 +76,12 @@ if ($codigoLido) {
                 $nomeEquipamentoAtual = trim($item['equipamento'] ?? '');
 
                 if ($statusAtual === 'Produzido') {
-                    if (($item['status_qualidade'] ?? 'N/A') !== 'Aprovado') {
-                        $mensagemBloqueio = ($item['status_qualidade'] ?? '') === 'Reprovado'
+                    // Só bloqueia quem realmente entrou no gate (Aguardando/Reprovado).
+                    // 'N/A' é item de antes da virada de chave ou com o gate
+                    // desligado — segue liberado, como sempre foi.
+                    $statusQualidadeAtual = $item['status_qualidade'] ?? 'N/A';
+                    if (in_array($statusQualidadeAtual, ['Aguardando', 'Reprovado'], true)) {
+                        $mensagemBloqueio = ($statusQualidadeAtual === 'Reprovado')
                             ? 'Item reprovado pela qualidade — aguardando nova produção.'
                             : 'Item aguardando aprovação da qualidade.';
                         echo json_encode(['success' => false, 'error' => $mensagemBloqueio]);
@@ -96,10 +106,9 @@ if ($codigoLido) {
         }
 
         if ($podeAtualizar) {
-            date_default_timezone_set('America/Sao_Paulo');
             $dataHoraPHP = date('Y-m-d H:i:s');
 
-            $setQualidade = ($novoStatus === 'Produzido') ? ", status_qualidade = 'Aguardando'" : '';
+            $setQualidade = ($novoStatus === 'Produzido' && $gateQualidadeAtivo) ? ", status_qualidade = 'Aguardando'" : '';
             if ($colunaData !== '') {
                 $query = "UPDATE $tabelaAlvo SET status = :status, $colunaData = :data_registro$setQualidade WHERE id = :id AND status = :status_esperado";
             } else {
@@ -138,7 +147,7 @@ if ($codigoLido) {
                     $notificacaoPosProducao = notificarPosProducao($db, (string) $nrPedidoDoBanco);
                 }
 
-                if ($novoStatus === 'Produzido') {
+                if ($novoStatus === 'Produzido' && $gateQualidadeAtivo) {
                     notificarQualidade($db, $tabelaAlvo, $id);
                 }
 
