@@ -17,11 +17,56 @@ if (empty($secretEsperado) || !hash_equals($secretEsperado, $secretRecebido)) {
 $token = getenv('TELEGRAM_QUALIDADE_BOT_TOKEN');
 $update = json_decode(file_get_contents('php://input'), true);
 $callback = $update['callback_query'] ?? null;
+$db = (new Database())->getConnection();
 
-// Mensagem de texto comum (ex: /start) — não é decisão de qualidade, só
-// devolve o chat_id pra facilitar o cadastro em qualidade_telegram_chats.
+// Mensagem de texto comum (/start, /status ...) — não é decisão de qualidade
+// em si, é comando de quem já está cadastrado.
 if (!$callback && isset($update['message']['chat']['id'])) {
     $chatIdMsg = $update['message']['chat']['id'];
+    $textoMsg = trim($update['message']['text'] ?? '');
+
+    // /status <id> qualidade  ou  /status OS<id> qualidade — coloca o item
+    // em "Aguardando qualidade" manualmente e dispara a mensagem de
+    // aprovar/reprovar, sem precisar esperar a bipagem física. Só quem já
+    // está cadastrado (qualidade ou liderança) pode usar.
+    if (preg_match('/^\/status\s+(OS)?(\d+)\s+qualidade$/i', $textoMsg, $m)) {
+        $stmtAutorizado = $db->prepare('SELECT 1 FROM qualidade_telegram_chats WHERE chat_id = ? AND ativo = 1');
+        $stmtAutorizado->execute([(string) $chatIdMsg]);
+
+        if (!$stmtAutorizado->fetchColumn()) {
+            telegramApiCall($token, 'sendMessage', [
+                'chat_id' => $chatIdMsg,
+                'text' => 'Esse comando é só pra quem já está cadastrado em qualidade_telegram_chats.',
+            ]);
+            echo json_encode(['ok' => true]);
+            exit;
+        }
+
+        $tabelaCmd = !empty($m[1]) ? 'itens_os' : 'itens_producao';
+        $idCmd = (int) $m[2];
+        $idExibicaoCmd = ($tabelaCmd === 'itens_os') ? 'OS' . $idCmd : (string) $idCmd;
+
+        $stmtCmd = $db->prepare("UPDATE $tabelaCmd SET status_qualidade = 'Aguardando' WHERE id = :id");
+        $stmtCmd->execute([':id' => $idCmd]);
+
+        if ($stmtCmd->rowCount() === 0) {
+            telegramApiCall($token, 'sendMessage', [
+                'chat_id' => $chatIdMsg,
+                'text' => "Item {$idExibicaoCmd} não encontrado.",
+            ]);
+        } else {
+            notificarQualidade($db, $tabelaCmd, $idCmd);
+            telegramApiCall($token, 'sendMessage', [
+                'chat_id' => $chatIdMsg,
+                'text' => "Item {$idExibicaoCmd} colocado em inspeção de qualidade.",
+            ]);
+        }
+        echo json_encode(['ok' => true]);
+        exit;
+    }
+
+    // Qualquer outra mensagem (ex: /start) — só devolve o chat_id pra
+    // facilitar o cadastro em qualidade_telegram_chats.
     telegramApiCall($token, 'sendMessage', [
         'chat_id' => $chatIdMsg,
         'text' => "👋 Seu chat_id é: {$chatIdMsg}\nPassa esse número pra ser cadastrado na lista de quem recebe as inspeções de qualidade.",
@@ -51,8 +96,6 @@ if (count($partes) !== 5 || $partes[0] !== 'q') {
 [, $acao, $tabelaCurta, $idStr, $tentativaStr] = $partes;
 $id = (int) $idStr;
 $tabela = ($tabelaCurta === 'o') ? 'itens_os' : 'itens_producao';
-
-$db = (new Database())->getConnection();
 
 function responderCallback(string $token, string $callbackId, string $texto, bool $alerta = false): void
 {
