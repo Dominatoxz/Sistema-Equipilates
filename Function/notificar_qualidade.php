@@ -27,7 +27,7 @@ function notificarQualidade(PDO $db, string $tabela, int $id): void
         return;
     }
 
-    $stmtChats = $db->prepare('SELECT chat_id FROM qualidade_telegram_chats WHERE ativo = 1');
+    $stmtChats = $db->prepare("SELECT chat_id FROM qualidade_telegram_chats WHERE ativo = 1 AND tipo = 'qualidade'");
     $stmtChats->execute();
     $chats = $stmtChats->fetchAll(PDO::FETCH_COLUMN);
     if (empty($chats)) {

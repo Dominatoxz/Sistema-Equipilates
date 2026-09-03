@@ -130,16 +130,29 @@ try {
         $novaTentativa = (int) $stmtTentativas->fetchColumn();
 
         $idExibicao = ($tabela === 'itens_os') ? 'OS' . $id : (string) $id;
-        $sufixoLetra = null; // decidido só na hora de gerar a etiqueta (produção ou embalagem, conforme o que já rodou)
-        telegramApiCall($token, 'sendMessage', [
-            'chat_id' => $chatId,
-            'text' => "🖨️ Item {$idExibicao} reprovado — confirma a impressão da nova etiqueta (-PQ/-EQ)?",
-            'reply_markup' => [
-                'inline_keyboard' => [[
-                    ['text' => '🖨️ Aprovar impressão', 'callback_data' => "q:imprimir:{$tabelaCurta}:{$id}:{$novaTentativa}"],
-                ]],
-            ],
-        ]);
+
+        // Segunda aprovação (liberar a reimpressão pro CRON) vai pra
+        // liderança, não pra quem decidiu a inspeção de qualidade.
+        $stmtLiderancas = $db->prepare("SELECT chat_id FROM qualidade_telegram_chats WHERE ativo = 1 AND tipo = 'lideranca'");
+        $stmtLiderancas->execute();
+        $chatsLiderancas = $stmtLiderancas->fetchAll(PDO::FETCH_COLUMN);
+
+        if (empty($chatsLiderancas)) {
+            error_log('telegram_qualidade_webhook: nenhuma liderança cadastrada/ativa pra aprovar reimpressão.');
+        }
+
+        $tecladoImprimir = [
+            'inline_keyboard' => [[
+                ['text' => '🖨️ Aprovar impressão', 'callback_data' => "q:imprimir:{$tabelaCurta}:{$id}:{$novaTentativa}"],
+            ]],
+        ];
+        foreach ($chatsLiderancas as $chatIdLideranca) {
+            telegramApiCall($token, 'sendMessage', [
+                'chat_id' => $chatIdLideranca,
+                'text' => "🖨️ Item {$idExibicao} reprovado pela qualidade — confirma a impressão da nova etiqueta (-PQ/-EQ)?",
+                'reply_markup' => $tecladoImprimir,
+            ]);
+        }
     } elseif ($acao === 'imprimir') {
         $stmt = $db->prepare("UPDATE $tabela SET reimpressao_liberada = 1 WHERE id = :id AND status_qualidade = 'Reprovado'");
         $stmt->execute([':id' => $id]);

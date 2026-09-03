@@ -235,6 +235,7 @@ CREATE TABLE IF NOT EXISTS `qualidade_telegram_chats` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `nome` varchar(100) NOT NULL,
   `chat_id` varchar(50) NOT NULL,
+  `tipo` enum('qualidade','lideranca') NOT NULL DEFAULT 'qualidade',
   `ativo` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`),
   UNIQUE KEY `chat_id` (`chat_id`)
