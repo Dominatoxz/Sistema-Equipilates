@@ -61,6 +61,11 @@ function notificarQualidade(PDO $db, string $tabela, int $id): void
         ]],
     ];
 
+    $stmtRegistrarMsg = $db->prepare(
+        "INSERT INTO qualidade_mensagens_enviadas (tabela_origem, item_id, tentativa, chat_id, message_id)
+         VALUES (:tabela, :id, :tentativa, :chat_id, :message_id)"
+    );
+
     foreach ($chats as $chatId) {
         $resposta = telegramApiCall($token, 'sendMessage', [
             'chat_id' => $chatId,
@@ -70,6 +75,17 @@ function notificarQualidade(PDO $db, string $tabela, int $id): void
         ]);
         if (empty($resposta['ok'])) {
             error_log('notificarQualidade: falha ao enviar para chat ' . $chatId . ': ' . json_encode($resposta));
+            continue;
         }
+
+        // Guarda essa cópia da mensagem pra poder editar todas quando
+        // alguém decidir, não só a de quem clicou.
+        $stmtRegistrarMsg->execute([
+            ':tabela' => $tabela,
+            ':id' => $id,
+            ':tentativa' => $tentativaAtual,
+            ':chat_id' => $chatId,
+            ':message_id' => $resposta['result']['message_id'] ?? 0,
+        ]);
     }
 }

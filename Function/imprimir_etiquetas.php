@@ -463,9 +463,10 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 $isOS = ($item['tabela_origem'] === 'OS');
                 $CodigoBarraBase = $isOS ? 'OS' . $item['id'] : $item['id'];
 
-                // Item já reprovado pela qualidade uma vez: etiqueta de reimpressão
-                // leva -PQ/-EQ em vez de -P/-E, pra sinalizar atenção redobrada.
-                $jaReprovado = ((int) ($item['qualidade_tentativas'] ?? 0)) > 0;
+                // Item já reprovado 2x ou mais: etiqueta de reimpressão leva
+                // -PQ/-EQ em vez de -P/-E. Na 1ª reprovação ainda usa a
+                // etiqueta original (mesmo sufixo), sem pedir reimpressão.
+                $jaReprovado = ((int) ($item['qualidade_tentativas'] ?? 0)) >= 2;
                 $sufixoP = $jaReprovado ? '-PQ' : '-P';
                 $sufixoE = $jaReprovado ? '-EQ' : '-E';
 
