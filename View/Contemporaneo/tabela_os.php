@@ -303,7 +303,7 @@ require_once '../../Function/trava.php';
                                                 $texto = '✅';
                                                 if (!in_array($peca['status_qualidade'] ?? 'N/A', ['N/A', ''], true)) {
                                                     $corQ = ($peca['status_qualidade'] ?? '') === 'Aprovado' ? '#2a7a4f' : '#a9700f';
-                                                    $seloQ = ' <span title="Qualidade" style="display:inline-block;background:' . $corQ . ';color:#fff;font-size:10px;font-weight:bold;border-radius:50%;width:14px;height:14px;line-height:14px;text-align:center;vertical-align:top;">Q</span>';
+                                                    $seloQ = ' <span title="Qualidade" style="position:absolute;top:-8px;right:-10px;display:inline-flex;align-items:center;justify-content:center;background:' . $corQ . ';color:#fff;font-size:13px;font-weight:bold;border-radius:50%;width:20px;height:20px;line-height:1;">Q</span>';
                                                 }
                                             } elseif ($peca['status'] === 'Embalado' || $peca['status'] === 'Armazenado') {
                                                 $texto = 'E';
@@ -315,7 +315,7 @@ require_once '../../Function/trava.php';
                                                 data-pedido="<?= htmlspecialchars($pedido['numero']) ?>"
                                                 data-equipamento="<?= htmlspecialchars($nome_equipamento) ?>"
                                                 <?= $estilo ?>
-                                                style="font-size: 25px;">
+                                                style="font-size: 25px; position: relative; display: inline-block;">
                                                 <?= $texto . $seloQ ?>
                                             </span>
                                         <?php endforeach; ?>
