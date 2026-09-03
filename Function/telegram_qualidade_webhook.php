@@ -24,8 +24,7 @@ if (!$callback && isset($update['message']['chat']['id'])) {
     $chatIdMsg = $update['message']['chat']['id'];
     telegramApiCall($token, 'sendMessage', [
         'chat_id' => $chatIdMsg,
-        'text' => "👋 Seu chat_id é: `{$chatIdMsg}`\nPassa esse número pra ser cadastrado em qualidade_telegram_chats.",
-        'parse_mode' => 'Markdown',
+        'text' => "👋 Seu chat_id é: {$chatIdMsg}\nPassa esse número pra ser cadastrado na lista de quem recebe as inspeções de qualidade.",
     ]);
     echo json_encode(['ok' => true]);
     exit;
