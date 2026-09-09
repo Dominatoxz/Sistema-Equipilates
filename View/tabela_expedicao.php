@@ -792,7 +792,7 @@ require_once '../Function/trava.php';
                             const corQ = item.status_qualidade === 'Aprovado' ? '#2a7a4f' : '#a9700f';
                             seloQualidade = ` <span title="Qualidade: ${item.status_qualidade}" style="display:inline-block;background:${corQ};color:#fff;font-size:9px;font-weight:bold;border-radius:50%;width:13px;height:13px;line-height:13px;text-align:center;">Q</span>`;
                         } else if (item.status === 'Pendente' && item.qualidade_tentativas > 0) {
-                            seloQualidade = ' ⚠️';
+                            seloQualidade = ' ✅<span title="Retrabalho" style="display:inline-block;background:#c0392b;color:#fff;font-size:9px;font-weight:bold;border-radius:50%;width:13px;height:13px;line-height:13px;text-align:center;">Q</span>';
                         }
 
                         return `<div class="item-status-card">
