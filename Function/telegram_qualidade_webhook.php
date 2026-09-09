@@ -191,54 +191,76 @@ try {
 
         $idExibicao = ($tabela === 'itens_os') ? 'OS' . $id : (string) $id;
 
-        // Só a partir da 2ª reprovação seguida é que pede etiqueta nova —
-        // na 1ª, o item só volta pra produção com a mesma etiqueta física
-        // de antes (só muda o símbolo ⚠️ na tela).
-        if ($novaTentativa >= 2) {
-            $textoDecisao = "❌ <b>Reprovado</b> por @{$usuarioTelegram}.\nItem voltou para produção — tentativa {$novaTentativa}, nova etiqueta necessária.";
-        } else {
-            $textoDecisao = "❌ <b>Reprovado</b> por @{$usuarioTelegram}.\nItem voltou para produção — reproduzir com a mesma etiqueta.";
-        }
+        // Reprovado sempre pede etiqueta nova (não depende mais de contar
+        // quantas vezes já foi reprovado) — quem quer manter a etiqueta
+        // física de antes usa o botão de Retrabalho, não este.
+        $textoDecisao = "❌ <b>Reprovado</b> por @{$usuarioTelegram}.\nItem voltou para produção — tentativa {$novaTentativa}, nova etiqueta necessária.";
         sincronizarMensagens($db, $token, $tabela, $id, (int) $tentativaStr, $textoDecisao);
         responderCallback($token, $callbackId, 'Reprovado.');
 
-        if ($novaTentativa >= 2) {
-            // Segunda aprovação (liberar a reimpressão pro CRON) vai pra
-            // liderança, não pra quem decidiu a inspeção de qualidade.
-            $stmtLiderancas = $db->prepare("SELECT chat_id FROM qualidade_telegram_chats WHERE ativo = 1 AND tipo = 'lideranca'");
-            $stmtLiderancas->execute();
-            $chatsLiderancas = $stmtLiderancas->fetchAll(PDO::FETCH_COLUMN);
+        // Liberar a reimpressão pro CRON vai pra liderança, não pra quem
+        // decidiu a inspeção de qualidade.
+        $stmtLiderancas = $db->prepare("SELECT chat_id FROM qualidade_telegram_chats WHERE ativo = 1 AND tipo = 'lideranca'");
+        $stmtLiderancas->execute();
+        $chatsLiderancas = $stmtLiderancas->fetchAll(PDO::FETCH_COLUMN);
 
-            if (empty($chatsLiderancas)) {
-                error_log('telegram_qualidade_webhook: nenhuma liderança cadastrada/ativa pra aprovar reimpressão.');
-            }
+        if (empty($chatsLiderancas)) {
+            error_log('telegram_qualidade_webhook: nenhuma liderança cadastrada/ativa pra aprovar reimpressão.');
+        }
 
-            $tecladoImprimir = [
-                'inline_keyboard' => [[
-                    ['text' => '🖨️ Aprovar impressão', 'callback_data' => "q:imprimir:{$tabelaCurta}:{$id}:{$novaTentativa}"],
-                ]],
-            ];
-            $stmtRegistrarMsgLideranca = $db->prepare(
-                "INSERT INTO qualidade_mensagens_enviadas (tabela_origem, item_id, tentativa, chat_id, message_id)
-                 VALUES (:tabela, :id, :tentativa, :chat_id, :message_id)"
-            );
-            foreach ($chatsLiderancas as $chatIdLideranca) {
-                $respostaLideranca = telegramApiCall($token, 'sendMessage', [
-                    'chat_id' => $chatIdLideranca,
-                    'text' => "🖨️ Item {$idExibicao} reprovado {$novaTentativa}x pela qualidade — confirma a impressão da nova etiqueta (-PQ/-EQ)?",
-                    'reply_markup' => $tecladoImprimir,
+        $tecladoImprimir = [
+            'inline_keyboard' => [[
+                ['text' => '🖨️ Aprovar impressão', 'callback_data' => "q:imprimir:{$tabelaCurta}:{$id}:{$novaTentativa}"],
+            ]],
+        ];
+        $stmtRegistrarMsgLideranca = $db->prepare(
+            "INSERT INTO qualidade_mensagens_enviadas (tabela_origem, item_id, tentativa, chat_id, message_id)
+             VALUES (:tabela, :id, :tentativa, :chat_id, :message_id)"
+        );
+        foreach ($chatsLiderancas as $chatIdLideranca) {
+            $respostaLideranca = telegramApiCall($token, 'sendMessage', [
+                'chat_id' => $chatIdLideranca,
+                'text' => "🖨️ Item {$idExibicao} reprovado pela qualidade — confirma a impressão da nova etiqueta (-PQ/-EQ)?",
+                'reply_markup' => $tecladoImprimir,
+            ]);
+            if (!empty($respostaLideranca['ok'])) {
+                $stmtRegistrarMsgLideranca->execute([
+                    ':tabela' => $tabela,
+                    ':id' => $id,
+                    ':tentativa' => $novaTentativa,
+                    ':chat_id' => $chatIdLideranca,
+                    ':message_id' => $respostaLideranca['result']['message_id'] ?? 0,
                 ]);
-                if (!empty($respostaLideranca['ok'])) {
-                    $stmtRegistrarMsgLideranca->execute([
-                        ':tabela' => $tabela,
-                        ':id' => $id,
-                        ':tentativa' => $novaTentativa,
-                        ':chat_id' => $chatIdLideranca,
-                        ':message_id' => $respostaLideranca['result']['message_id'] ?? 0,
-                    ]);
-                }
             }
         }
+    } elseif ($acao === 'retrabalho') {
+        // Item volta pra produção pra correção, mas continua com a mesma
+        // etiqueta física — não entra na fila de impressão automática nem
+        // notifica a liderança.
+        $stmt = $db->prepare("UPDATE $tabela
+                               SET status = 'Pendente', status_qualidade = 'Reprovado',
+                                   qualidade_tentativas = qualidade_tentativas + 1, reimpressao_liberada = 0
+                               WHERE id = :id AND status_qualidade = 'Aguardando'");
+        $stmt->execute([':id' => $id]);
+
+        if ($stmt->rowCount() === 0) {
+            responderCallback($token, $callbackId, 'Esta inspeção já foi decidida por outra pessoa.', true);
+            echo json_encode(['ok' => true]);
+            exit;
+        }
+
+        $db->prepare("INSERT INTO qualidade_inspecoes (tabela_origem, item_id, tentativa, decisao, telegram_user, telegram_chat_id)
+                       VALUES (:tabela, :id, :tentativa, 'Retrabalho', :usuario, :chat_id)")
+           ->execute([
+               ':tabela' => $tabela,
+               ':id' => $id,
+               ':tentativa' => (int) $tentativaStr,
+               ':usuario' => $usuarioTelegram,
+               ':chat_id' => (string) $chatId,
+           ]);
+
+        sincronizarMensagens($db, $token, $tabela, $id, (int) $tentativaStr, "🔧 <b>Retrabalho</b> solicitado por @{$usuarioTelegram}.\nItem volta para produção — reproduzir com a mesma etiqueta.");
+        responderCallback($token, $callbackId, 'Retrabalho solicitado.');
     } elseif ($acao === 'imprimir') {
         $stmt = $db->prepare("UPDATE $tabela SET reimpressao_liberada = 1 WHERE id = :id AND status_qualidade = 'Reprovado'");
         $stmt->execute([':id' => $id]);

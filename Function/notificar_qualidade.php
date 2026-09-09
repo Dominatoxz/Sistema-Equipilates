@@ -58,6 +58,7 @@ function notificarQualidade(PDO $db, string $tabela, int $id): void
         'inline_keyboard' => [[
             ['text' => '✅ Aprovar', 'callback_data' => "q:aprovar:{$tabelaCurta}:{$id}:{$tentativaAtual}"],
             ['text' => '❌ Reprovar', 'callback_data' => "q:reprovar:{$tabelaCurta}:{$id}:{$tentativaAtual}"],
+            ['text' => '🔧 Retrabalho', 'callback_data' => "q:retrabalho:{$tabelaCurta}:{$id}:{$tentativaAtual}"],
         ]],
     ];
 

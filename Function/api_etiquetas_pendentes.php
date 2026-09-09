@@ -29,17 +29,17 @@ $paramDataIni = $inicioSemana->format('Y-m-d');
 $paramDataFim = $fimSemana->format('Y-m-d');
 
 $sql = "
-    SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, qualidade_tentativas, reimpressao_liberada, 'PRODUCAO' AS tabela_origem
+    SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, qualidade_tentativas, reimpressao_liberada, status_qualidade, 'PRODUCAO' AS tabela_origem
     FROM itens_producao
     WHERE status != 'Embalado' AND equipamento NOT LIKE 'Emb.%'
       AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :data_ini1 AND :data_fim1
-      AND (qualidade_tentativas < 2 OR reimpressao_liberada = 1)
+      AND (status_qualidade != 'Reprovado' OR reimpressao_liberada = 1)
     UNION ALL
-    SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, qualidade_tentativas, reimpressao_liberada, 'OS' AS tabela_origem
+    SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, qualidade_tentativas, reimpressao_liberada, status_qualidade, 'OS' AS tabela_origem
     FROM itens_os
     WHERE status != 'Embalado' AND equipamento NOT LIKE 'Emb.%'
       AND STR_TO_DATE(prazo_producao, '%d/%m/%Y') BETWEEN :data_ini2 AND :data_fim2
-      AND (qualidade_tentativas < 2 OR reimpressao_liberada = 1)
+      AND (status_qualidade != 'Reprovado' OR reimpressao_liberada = 1)
     ORDER BY equipamento ASC, STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC, id ASC
 ";
 $stmtItens = $db->prepare($sql);
@@ -64,6 +64,16 @@ function jaFoiImpressa(PDOStatement $stmt, int $idItem, string $tabelaOrigem, st
 {
     $stmt->execute([':id_item' => $idItem, ':tabela_origem' => $tabelaOrigem, ':tipo_etiqueta' => $tipoEtiqueta]);
     return (bool) $stmt->fetchColumn();
+}
+
+function ehReimpressaoQualidade(array $item): bool
+{
+    // Reprovado sempre pede etiqueta nova, mas só depois que a liderança
+    // libera pelo Telegram — Retrabalho fica com status_qualidade
+    // 'Reprovado' também, porém nunca ganha reimpressao_liberada = 1, então
+    // não passa aqui (correto: continua com a mesma etiqueta de antes).
+    return ($item['status_qualidade'] ?? null) === 'Reprovado'
+        && (int) ($item['reimpressao_liberada'] ?? 0) === 1;
 }
 
 function codigoBarra(array $item, string $sufixo): string
@@ -100,8 +110,8 @@ function montarZpl(array $item, string $tipo, bool $misto): string
     $corExibir    = (!empty($item['cor']) && $item['cor'] !== 'COD. COR') ? $item['cor'] : 'NAO INFORMADA';
     $corLinha     = zplEscape('Cor: ' . $corExibir);
     $sufixo       = $ehEmbalagem ? 'E' : 'P';
-    if (((int) ($item['qualidade_tentativas'] ?? 0)) >= 2) {
-        // Reimpressão a partir da 2ª reprovação da qualidade: -PQ/-EQ em vez de -P/-E.
+    if (ehReimpressaoQualidade($item)) {
+        // Reprovado pela qualidade e liderança já liberou a reimpressão: -PQ/-EQ em vez de -P/-E.
         $sufixo .= 'Q';
     }
     $codigo       = codigoBarra($item, $sufixo);
@@ -142,11 +152,11 @@ foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
             $idItem = (int) $item['id'];
             $tabelaOrigem = $item['tabela_origem'];
             $tentativas = (int) ($item['qualidade_tentativas'] ?? 0);
-            // Cada rodada de reprovação usa uma chave de dedup própria
-            // (PRODUCAO_Q1, PRODUCAO_Q2, ...), senão a reimpressão nunca
-            // aparece de novo depois que a primeira etiqueta já foi marcada
-            // como impressa em impressoes_etiquetas.
-            $tipoEtiquetaJob = $tentativas >= 2 ? "PRODUCAO_Q{$tentativas}" : 'PRODUCAO';
+            // Cada rodada de reprovação (já liberada pela liderança) usa
+            // uma chave de dedup própria (PRODUCAO_Q1, PRODUCAO_Q2, ...),
+            // senão a reimpressão nunca aparece de novo depois que a
+            // etiqueta original já foi marcada como impressa.
+            $tipoEtiquetaJob = ehReimpressaoQualidade($item) ? "PRODUCAO_Q{$tentativas}" : 'PRODUCAO';
             if (jaFoiImpressa($stmtJaImpressa, $idItem, $tabelaOrigem, $tipoEtiquetaJob)) {
                 continue;
             }
@@ -163,7 +173,7 @@ foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
         $idItem = (int) $item['id'];
         $tabelaOrigem = $item['tabela_origem'];
         $tentativas = (int) ($item['qualidade_tentativas'] ?? 0);
-        $tipoEtiquetaJob = $tentativas >= 2 ? "EMBALAGEM_Q{$tentativas}" : 'EMBALAGEM';
+        $tipoEtiquetaJob = ehReimpressaoQualidade($item) ? "EMBALAGEM_Q{$tentativas}" : 'EMBALAGEM';
         if (jaFoiImpressa($stmtJaImpressa, $idItem, $tabelaOrigem, $tipoEtiquetaJob)) {
             continue;
         }

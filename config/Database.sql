@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS `qualidade_inspecoes` (
   `tabela_origem` enum('itens_producao','itens_os') NOT NULL,
   `item_id` int(11) NOT NULL,
   `tentativa` int(11) NOT NULL,
-  `decisao` enum('Aprovado','Reprovado') NOT NULL,
+  `decisao` enum('Aprovado','Reprovado','Retrabalho') NOT NULL,
   `telegram_user` varchar(100) NOT NULL,
   `telegram_chat_id` varchar(50) NOT NULL,
   `criado_em` datetime DEFAULT CURRENT_TIMESTAMP,
