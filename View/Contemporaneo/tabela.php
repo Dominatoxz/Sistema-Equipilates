@@ -298,7 +298,7 @@ require_once '../../Function/trava.php';
                                                 } elseif ($peca['status'] === 'Produzido') {
                                                     $texto = '✅';
                                                     if (!in_array($peca['status_qualidade'] ?? 'N/A', ['N/A', ''], true)) {
-                                                        $corQ = ($peca['status_qualidade'] ?? '') === 'Aprovado' ? '#2a7a4f' : '#a9700f';
+                                                        $corQ = ($peca['status_qualidade'] ?? '') === 'Aprovado' ? '#2a7a4f' : '#dfd54d';
                                                         $seloQ = ' <span title="Qualidade" style="position:absolute;top:-8px;right:-10px;display:inline-flex;align-items:center;justify-content:center;background:' . $corQ . ';color:#fff;font-size:13px;font-weight:bold;border-radius:50%;width:20px;height:20px;line-height:1;">Q</span>';
                                                     }
                                                 } elseif ($peca['status'] === 'Embalado' || $peca['status'] === 'Armazenado') {
