@@ -45,6 +45,7 @@ class Sistema
         'LADDER BARREL CLÁSS.',
         'PEDI O POLE',
         'WALL UNIT CLÁSSICO',
+        'TORRE WALL UNIT CLÁSSICO',
         'MAT CLÁSSICO',
         'MAT PORTÁTIL',
         'BENCH MAT',
@@ -1159,11 +1160,6 @@ class Sistema
                     'total_itens' => $totalItens,
                     'itens_embalados' => $itensEmbalados,
                     'itens_armazenados' => $itensArmazenados,
-                    // Concluída só quando TODO item do pedido (não só os que já
-                    // chegaram a ser embalados) está Armazenado — senão um
-                    // pedido com só os acessórios embalados aparecia como
-                    // "armazenagem concluída" mesmo faltando os equipamentos
-                    // principais nem terem sido produzidos ainda.
                     'concluida' => $totalItens > 0 && $itensArmazenados >= $totalItens,
                     'pendente' => $itensArmazenados < $totalItens,
                 ],

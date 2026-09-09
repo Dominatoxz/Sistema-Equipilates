@@ -696,6 +696,7 @@ require_once '../Function/trava.php';
                             const linhaObs = document.getElementById(`ObsRow-${id}`);
 
                             localStorage.removeItem(`obs_pedido_${id}`);
+                            idsAtuais = idsAtuais.filter(itemId => itemId !== id.toString());
 
                             if (linha) {
                                 linha.style.transition = "all 0.5s ease";

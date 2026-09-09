@@ -235,6 +235,7 @@ require_once '../../Function/trava.php';
                 'LADDER BARREL CLÁSS.'        => 'Barrel',
                 'PEDI O POLE'                 => 'POP',
                 'WALL UNIT CLÁSSICO'          => 'Wall Unit',
+                'TORRE WALL UNIT CLÁSSICO'    => 'Torre WU',
                 'MAT CLÁSSICO'                => 'Mat (C)',
                 'MAT PORTÁTIL'                => 'Mat (P)',
                 'BENCH MAT'                   => 'Bench',
@@ -304,11 +305,12 @@ require_once '../../Function/trava.php';
                 ARRAY_FILTER_USE_KEY
             );
 
-            $totalColunas = 2 + count($equipamentosVisiveis) + 1;
+            $totalColunas = 3 + count($equipamentosVisiveis) + 1;
             ?>
             <thead>
                 <tr>
                     <th>Pedido</th>
+                    <th>Itens</th>
                     <th>Prazo</th>
                     <?php foreach ($equipamentosVisiveis as $rotulo): ?>
                         <th><?= htmlspecialchars($rotulo) ?></th>
@@ -323,13 +325,19 @@ require_once '../../Function/trava.php';
                     </tr>
                 <?php else: ?>
 
-                    <?php foreach ($pedidos_agrupados as $pedido): ?>
+                    <?php foreach ($pedidos_agrupados as $pedido):
+                        $stmtContagem = $db->prepare("SELECT COUNT(*) AS total, SUM(status IN ('Embalado', 'Armazenado')) AS embalados FROM itens_producao WHERE numero_pedido = ? AND equipamento NOT LIKE 'Emb.%' AND numero_pedido NOT LIKE 'OS%'");
+                        $stmtContagem->execute([$pedido['numero']]);
+                        $contagemItens = $stmtContagem->fetch(PDO::FETCH_ASSOC);
+                    ?>
                         <tr id="linha-<?= htmlspecialchars($pedido['numero']) ?>">
                             <td>
                                 <div style="display: flex; justify-content: center; align-items: center;">
                                     <span class="numero-pedido<?= in_array($pedido['numero'], $pedidosMistos) ? ' misto' : '' ?>" <?= in_array($pedido['numero'], $pedidosMistos) ? 'title="Pedido misto: tem itens da linha Contemporânea e da Clássica"' : '' ?>><?= htmlspecialchars($pedido['numero']) ?></span>
                                 </div>
                             </td>
+
+                            <td><?= (int) ($contagemItens['embalados'] ?? 0) ?>/<?= (int) ($contagemItens['total'] ?? 0) ?></td>
 
                             <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
 

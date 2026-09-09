@@ -222,6 +222,7 @@ require_once '../../Function/trava.php';
         <thead>
             <tr>
                 <th>Pedido</th>
+                <th>Itens</th>
                 <th>Prazo</th>
                 <th>Reformer</th>
                 <th>Carrinho (Ref)</th>
@@ -231,6 +232,7 @@ require_once '../../Function/trava.php';
                 <th>Step</th>
                 <th>Barrel</th>
                 <th>Wall Unit</th>
+                <th>Prancha de Molas</th>
                 <th>Acessórios</th>
             </tr>
         </thead>
@@ -270,17 +272,27 @@ require_once '../../Function/trava.php';
 
             <?php if (empty($pedidos)): ?>
                 <tr>
-                    <td colspan="11" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
+                    <td colspan="13" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
                 </tr>
             <?php else: ?>
 
-                <?php foreach ($pedidos_agrupados as $pedido): ?>
+                <?php foreach ($pedidos_agrupados as $pedido):
+                    $stmtContagem = $db->prepare("SELECT COUNT(*) AS total, SUM(status IN ('Embalado', 'Armazenado')) AS embalados FROM itens_os WHERE numero_pedido = ? AND equipamento NOT LIKE 'Emb.%' AND numero_pedido LIKE 'OS%'");
+                    $stmtContagem->execute([$pedido['numero']]);
+                    $contagemItens = $stmtContagem->fetch(PDO::FETCH_ASSOC);
+
+                    $stmtMolas = $db->prepare("SELECT COUNT(*) FROM itens_os WHERE numero_pedido = ? AND equipamento IN ('P. de Molas - B R I N D E', 'P. de Molas - C O M P L E T A') AND numero_pedido LIKE 'OS%'");
+                    $stmtMolas->execute([$pedido['numero']]);
+                    $temPranchaMolas = ((int) $stmtMolas->fetchColumn()) > 0;
+                ?>
                     <tr id="linha-<?= htmlspecialchars($pedido['numero']) ?>">
                         <td>
                             <div style="display: flex; justify-content: center; align-items: center;">
                                 <span class="numero-pedido<?= in_array($pedido['numero'], $pedidosMistos) ? ' misto' : '' ?>" <?= in_array($pedido['numero'], $pedidosMistos) ? 'title="Pedido misto: tem itens da linha Contemporânea e da Clássica"' : '' ?>><?= htmlspecialchars($pedido['numero']) ?></span>
                             </div>
                         </td>
+
+                        <td><?= (int) ($contagemItens['embalados'] ?? 0) ?>/<?= (int) ($contagemItens['total'] ?? 0) ?></td>
 
                         <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
 
@@ -326,6 +338,13 @@ require_once '../../Function/trava.php';
                             </td>
                         <?php endforeach; ?>
 
+                        <td>
+                            <?php if ($temPranchaMolas): ?>
+                                <span style="color: #c0392b; font-weight: bold; font-size: 24px;" title="Pedido tem P. de Molas Brinde ou Completa">X</span>
+                            <?php else: ?>
+                                <span style="color: #ccc;">-</span>
+                            <?php endif; ?>
+                        </td>
                         <td>
                             <?php
                             $sqlAcess = "SELECT id, equipamento, status FROM itens_os WHERE numero_pedido = ? AND equipamento IN ($placeholders_acessorios)";
@@ -376,7 +395,7 @@ require_once '../../Function/trava.php';
                 <?php endforeach; ?>
             <?php endif; ?>
             <tr class="linha-resumo-gaiola">
-                <td colspan="11">Gaiola Cadilac da semana (todas as linhas) — Planejado: <strong><?= $gaiolasProducao['planejado'] ?></strong> &nbsp;|&nbsp; Real: <strong><?= $gaiolasProducao['real'] ?></strong> &nbsp;|&nbsp; <span style="color: #c0392b;">Atrasados: <strong><?= $gaiolasProducao['atrasados'] ?></strong></span></td>
+                <td colspan="13">Gaiola Cadilac da semana (todas as linhas) — Planejado: <strong><?= $gaiolasProducao['planejado'] ?></strong> &nbsp;|&nbsp; Real: <strong><?= $gaiolasProducao['real'] ?></strong> &nbsp;|&nbsp; <span style="color: #c0392b;">Atrasados: <strong><?= $gaiolasProducao['atrasados'] ?></strong></span></td>
             </tr>
         </tbody>
     </table>

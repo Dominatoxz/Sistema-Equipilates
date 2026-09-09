@@ -48,13 +48,13 @@ try {
     $stmtBusca->execute([$idPedido]);
     $numeroPedido = $stmtBusca->fetchColumn();
 
-    $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Pós-venda', data_conclusao = :data_conclusao WHERE id = :id");
-    $resultado = $stmt->execute([
+    $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Pós-venda', data_conclusao = :data_conclusao WHERE id = :id AND status_posvenda = 'Financeiro'");
+    $stmt->execute([
         'data_conclusao' => $dataConclusaoPHP,
         'id' => $idPedido
     ]);
 
-    if ($resultado) {
+    if ($stmt->rowCount() > 0) {
         // Pedido saiu do Financeiro e entrou na fila do Pós-venda agora —
         // notifica o Pós-venda diretamente daqui, no momento da transição
         // real, em vez de depender do polling da tela deles perceber.
@@ -69,7 +69,7 @@ try {
 
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'error' => 'O banco não sofreu alterações. O ID existe?']);
+        echo json_encode(['success' => false, 'error' => 'Este pedido já não está mais no Financeiro (outra pessoa já deve ter movido ele). Recarregue a página.']);
     }
 } catch (\PDOException $e) {
     echo json_encode([
