@@ -29,14 +29,14 @@ if ($acao === 'remover') {
 // Reprovado, já liberado pela liderança: deve entrar na fila (-PQ/-EQ).
 $db->prepare("INSERT INTO itens_producao
     (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status, status_qualidade, qualidade_tentativas, reimpressao_liberada)
-    VALUES ('TESTE-REPROVADO', '10/09/2026', 'ITEM TESTE QUALIDADE', 1, 'TESTE', 'Pendente', 'Reprovado', 1, 1)
+    VALUES ('TESTE-REPROVADO', '16/09/2026', 'ITEM TESTE QUALIDADE', 1, 'TESTE', 'Pendente', 'Reprovado', 1, 1)
     ON DUPLICATE KEY UPDATE status = 'Pendente', status_qualidade = 'Reprovado', qualidade_tentativas = 1, reimpressao_liberada = 1")
    ->execute();
 
 // Retrabalho: reprovado mas SEM liberação da liderança — não deve entrar na fila.
 $db->prepare("INSERT INTO itens_producao
     (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status, status_qualidade, qualidade_tentativas, reimpressao_liberada)
-    VALUES ('TESTE-RETRABALHO', '10/09/2026', 'ITEM TESTE QUALIDADE', 1, 'TESTE', 'Pendente', 'Reprovado', 1, 0)
+    VALUES ('TESTE-RETRABALHO', '16/09/2026', 'ITEM TESTE QUALIDADE', 1, 'TESTE', 'Pendente', 'Reprovado', 1, 0)
     ON DUPLICATE KEY UPDATE status = 'Pendente', status_qualidade = 'Reprovado', qualidade_tentativas = 1, reimpressao_liberada = 0")
    ->execute();
 
