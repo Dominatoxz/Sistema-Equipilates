@@ -183,17 +183,21 @@ function montarZplIdentificacao(array $item): string
     $zpl = "^XA\n^PW807\n^LL400\n^CI28\n";
     $zpl .= "^FO0,0^GB{$larguraBarra},400,{$larguraBarra}^FS\n";
     $zpl .= "^FO{$baseX},15^A0N,32,32^FDIDENTIFICACAO - REPROVADO^FS\n";
+    // Carimbo "Q" grande no canto superior direito, marcando visualmente
+    // que é material de qualidade (reprovado).
+    $zpl .= "^FO650,10^GB130,130,4^FS\n";
+    $zpl .= "^FO650,10^A0N,110,110^FB130,1,0,C^FDQ^FS\n";
     $zpl .= "^FO{$baseX},53^GB{$larguraUtil},2,2^FS\n";
     $zpl .= "^FO{$baseX},65^A0N,30,30^FDQM: {$qmCode}^FS\n";
-    $zpl .= "^FO{$baseX},103^A0N,24,24^FB{$larguraUtil},1,0,L^FD{$cabecalho}^FS\n";
-    $zpl .= "^FO{$baseX},133^A0N,20,20^FD{$peca}^FS\n";
-    $zpl .= "^FO{$baseX},163^A0N,20,20^FB{$larguraUtil},3,4^FD{$motivo}^FS\n";
-    $zpl .= "^FO{$baseX},239^A0N,20,20^FD{$inspetor}^FS\n";
-    $zpl .= "^FO{$baseX},265^A0N,20,20^FD{$dataLinha}^FS\n";
+    $zpl .= "^FO{$baseX},103^A0N,26,26^FB{$larguraUtil},1,0,L^FD{$cabecalho}^FS\n";
+    $zpl .= "^FO{$baseX},138^A0N,24,24^FD{$peca}^FS\n";
+    $zpl .= "^FO{$baseX},168^A0N,24,24^FB{$larguraUtil},2,6^FD{$motivo}^FS\n";
+    $zpl .= "^FO{$baseX},228^A0N,24,24^FD{$inspetor}^FS\n";
+    $zpl .= "^FO{$baseX},260^A0N,24,24^FD{$dataLinha}^FS\n";
 
     $larguraBarcode = ((11 * strlen($qmCode)) + 35) * $moduleWidth;
     $xBarcode = $baseX + max(0, (int) (($larguraUtil - $larguraBarcode) / 2));
-    $zpl .= "^BY{$moduleWidth}\n^FO{$xBarcode},295^BCN,90,N,N,N^FD{$qmCode}^FS\n";
+    $zpl .= "^BY{$moduleWidth}\n^FO{$xBarcode},300^BCN,90,N,N,N^FD{$qmCode}^FS\n";
     $zpl .= "^XZ\n";
 
     return $zpl;
