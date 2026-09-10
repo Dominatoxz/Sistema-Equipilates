@@ -26,6 +26,25 @@ if ($acao === 'debug') {
     exit;
 }
 
+if ($acao === 'debug2') {
+    $inicioSemana = new DateTime('next monday');
+    $fimSemana = (clone $inicioSemana)->modify('+6 days');
+    $paramDataIni = $inicioSemana->format('Y-m-d');
+    $paramDataFim = $fimSemana->format('Y-m-d');
+
+    $sql = "
+        SELECT t.id, t.numero_pedido, t.equipamento, t.status, t.status_qualidade, t.prazo_producao,
+               STR_TO_DATE(t.prazo_producao, '%d/%m/%Y') AS data_convertida,
+               (STR_TO_DATE(t.prazo_producao, '%d/%m/%Y') BETWEEN :data_ini1 AND :data_fim1) AS dentro_janela
+        FROM itens_producao t
+        WHERE t.numero_pedido = 'TESTE-AUTO'
+    ";
+    $stmt = $db->prepare($sql);
+    $stmt->execute([':data_ini1' => $paramDataIni, ':data_fim1' => $paramDataFim]);
+    echo json_encode(['success' => true, 'janela_ini' => $paramDataIni, 'janela_fim' => $paramDataFim, 'linha' => $stmt->fetch(PDO::FETCH_ASSOC)]);
+    exit;
+}
+
 if ($acao === 'remover') {
     $stmt = $db->prepare("DELETE FROM itens_producao WHERE numero_pedido = 'TESTE-AUTO'");
     $stmt->execute();
