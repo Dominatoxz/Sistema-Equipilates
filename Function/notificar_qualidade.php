@@ -15,7 +15,7 @@ require_once __DIR__ . '/telegram_api.php';
  * RECONSTRUÍDO em 2026-09-09 depois que um deploy externo sobrescreveu
  * Function/ e apagou os 3 botões que tínhamos aqui.
  */
-function notificarQualidade(PDO $db, string $tabela, int $id, ?string $chatIdUnico = null): void
+function notificarQualidade(PDO $db, string $tabela, int $id): void
 {
     $token = getenv('TELEGRAM_QUALIDADE_BOT_TOKEN');
     if (empty($token)) {
@@ -30,20 +30,12 @@ function notificarQualidade(PDO $db, string $tabela, int $id, ?string $chatIdUni
         return;
     }
 
-    // $chatIdUnico: quando informado (chamada vinda de /validar), manda só
-    // pra quem digitou o comando, em vez de transmitir pra todo mundo
-    // cadastrado como qualidade (Vitor/Matheus, 2026-09-10: "só ele deve
-    // visualizar a mensagem que aparecer, não pode aparecer para os outros").
-    if ($chatIdUnico !== null) {
-        $chats = [$chatIdUnico];
-    } else {
-        $stmtChats = $db->prepare("SELECT chat_id FROM qualidade_telegram_chats WHERE ativo = 1 AND tipo = 'qualidade'");
-        $stmtChats->execute();
-        $chats = $stmtChats->fetchAll(PDO::FETCH_COLUMN);
-        if (empty($chats)) {
-            error_log('notificarQualidade: nenhum chat de qualidade cadastrado/ativo.');
-            return;
-        }
+    $stmtChats = $db->prepare("SELECT chat_id FROM qualidade_telegram_chats WHERE ativo = 1 AND tipo = 'qualidade'");
+    $stmtChats->execute();
+    $chats = $stmtChats->fetchAll(PDO::FETCH_COLUMN);
+    if (empty($chats)) {
+        error_log('notificarQualidade: nenhum chat de qualidade cadastrado/ativo.');
+        return;
     }
 
     $tabelaCurta = ($tabela === 'itens_os') ? 'o' : 'p';

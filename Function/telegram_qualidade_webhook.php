@@ -156,12 +156,11 @@ if (!$callback && isset($update['message']['chat']['id'])) {
     // /validar NÚMERO — busca direto um pedido (Vitor, 2026-09-08: "ideal é
     // ter um /validacao igual o do ERP" — digitar o número em vez de só olhar
     // a lista). Item ainda Aguardando: REENVIA a mensagem de verdade (mesmo
-    // Aprovar/Retrabalho/Reprovado reais, via notificarQualidade — só pra
-    // quem digitou o comando, não transmite pros outros cadastrados em
-    // qualidade — Vitor/Matheus, 2026-09-10). Item já decidido: mostra só
-    // informativo, sem reabrir o fluxo (ver qualidadeItemFichaTexto — reabrir
-    // de verdade é /status ID qualidade, que já existe e faz isso do jeito
-    // certo, com tentativa/reimpressão).
+    // Aprovar/Retrabalho/Reprovado reais, via notificarQualidade — pra todo
+    // mundo cadastrado como qualidade, igual uma cobrança). Item já decidido:
+    // mostra só informativo, sem reabrir o fluxo (ver qualidadeItemFichaTexto
+    // — reabrir de verdade é /status ID qualidade, que já existe e faz isso
+    // do jeito certo, com tentativa/reimpressão).
     if (preg_match('/^\/validar\s+(.+)$/iu', $textoMsg, $mVal)) {
         if (!$estaAutorizado()) {
             $negarNaoAutorizado();
@@ -177,30 +176,9 @@ if (!$callback && isset($update['message']['chat']['id'])) {
             exit;
         }
         $reenviados = 0;
-        $jaComOutro = 0;
-        $stmtDonoAtual = $db->prepare(
-            "SELECT chat_id FROM qualidade_mensagens_enviadas WHERE tabela_origem = :tabela AND item_id = :id AND tentativa = :tentativa LIMIT 1"
-        );
         foreach ($itensVal as $it) {
             if ($it['status_qualidade'] === 'Aguardando') {
-                // Só manda se ainda ninguém pegou esse item num /validar
-                // antes (ou se quem pegou foi a própria pessoa perguntando
-                // de novo) — Vitor/Matheus, 2026-09-10: "se usar o /validar
-                // no mesmo pedido, não pode aparecer de novo para outros
-                // usuários". Cada item fica "reservado" pra quem primeiro
-                // rodou /validar nele, até alguém decidir (Aprovar/
-                // Retrabalho/Reprovado apaga a linha em
-                // qualidade_mensagens_enviadas via sincronizarMensagens).
-                $tentativaAtual = ((int) $it['qualidade_tentativas']) + 1;
-                $stmtDonoAtual->execute([':tabela' => $it['tabela_origem'], ':id' => $it['item_id'], ':tentativa' => $tentativaAtual]);
-                $donoAtual = $stmtDonoAtual->fetchColumn();
-
-                if ($donoAtual !== false && (string) $donoAtual !== (string) $chatIdMsg) {
-                    $jaComOutro++;
-                    continue;
-                }
-
-                notificarQualidade($db, $it['tabela_origem'], $it['item_id'], (string) $chatIdMsg);
+                notificarQualidade($db, $it['tabela_origem'], $it['item_id']);
                 $reenviados++;
             } else {
                 telegramApiCall($token, 'sendMessage', [
@@ -213,13 +191,7 @@ if (!$callback && isset($update['message']['chat']['id'])) {
         if ($reenviados > 0) {
             telegramApiCall($token, 'sendMessage', [
                 'chat_id' => $chatIdMsg,
-                'text' => "🔄 Te mandei {$reenviados} pendência(s) do pedido " . htmlspecialchars($numeroVal) . ' pra você validar.',
-            ]);
-        }
-        if ($jaComOutro > 0) {
-            telegramApiCall($token, 'sendMessage', [
-                'chat_id' => $chatIdMsg,
-                'text' => "👀 {$jaComOutro} item(ns) do pedido " . htmlspecialchars($numeroVal) . ' já foi(ram) pego(s) por outra pessoa no /validar — aguardando ela decidir.',
+                'text' => "🔄 Reenviei {$reenviados} pendência(s) do pedido " . htmlspecialchars($numeroVal) . ' pra quem está cadastrado em qualidade.',
             ]);
         }
         echo json_encode(['ok' => true]);
