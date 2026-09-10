@@ -67,11 +67,6 @@ $stmtItens->execute([
 ]);
 $itens = $stmtItens->fetchAll(PDO::FETCH_ASSOC);
 
-if (isset($_GET['debug_temp'])) {
-    echo json_encode(['debug' => true, 'total_itens' => count($itens), 'janela_ini' => $paramDataIni, 'janela_fim' => $paramDataFim, 'itens' => $itens]);
-    exit;
-}
-
 $itensPorEquipamento = [];
 foreach ($itens as $item) {
     $itensPorEquipamento[trim($item['equipamento'])][] = $item;
