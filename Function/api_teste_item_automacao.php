@@ -109,6 +109,15 @@ if ($acao === 'debug4') {
     exit;
 }
 
+if ($acao === 'debug5') {
+    $stmtCols = $db->query("SHOW COLUMNS FROM qualidade_inspecoes");
+    $colunas = $stmtCols->fetchAll(PDO::FETCH_COLUMN);
+    $stmtRow = $db->prepare("SELECT * FROM qualidade_inspecoes WHERE item_id = 105952");
+    $stmtRow->execute();
+    echo json_encode(['success' => true, 'colunas' => $colunas, 'linha' => $stmtRow->fetchAll(PDO::FETCH_ASSOC)]);
+    exit;
+}
+
 if ($acao === 'remover') {
     $stmt = $db->prepare("DELETE FROM itens_producao WHERE numero_pedido = 'TESTE-AUTO'");
     $stmt->execute();
