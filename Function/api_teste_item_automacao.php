@@ -102,6 +102,13 @@ if ($acao === 'limparopcache') {
     exit;
 }
 
+if ($acao === 'debug4') {
+    $stmt = $db->prepare("SELECT * FROM impressoes_etiquetas WHERE id_item IN (105954, 105952, 86469) ORDER BY id_item, tipo_etiqueta");
+    $stmt->execute();
+    echo json_encode(['success' => true, 'registros' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    exit;
+}
+
 if ($acao === 'remover') {
     $stmt = $db->prepare("DELETE FROM itens_producao WHERE numero_pedido = 'TESTE-AUTO'");
     $stmt->execute();
