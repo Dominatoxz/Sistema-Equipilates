@@ -92,6 +92,16 @@ if ($acao === 'debug3') {
     exit;
 }
 
+if ($acao === 'limparopcache') {
+    if (function_exists('opcache_reset')) {
+        $ok = opcache_reset();
+        echo json_encode(['success' => true, 'opcache_reset' => $ok]);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'opcache_reset indisponivel']);
+    }
+    exit;
+}
+
 if ($acao === 'remover') {
     $stmt = $db->prepare("DELETE FROM itens_producao WHERE numero_pedido = 'TESTE-AUTO'");
     $stmt->execute();
