@@ -3,14 +3,17 @@ require_once __DIR__ . '/telegram_api.php';
 
 /*
  * Dispara a mensagem de inspeção de qualidade no Telegram (botões Aprovar/
- * Reprovar) sempre que um item vira Produzido. Espelha o padrão de
- * notificar_pos_producao.php, mas em vez de Web Push chama a Bot API do
+ * Retrabalho/Reprovado) sempre que um item vira Produzido. Espelha o padrão
+ * de notificar_pos_producao.php, mas em vez de Web Push chama a Bot API do
  * Telegram diretamente (ver Function/telegram_api.php).
  *
  * Best-effort: falha de rede/token aqui não deve impedir a bipagem de
  * produção, então erros só são registrados, nunca propagados.
  *
  * $tabela: 'itens_producao' ou 'itens_os'.
+ *
+ * RECONSTRUÍDO em 2026-09-09 depois que um deploy externo sobrescreveu
+ * Function/ e apagou os 3 botões que tínhamos aqui.
  */
 function notificarQualidade(PDO $db, string $tabela, int $id): void
 {
@@ -54,11 +57,18 @@ function notificarQualidade(PDO $db, string $tabela, int $id): void
     }
     $texto = implode("\n", $linhas);
 
+    // 3 botões (Vitor, 2026-09-09: "crie a estrutura de 3 botes de validação
+    // Aprovado, Retrabalho, Reprovado" — "Retrabalho é o que tínhamos de 1
+    // tratativa, o reprovado é a 2 tratativa"). Antes era só Aprovar/Reprovar
+    // e o sistema decidia sozinho pela contagem de tentativa se precisava de
+    // etiqueta nova; agora quem decide é o inspetor na hora — Retrabalho não
+    // aciona liderança/reimpressão nem avisa o ERP, Reprovado sempre aciona
+    // os dois. Ver aplicarDecisaoNegativa() em telegram_qualidade_webhook.php.
     $tecladoAprovarReprovar = [
         'inline_keyboard' => [[
             ['text' => '✅ Aprovar', 'callback_data' => "q:aprovar:{$tabelaCurta}:{$id}:{$tentativaAtual}"],
-            ['text' => '❌ Reprovar', 'callback_data' => "q:reprovar:{$tabelaCurta}:{$id}:{$tentativaAtual}"],
             ['text' => '🔧 Retrabalho', 'callback_data' => "q:retrabalho:{$tabelaCurta}:{$id}:{$tentativaAtual}"],
+            ['text' => '❌ Reprovado', 'callback_data' => "q:reprovar:{$tabelaCurta}:{$id}:{$tentativaAtual}"],
         ]],
     ];
 

@@ -1,4 +1,21 @@
 <?php
+/**
+ * Adapter pro agente eqagent (10.0.0.18, /opt/equipilates-agent): traduz a
+ * lista de etiquetas pendentes (mesma lógica de api_etiquetas_pendentes.php,
+ * duplicada aqui de propósito pra não arriscar quebrar aquele endpoint pra
+ * quem mais já o use) pro formato de "job" genérico que o agente espera —
+ * {"id","type","payload"} — via GET api.jobs_next_path?agent=<nome>.
+ *
+ * Criado em 2026-09-09: a integração agente<->site nunca tinha sido
+ * terminada (poller apontava pra endpoint inexistente /agent/jobs/next,
+ * sem token, e o formato de job nunca bateria mesmo com a URL certa — ver
+ * api_agent_jobs_result.php pro outro lado da ponte).
+ *
+ * id do job: "etq:<tabela_origem>:<id_item>:<tipo_etiqueta>" — o agente
+ * devolve esse id junto do resultado, e api_agent_jobs_result.php usa ele
+ * pra saber o que confirmar em impressoes_etiquetas (o agente não reenvia o
+ * payload original no resultado, só {id, type, status, result, ...}).
+ */
 require_once '../global.php';
 require_once '../config/Database.php';
 require_once '../Model/Sistema.php';
@@ -11,7 +28,7 @@ $tokenRecebido = $_SERVER['HTTP_X_AUTO_TOKEN'] ?? '';
 
 if (empty($tokenEsperado) || !hash_equals($tokenEsperado, $tokenRecebido)) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'error' => 'Token inválido.']);
+    echo json_encode(['error' => 'Token inválido.']);
     exit;
 }
 
@@ -52,12 +69,8 @@ $sql = "
           )
     ORDER BY equipamento ASC, STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC, id ASC
 ";
-// Reprovado+liberado é sempre elegível, sem depender do prazo original —
-// (Vitor, 2026-09-09: "reimprima o 7778" revelou que um item reprovado cujo
-// prazo_producao já passou nunca aparecia aqui, mesmo com a etiqueta
-// liberada, porque a janela de data só olha "semana atual/seguinte". Faz
-// sentido pra produção nova (agendada), não faz sentido pra reimpressão de
-// qualidade, que é sempre urgente, decidida agora).
+// Reprovado+liberado é sempre elegível, sem depender do prazo original — ver
+// o mesmo comentário/motivo em api_etiquetas_pendentes.php.
 $stmtItens = $db->prepare($sql);
 $stmtItens->execute([
     ':data_ini1' => $paramDataIni,
@@ -84,10 +97,6 @@ function jaFoiImpressa(PDOStatement $stmt, int $idItem, string $tabelaOrigem, st
 
 function ehReimpressaoQualidade(array $item): bool
 {
-    // Reprovado sempre pede etiqueta nova, mas só depois que a liderança
-    // libera pelo Telegram — Retrabalho fica com status_qualidade
-    // 'Reprovado' também, porém nunca ganha reimpressao_liberada = 1, então
-    // não passa aqui (correto: continua com a mesma etiqueta de antes).
     return ($item['status_qualidade'] ?? null) === 'Reprovado'
         && (int) ($item['reimpressao_liberada'] ?? 0) === 1;
 }
@@ -100,18 +109,13 @@ function codigoBarra(array $item, string $sufixo): string
 
 function zplEscape(string $texto): string
 {
-    // ^CI28 já ativa UTF-8 na etiqueta, então mantém acentos — só escapa
-    // os caracteres que o ZPL usa como controle (^ e ~).
     return str_replace(['^', '~'], ['', ''], $texto);
 }
 
 function montarZpl(array $item, string $tipo, bool $misto): string
 {
-    // Reproduz a mesma hierarquia visual da tela manual (imprimir_etiquetas.php):
-    // barra lateral marcando o tipo (lá é cor cinza/preta; na térmica, que só
-    // imprime preto, viram fina/grossa), cabeçalho com pedido + badge MISTO à
-    // esquerda e tipo à direita, linha separadora, título do equipamento em
-    // destaque, sub-linha peça/prazo, cor, e código de barras no rodapé.
+    // Idêntico a api_etiquetas_pendentes.php — ver lá os comentários sobre a
+    // hierarquia visual reproduzida.
     $ehEmbalagem  = $tipo === 'EMBALAGEM';
     $tituloTipo   = $ehEmbalagem ? 'EMBALAGEM' : 'PRODUCAO';
     $larguraBarra = 50;
@@ -127,7 +131,6 @@ function montarZpl(array $item, string $tipo, bool $misto): string
     $corLinha     = zplEscape('Cor: ' . $corExibir);
     $sufixo       = $ehEmbalagem ? 'E' : 'P';
     if (ehReimpressaoQualidade($item)) {
-        // Reprovado pela qualidade e liderança já liberou a reimpressão: -PQ/-EQ em vez de -P/-E.
         $sufixo .= 'Q';
     }
     $codigo       = codigoBarra($item, $sufixo);
@@ -162,7 +165,8 @@ function montarZpl(array $item, string $tipo, bool $misto): string
  * material recusado". Sai junto com a -PQ/-EQ (mesmo gatilho, mesmo laço) —
  * mostra o número da notificação QM aberta automaticamente, o item, o
  * motivo, quem reprovou e quando. Só chamada quando ehReimpressaoQualidade()
- * E $item['qm_code'] já estiverem preenchidos (ver laço principal).
+ * E $item['qm_code'] já estiverem preenchidos (ver laço principal). Idêntica
+ * à versão em api_etiquetas_pendentes.php.
  */
 function montarZplIdentificacao(array $item): string
 {
@@ -211,19 +215,20 @@ foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
             $idItem = (int) $item['id'];
             $tabelaOrigem = $item['tabela_origem'];
             $tentativas = (int) ($item['qualidade_tentativas'] ?? 0);
-            // Cada rodada de reprovação (já liberada pela liderança) usa
-            // uma chave de dedup própria (PRODUCAO_Q1, PRODUCAO_Q2, ...),
-            // senão a reimpressão nunca aparece de novo depois que a
-            // etiqueta original já foi marcada como impressa.
             $tipoEtiquetaJob = ehReimpressaoQualidade($item) ? "PRODUCAO_Q{$tentativas}" : 'PRODUCAO';
             if (jaFoiImpressa($stmtJaImpressa, $idItem, $tabelaOrigem, $tipoEtiquetaJob)) {
                 continue;
             }
             $jobs[] = [
-                'id_item' => $idItem,
-                'tabela_origem' => $tabelaOrigem,
-                'tipo_etiqueta' => $tipoEtiquetaJob,
-                'zpl' => montarZpl($item, 'PRODUCAO', in_array($item['numero_pedido'], $pedidosMistos)),
+                'id' => "etq:{$tabelaOrigem}:{$idItem}:{$tipoEtiquetaJob}",
+                'type' => 'print',
+                'payload' => [
+                    // ZPL sempre vai pra Zebra (fila raw, ZPL cru) — nunca a
+                    // Epson (default de sistema), que não entende ZPL.
+                    'printer' => 'Zebra_ZD230',
+                    'text' => montarZpl($item, 'PRODUCAO', in_array($item['numero_pedido'], $pedidosMistos)),
+                    'copies' => 1,
+                ],
             ];
         }
     }
@@ -237,10 +242,13 @@ foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
             continue;
         }
         $jobs[] = [
-            'id_item' => $idItem,
-            'tabela_origem' => $tabelaOrigem,
-            'tipo_etiqueta' => $tipoEtiquetaJob,
-            'zpl' => montarZpl($item, 'EMBALAGEM', in_array($item['numero_pedido'], $pedidosMistos)),
+            'id' => "etq:{$tabelaOrigem}:{$idItem}:{$tipoEtiquetaJob}",
+            'type' => 'print',
+            'payload' => [
+                'printer' => 'Zebra_ZD230',
+                'text' => montarZpl($item, 'EMBALAGEM', in_array($item['numero_pedido'], $pedidosMistos)),
+                'copies' => 1,
+            ],
         ];
     }
 
@@ -262,12 +270,15 @@ foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
             continue;
         }
         $jobs[] = [
-            'id_item' => $idItem,
-            'tabela_origem' => $tabelaOrigem,
-            'tipo_etiqueta' => $tipoEtiquetaJob,
-            'zpl' => montarZplIdentificacao($item),
+            'id' => "etq:{$tabelaOrigem}:{$idItem}:{$tipoEtiquetaJob}",
+            'type' => 'print',
+            'payload' => [
+                'printer' => 'Zebra_ZD230',
+                'text' => montarZplIdentificacao($item),
+                'copies' => 1,
+            ],
         ];
     }
 }
 
-echo json_encode(['success' => true, 'jobs' => $jobs]);
+echo json_encode(['jobs' => $jobs]);
