@@ -118,8 +118,31 @@ if ($acao === 'debug5') {
     exit;
 }
 
+if ($acao === 'inserirqm') {
+    $db->prepare("DELETE FROM itens_producao WHERE numero_pedido = 'TESTE-AUTO-QM'")->execute();
+
+    $db->prepare("INSERT INTO itens_producao
+        (numero_pedido, prazo_producao, equipamento, posicao_no_pedido, cor, status, status_qualidade, qualidade_tentativas, reimpressao_liberada)
+        VALUES ('TESTE-AUTO-QM', '16/09/2026', 'TESTE QM ETIQUETA 2', 1, 'TESTE', 'Pendente', 'Reprovado', 1, 1)")
+       ->execute();
+    $idNovo = (int) $db->lastInsertId();
+
+    $db->prepare("INSERT INTO qualidade_inspecoes (tabela_origem, item_id, tentativa, decisao, motivo, telegram_user, telegram_chat_id, qm_code)
+        VALUES ('itens_producao', :item_id, 1, 'Reprovado', 'Teste de etiqueta de identificacao (Claude)', 'ClaudeTeste', 'teste-script', :qm_code)")
+       ->execute([':item_id' => $idNovo, ':qm_code' => 'QM-TESTE-CLAUDE-' . $idNovo]);
+
+    echo json_encode(['success' => true, 'id' => $idNovo]);
+    exit;
+}
+
 if ($acao === 'remover') {
-    $stmt = $db->prepare("DELETE FROM itens_producao WHERE numero_pedido = 'TESTE-AUTO'");
+    $stmtBuscaQm = $db->prepare("SELECT id FROM itens_producao WHERE numero_pedido = 'TESTE-AUTO-QM'");
+    $stmtBuscaQm->execute();
+    $idQm = $stmtBuscaQm->fetchColumn();
+    if ($idQm) {
+        $db->prepare("DELETE FROM qualidade_inspecoes WHERE tabela_origem = 'itens_producao' AND item_id = :id")->execute([':id' => $idQm]);
+    }
+    $stmt = $db->prepare("DELETE FROM itens_producao WHERE numero_pedido IN ('TESTE-AUTO', 'TESTE-AUTO-QM')");
     $stmt->execute();
     echo json_encode(['success' => true, 'removidos' => $stmt->rowCount()]);
     exit;
