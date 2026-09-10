@@ -36,6 +36,22 @@ if ($acao === 'inserirqm') {
     exit;
 }
 
+if ($acao === 'debug') {
+    $stmt = $db->prepare("SELECT * FROM itens_producao WHERE numero_pedido = 'TESTE-AUTO-QM'");
+    $stmt->execute();
+    $item = $stmt->fetch(PDO::FETCH_ASSOC);
+    $qi = null;
+    if ($item) {
+        $stmtQi = $db->prepare("SELECT * FROM qualidade_inspecoes WHERE tabela_origem='itens_producao' AND item_id = ?");
+        $stmtQi->execute([$item['id']]);
+        $qi = $stmtQi->fetchAll(PDO::FETCH_ASSOC);
+    }
+    $stmtImp = $db->prepare("SELECT * FROM impressoes_etiquetas WHERE id_item = ?");
+    $stmtImp->execute([$item['id'] ?? 0]);
+    echo json_encode(['success' => true, 'item' => $item, 'qualidade_inspecoes' => $qi, 'impressoes' => $stmtImp->fetchAll(PDO::FETCH_ASSOC)]);
+    exit;
+}
+
 if ($acao === 'remover') {
     $stmtBuscaQm = $db->prepare("SELECT id FROM itens_producao WHERE numero_pedido = 'TESTE-AUTO-QM'");
     $stmtBuscaQm->execute();
