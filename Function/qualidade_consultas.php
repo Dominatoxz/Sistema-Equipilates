@@ -231,6 +231,7 @@ function qualidadeItemFichaTexto(string $numero, array $it): string
 {
     $idExibicao = ($it['tabela_origem'] === 'itens_os') ? 'OS' . $it['item_id'] : (string) $it['item_id'];
     $linhas = [
+        '⚠️ <b>Este item já foi validado</b>',
         '🔍 <b>Inspeção de qualidade</b>',
         'Pedido: <b>' . htmlspecialchars($numero) . '</b>',
         'Equipamento: ' . htmlspecialchars($it['equipamento'] ?? '-'),

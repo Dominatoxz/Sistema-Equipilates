@@ -157,9 +157,15 @@ if ($codigoLido) {
                     $notificacaoPosProducao = notificarPosProducao($db, (string) $nrPedidoDoBanco);
                 }
 
-                if ($entraNoGateQualidade) {
-                    notificarQualidade($db, $tabelaAlvo, $id);
-                }
+                // Não notifica no Telegram a cada bipagem — o item já fica
+                // armazenado como "Aguardando" (ver $setQualidade acima).
+                // Pra aparecer na tela dos inspetores, alguém digita
+                // /validar NÚMERO, que chama notificarQualidade() e manda
+                // pra TODOS os cadastrados em qualidade (sem travar — mais
+                // de um inspetor pode abrir o mesmo pedido; Vitor/Matheus,
+                // 2026-09-10: "para o pedido aparecer na tela dos
+                // inspetores, eles tem que digitar /validar... os outros
+                // inspetores também podem validar o mesmo pedido").
 
                 echo json_encode([
                     'success' => true,
