@@ -52,6 +52,16 @@ if ($acao === 'debug') {
     exit;
 }
 
+if ($acao === 'resetar_impressao') {
+    $stmt = $db->prepare("SELECT id FROM itens_producao WHERE numero_pedido = 'TESTE-AUTO-QM'");
+    $stmt->execute();
+    $id = $stmt->fetchColumn();
+    $stmtDel = $db->prepare("DELETE FROM impressoes_etiquetas WHERE id_item = ?");
+    $stmtDel->execute([$id]);
+    echo json_encode(['success' => true, 'id' => $id, 'removidos' => $stmtDel->rowCount()]);
+    exit;
+}
+
 if ($acao === 'remover') {
     $stmtBuscaQm = $db->prepare("SELECT id FROM itens_producao WHERE numero_pedido = 'TESTE-AUTO-QM'");
     $stmtBuscaQm->execute();
