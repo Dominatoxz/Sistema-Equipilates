@@ -19,6 +19,13 @@ if (empty($tokenEsperado) || !hash_equals($tokenEsperado, $tokenRecebido)) {
 $db = (new Database())->getConnection();
 $acao = $_GET['acao'] ?? 'inserir';
 
+if ($acao === 'debug') {
+    $stmt = $db->prepare("SELECT * FROM itens_producao WHERE numero_pedido = 'TESTE-AUTO'");
+    $stmt->execute();
+    echo json_encode(['success' => true, 'item' => $stmt->fetch(PDO::FETCH_ASSOC)]);
+    exit;
+}
+
 if ($acao === 'remover') {
     $stmt = $db->prepare("DELETE FROM itens_producao WHERE numero_pedido = 'TESTE-AUTO'");
     $stmt->execute();
