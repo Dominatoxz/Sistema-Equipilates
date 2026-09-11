@@ -84,6 +84,13 @@ require_once '../../Function/trava.php';
             font-size: 20px;
         }
 
+        /* Prazo (2ª coluna) — só "DD/MM", não precisa da largura das
+           colunas de equipamento. */
+        th:nth-child(2),
+        td:nth-child(2) {
+            width: 65px;
+        }
+
         .linha-resumo-gaiola td {
             position: -webkit-sticky;
             position: sticky;
@@ -99,6 +106,13 @@ require_once '../../Function/trava.php';
             font-weight: bold;
             font-size: 20px;
             color: #bb4242;
+        }
+
+        .contagem-itens {
+            font-weight: bold;
+            font-size: 20px;
+            color: blue;
+            width: 70px;
         }
 
         .numero-pedido.misto {
@@ -205,7 +219,6 @@ require_once '../../Function/trava.php';
             <thead>
                 <tr>
                     <th>Pedido</th>
-                    <th>Itens</th>
                     <th>Prazo</th>
                     <th>Reformer</th>
                     <th>Carrinho (Ref)</th>
@@ -217,6 +230,7 @@ require_once '../../Function/trava.php';
                     <th>Wall Unit</th>
                     <th>Prancha de Molas</th>
                     <th>Acessórios</th>
+                    <th>Itens</th>
                 </tr>
             </thead>
             <tbody>
@@ -272,9 +286,7 @@ require_once '../../Function/trava.php';
                                 </div>
                             </td>
 
-                            <td><?= (int) ($contagemItens['embalados'] ?? 0) ?>/<?= (int) ($contagemItens['total'] ?? 0) ?></td>
-
-                            <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
+                            <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 5)) ?></td>
 
                             <?php foreach ($equipamentos as $nome_equipamento):
                                 $stmt = $db->prepare("SELECT id, status, status_qualidade, qualidade_tentativas FROM itens_producao WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido NOT LIKE 'OS%'");
@@ -358,6 +370,7 @@ require_once '../../Function/trava.php';
                                 }
                                 ?>
                             </td>
+                            <td class="contagem-itens"><?= (int) ($contagemItens['embalados'] ?? 0) ?>/<?= (int) ($contagemItens['total'] ?? 0) ?></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>

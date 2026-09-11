@@ -78,6 +78,13 @@ require_once '../../Function/trava.php';
             white-space: normal;
         }
 
+        /* Prazo (2ª coluna) — só "DD/MM", não precisa da largura das
+           colunas de equipamento. */
+        th:nth-child(2),
+        td:nth-child(2) {
+            width: 65px;
+        }
+
         td {
             padding: 8px 4px;
             border: 1px solid #1c1c1c;
@@ -111,6 +118,13 @@ require_once '../../Function/trava.php';
             font-weight: bold;
             font-size: 20px;
             color: #bb4242;
+        }
+
+        .contagem-itens {
+            font-weight: bold;
+            font-size: 20px;
+            color: blue;
+            width: 70px;
         }
 
         .numero-pedido.misto {
@@ -310,12 +324,12 @@ require_once '../../Function/trava.php';
             <thead>
                 <tr>
                     <th>Pedido</th>
-                    <th>Itens</th>
                     <th>Prazo</th>
                     <?php foreach ($equipamentosVisiveis as $rotulo): ?>
                         <th><?= htmlspecialchars($rotulo) ?></th>
                     <?php endforeach; ?>
                     <th>Acessórios</th>
+                    <th>Itens</th>
                 </tr>
             </thead>
             <tbody>
@@ -337,9 +351,7 @@ require_once '../../Function/trava.php';
                                 </div>
                             </td>
 
-                            <td><?= (int) ($contagemItens['embalados'] ?? 0) ?>/<?= (int) ($contagemItens['total'] ?? 0) ?></td>
-
-                            <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
+                            <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 5)) ?></td>
 
                             <?php foreach ($equipamentosVisiveis as $nome_equipamento => $rotulo):
                                 $pecas = $itensPorPedido[$pedido['numero']][$nome_equipamento] ?? [];
@@ -409,6 +421,7 @@ require_once '../../Function/trava.php';
                                 }
                                 ?>
                             </td>
+                            <td class="contagem-itens"><?= (int) ($contagemItens['embalados'] ?? 0) ?>/<?= (int) ($contagemItens['total'] ?? 0) ?></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
