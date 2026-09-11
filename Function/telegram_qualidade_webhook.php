@@ -43,6 +43,17 @@ if (!$callback && isset($update['message']['chat']['id'])) {
         $stmt->execute([(string) $chatIdMsg]);
         return (bool) $stmt->fetchColumn();
     };
+    // Liderança = o "administrador" deste bot (Vitor, 2026-09-10: comando de
+    // reimpressão de etiqueta "só para os administradores" — como o bot
+    // Qualidade não tem role=admin, usa tipo='lideranca'). RECONSTRUÍDO em
+    // 2026-09-11 depois que um deploy externo (git checkout) apagou
+    // Function/ e wipou o comando /reimprimir de novo — ver o mesmo aviso
+    // em api_etiquetas_pendentes.php.
+    $ehLideranca = function () use ($db, $chatIdMsg): bool {
+        $stmt = $db->prepare("SELECT 1 FROM qualidade_telegram_chats WHERE chat_id = ? AND ativo = 1 AND tipo = 'lideranca'");
+        $stmt->execute([(string) $chatIdMsg]);
+        return (bool) $stmt->fetchColumn();
+    };
     $negarNaoAutorizado = function () use ($token, $chatIdMsg): void {
         telegramApiCall($token, 'sendMessage', [
             'chat_id' => $chatIdMsg,
@@ -279,6 +290,51 @@ if (!$callback && isset($update['message']['chat']['id'])) {
         exit;
     }
 
+    // /reimprimir NÚMERO — pede a reimpressão das etiquetas de produto de um
+    // pedido pela impressora automática (Zebra), sem depender da janela de
+    // programação (Vitor, 2026-09-10: "a solicitação de reimpressão de
+    // etiquetas do produto, deixe apenas para os administradores"). Só
+    // liderança. Escolhe qual etiqueta por botão; a decisão (callback q:reimp)
+    // grava linha(s) em reimpressao_manual, lidas pelos endpoints de fila.
+    if (preg_match('/^\/reimprimir(?:\s+(.+))?$/iu', $textoMsg, $mReimp)) {
+        if (!$estaAutorizado()) {
+            $negarNaoAutorizado();
+        }
+        if (!$ehLideranca()) {
+            telegramApiCall($token, 'sendMessage', ['chat_id' => $chatIdMsg, 'text' => 'Esse comando é só pra liderança.']);
+            echo json_encode(['ok' => true]);
+            exit;
+        }
+        $numeroReimp = trim($mReimp[1] ?? '');
+        if ($numeroReimp === '') {
+            telegramApiCall($token, 'sendMessage', ['chat_id' => $chatIdMsg, 'text' => 'Manda assim: /reimprimir NÚMERO_DO_PEDIDO — ex.: /reimprimir 7778']);
+            echo json_encode(['ok' => true]);
+            exit;
+        }
+        $qtdItens = 0;
+        foreach (['itens_producao', 'itens_os'] as $tab) {
+            $st = $db->prepare("SELECT COUNT(*) FROM $tab WHERE numero_pedido = ?");
+            $st->execute([$numeroReimp]);
+            $qtdItens += (int) $st->fetchColumn();
+        }
+        if ($qtdItens === 0) {
+            telegramApiCall($token, 'sendMessage', ['chat_id' => $chatIdMsg, 'text' => 'Pedido ' . htmlspecialchars($numeroReimp) . ' — nenhum item encontrado na produção.']);
+            echo json_encode(['ok' => true]);
+            exit;
+        }
+        telegramApiCall($token, 'sendMessage', [
+            'chat_id' => $chatIdMsg,
+            'text' => '🖨️ Pedido ' . htmlspecialchars($numeroReimp) . ' — ' . $qtdItens . ' item(ns). Quais etiquetas reimprimir?',
+            'reply_markup' => ['inline_keyboard' => [[
+                ['text' => '🏭 Produção', 'callback_data' => "q:reimp:{$numeroReimp}:P"],
+                ['text' => '📦 Embalagem', 'callback_data' => "q:reimp:{$numeroReimp}:E"],
+                ['text' => '🏭+📦 As duas', 'callback_data' => "q:reimp:{$numeroReimp}:PE"],
+            ]]],
+        ]);
+        echo json_encode(['ok' => true]);
+        exit;
+    }
+
     // /ajuda (ou /help) — guia de comandos, pra não depender de decorar (Vitor,
     // 2026-09-08, mesmo pedido já atendido no bot do ERP: "coloque o comando
     // /ajuda para guiar o usuário").
@@ -290,6 +346,7 @@ if (!$callback && isset($update['message']['chat']['id'])) {
                 . "/validar NÚMERO — busca um pedido direto: reenvia as pendências (com os 3 botões de decisão) e mostra o que já foi decidido\n"
                 . "/reprovados — itens em Retrabalho ou Reprovados aguardando voltar pra produção/reimpressão\n"
                 . "/inspetor NOME — histórico de decisões de uma pessoa\n"
+                . "/reimprimir NÚMERO — reimprime as etiquetas de um pedido pela Zebra (só liderança)\n"
                 . "/status ID (ou OS+ID) qualidade — força um item pro gate de qualidade na hora\n"
                 . "/meuid — mostra seu chat_id (pra ser cadastrado por quem cuida da lista)\n\n"
                 . '💡 As inspeções chegam sozinhas, com 3 botões — ✅ Aprovar, 🔧 Retrabalho (mesma etiqueta) ou ❌ Reprovado (etiqueta nova, aciona liderança e ERP). Retrabalho e Reprovado pedem o motivo numa mensagem de texto antes de aplicar.',
@@ -348,6 +405,51 @@ $messageId = $callback['message']['message_id'] ?? null;
 $usuarioTelegram = $callback['from']['username'] ?? ($callback['from']['first_name'] ?? 'desconhecido');
 
 $partes = explode(':', $callback['data']);
+
+// Callback de reimpressão (Vitor, 2026-09-10) — formato próprio de 4 partes
+// "q:reimp:<numero_pedido>:<P|E|PE>", tratado ANTES da checagem estrita de 5
+// partes das decisões de inspeção. Só liderança. Grava linha(s) em
+// reimpressao_manual (1 por item × tipo escolhido) — os endpoints de fila
+// (api_etiquetas_pendentes.php / api_agent_jobs_next.php) leem de lá.
+if (($partes[0] ?? '') === 'q' && ($partes[1] ?? '') === 'reimp') {
+    $stmtLid = $db->prepare("SELECT 1 FROM qualidade_telegram_chats WHERE chat_id = ? AND ativo = 1 AND tipo = 'lideranca'");
+    $stmtLid->execute([(string) $chatId]);
+    if (!$stmtLid->fetchColumn()) {
+        responderCallback($token, $callbackId, 'Só liderança pode pedir reimpressão.', true);
+        echo json_encode(['ok' => true]);
+        exit;
+    }
+    $numeroReimp = $partes[2] ?? '';
+    $flags = strtoupper($partes[3] ?? '');
+    $tiposBase = [];
+    if (strpos($flags, 'P') !== false) $tiposBase[] = 'PRODUCAO';
+    if (strpos($flags, 'E') !== false) $tiposBase[] = 'EMBALAGEM';
+    if ($numeroReimp === '' || !$tiposBase) {
+        responderCallback($token, $callbackId, 'Pedido inválido.', true);
+        echo json_encode(['ok' => true]);
+        exit;
+    }
+    $ins = $db->prepare(
+        "INSERT INTO reimpressao_manual (tabela_origem, item_id, tipo_base, numero_pedido, solicitado_por, origem)
+         VALUES (?, ?, ?, ?, ?, 'bot_qualidade')"
+    );
+    $n = 0;
+    foreach (['itens_producao' => 'PRODUCAO', 'itens_os' => 'OS'] as $tab => $curta) {
+        $st = $db->prepare("SELECT id FROM $tab WHERE numero_pedido = ?");
+        $st->execute([$numeroReimp]);
+        foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $itemId) {
+            foreach ($tiposBase as $tb) {
+                $ins->execute([$curta, (int) $itemId, $tb, $numeroReimp, $usuarioTelegram]);
+                $n++;
+            }
+        }
+    }
+    responderCallback($token, $callbackId, "✅ {$n} etiqueta(s) na fila.");
+    editarMensagem($token, $chatId, $messageId, "🖨️ Reimpressão do pedido " . htmlspecialchars($numeroReimp) . " — {$n} etiqueta(s) na fila. Sai na próxima rodada da impressora.");
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
 // formato: q:<acao>:<p|o>:<id>:<tentativa>
 if (count($partes) !== 5 || $partes[0] !== 'q') {
     echo json_encode(['ok' => true]);
@@ -507,11 +609,23 @@ function aplicarDecisaoNegativa(PDO $db, string $token, string $tabela, int $id,
 
 try {
     if ($acao === 'aprovar') {
-        $stmt = $db->prepare("UPDATE $tabela SET status_qualidade = 'Aprovado' WHERE id = :id AND status_qualidade = 'Aguardando'");
+        // Guard alargado (Vitor, 2026-09-11 — "veja se tem algo quebrado na
+        // ação do bot para retornar o reprovado ou o retrabalho para
+        // aprovado"): antes só aceitava status_qualidade='Aguardando', ou
+        // seja, só a 1ª decisão de verdade. Se esse callback fosse
+        // disparado pra REVISAR um item já Reprovado (bucket Reprovado OU
+        // Retrabalho — os dois ficam como status_qualidade='Reprovado' na
+        // linha do item), o UPDATE não achava nada pra mudar e a pessoa
+        // recebia "já foi decidida por outra pessoa", mesmo sendo a
+        // primeira tentando. Não tinha nenhum botão ativo batendo nesse caso
+        // hoje (/reprovados aqui é só informativo, sem botão — reabrir de
+        // verdade sempre mandava pro /status ID qualidade do ERP), mas
+        // ficava pronto pra quebrar assim que um botão de revisão existisse.
+        $stmt = $db->prepare("UPDATE $tabela SET status_qualidade = 'Aprovado' WHERE id = :id AND status_qualidade IN ('Aguardando', 'Reprovado')");
         $stmt->execute([':id' => $id]);
 
         if ($stmt->rowCount() === 0) {
-            responderCallback($token, $callbackId, 'Esta inspeção já foi decidida por outra pessoa.', true);
+            responderCallback($token, $callbackId, 'Este item já não está mais aguardando ou reprovado — outra pessoa já deve ter decidido.', true);
             echo json_encode(['ok' => true]);
             exit;
         }

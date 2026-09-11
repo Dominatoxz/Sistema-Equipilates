@@ -276,4 +276,41 @@ foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
     }
 }
 
+// Reimpressões pedidas por um admin/liderança pelo bot (Vitor, 2026-09-10:
+// "solicitação de reimpressão de etiquetas do produto ... só para os
+// administradores"). NÃO passam pela janela de prazo nem por
+// status_qualidade — é pedido explícito. A dedupe anda por um tipo_etiqueta
+// único por linha ("{tipo_base}_R{id}"), então jaFoiImpressa() já resolve
+// sem flag extra. Ver reimpressao_manual (migração) e o comando /reimprimir
+// nos 2 bots. RECONSTRUÍDO em 2026-09-11 depois que um novo deploy externo
+// (git checkout, mesmo problema de sempre — ver Function/qualidade_consultas.php)
+// sobrescreveu Function/ e apagou este bloco de novo; a tabela
+// reimpressao_manual no banco não foi afetada.
+$manuais = $db->query(
+    "SELECT rm.id, rm.tabela_origem, rm.item_id, rm.tipo_base
+     FROM reimpressao_manual rm
+     WHERE NOT EXISTS (
+       SELECT 1 FROM impressoes_etiquetas ie
+       WHERE ie.id_item = rm.item_id AND ie.tabela_origem = rm.tabela_origem
+         AND ie.tipo_etiqueta = CONCAT(rm.tipo_base, '_R', rm.id)
+     )"
+)->fetchAll(PDO::FETCH_ASSOC);
+foreach ($manuais as $m) {
+    $tabelaReal = $m['tabela_origem'] === 'OS' ? 'itens_os' : 'itens_producao';
+    $stmtItemManual = $db->prepare(
+        "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, status_qualidade, reimpressao_liberada, qualidade_tentativas
+         FROM $tabelaReal WHERE id = ?"
+    );
+    $stmtItemManual->execute([$m['item_id']]);
+    $itemManual = $stmtItemManual->fetch(PDO::FETCH_ASSOC);
+    if (!$itemManual) continue;
+    $itemManual['tabela_origem'] = $m['tabela_origem'];
+    $jobs[] = [
+        'id_item' => (int) $m['item_id'],
+        'tabela_origem' => $m['tabela_origem'],
+        'tipo_etiqueta' => $m['tipo_base'] . '_R' . $m['id'],
+        'zpl' => montarZpl($itemManual, $m['tipo_base'], in_array($itemManual['numero_pedido'], $pedidosMistos)),
+    ];
+}
+
 echo json_encode(['success' => true, 'jobs' => $jobs]);

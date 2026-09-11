@@ -281,4 +281,40 @@ foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
     }
 }
 
+// Reimpressões pedidas por um admin/liderança pelo bot (Vitor, 2026-09-10).
+// Idêntico ao bloco de api_etiquetas_pendentes.php — NÃO passa pela janela
+// de prazo nem por status_qualidade; dedupe por "{tipo_base}_R{id}" único.
+// RECONSTRUÍDO em 2026-09-11 depois de outro deploy externo apagar
+// Function/ de novo (tabela reimpressao_manual no banco não foi afetada).
+$manuais = $db->query(
+    "SELECT rm.id, rm.tabela_origem, rm.item_id, rm.tipo_base
+     FROM reimpressao_manual rm
+     WHERE NOT EXISTS (
+       SELECT 1 FROM impressoes_etiquetas ie
+       WHERE ie.id_item = rm.item_id AND ie.tabela_origem = rm.tabela_origem
+         AND ie.tipo_etiqueta = CONCAT(rm.tipo_base, '_R', rm.id)
+     )"
+)->fetchAll(PDO::FETCH_ASSOC);
+foreach ($manuais as $m) {
+    $tabelaReal = $m['tabela_origem'] === 'OS' ? 'itens_os' : 'itens_producao';
+    $stmtItemManual = $db->prepare(
+        "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, status_qualidade, reimpressao_liberada, qualidade_tentativas
+         FROM $tabelaReal WHERE id = ?"
+    );
+    $stmtItemManual->execute([$m['item_id']]);
+    $itemManual = $stmtItemManual->fetch(PDO::FETCH_ASSOC);
+    if (!$itemManual) continue;
+    $itemManual['tabela_origem'] = $m['tabela_origem'];
+    $tipoJob = $m['tipo_base'] . '_R' . $m['id'];
+    $jobs[] = [
+        'id' => "etq:{$m['tabela_origem']}:{$m['item_id']}:{$tipoJob}",
+        'type' => 'print',
+        'payload' => [
+            'printer' => 'Zebra_ZD230',
+            'text' => montarZpl($itemManual, $m['tipo_base'], in_array($itemManual['numero_pedido'], $pedidosMistos)),
+            'copies' => 1,
+        ],
+    ];
+}
+
 echo json_encode(['jobs' => $jobs]);
