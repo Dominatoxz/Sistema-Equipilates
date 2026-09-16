@@ -193,6 +193,42 @@ require_once '../../Function/trava.php';
             color: #bdc3c7;
             flex-shrink: 0;
         }
+
+        /* Ajuste responsivo básico pra tela de celular/tablet no chão de fábrica
+           (não muda o layout no desktop, só reduz tamanhos em telas estreitas). */
+        @media (max-width: 768px) {
+            body {
+                margin: 5px;
+                height: calc(100vh - 10px);
+            }
+
+            .table-container {
+                height: calc(100vh - 70px);
+                max-height: calc(100vh - 70px);
+            }
+
+            th {
+                height: 150px;
+                font-size: 12px;
+                padding: 4px 2px;
+            }
+
+            td {
+                font-size: 14px;
+                padding: 4px 2px;
+            }
+
+            td:first-child,
+            th:first-child {
+                font-size: 16px;
+                width: 60px;
+            }
+
+            .contagem-itens {
+                font-size: 16px;
+                width: 55px;
+            }
+        }
     </style>
 </head>
 

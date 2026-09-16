@@ -419,6 +419,35 @@ require_once '../Function/trava.php';
             letter-spacing: 1.5px;
             font-weight: 600;
         }
+
+        /* Ajuste responsivo básico pra tela de celular/tablet no chão de fábrica
+           (não muda o layout no desktop, só reduz tamanhos em telas estreitas). */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            th {
+                padding: 8px 6px;
+                font-size: 0.65rem;
+            }
+
+            td {
+                padding: 8px 6px;
+                font-size: 0.8rem;
+            }
+
+            .btn-baixa,
+            .btn-reprogramar {
+                padding: 6px 10px;
+                font-size: 0.65rem;
+            }
+
+            .container-obs {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
     </style>
 </head>
 
