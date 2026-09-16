@@ -107,6 +107,7 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Impressão de Etiquetas</title>
     <style>
         @page {
@@ -373,6 +374,29 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             .etiqueta-embalagem {
                 border-left: 6mm solid #000000 !important;
+            }
+        }
+
+        /* Ajuste responsivo básico pra tela de celular/tablet no formulário de
+           filtros (só na tela, não afeta a etiqueta impressa — tamanho fixo
+           pra impressora térmica). */
+        @media screen and (max-width: 768px) {
+            .header-filtros {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .filter-form {
+                gap: 10px;
+            }
+
+            .filter-group input,
+            .filter-group select {
+                min-width: 140px;
+            }
+
+            .btn-print {
+                margin-left: 0;
             }
         }
     </style>
