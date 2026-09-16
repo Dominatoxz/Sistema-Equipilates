@@ -201,6 +201,29 @@ $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
             letter-spacing: 1.5px;
             font-weight: 600;
         }
+
+        /* Ajuste responsivo básico pra tela de celular/tablet (não muda o
+           layout no desktop, só reduz tamanhos em telas estreitas). */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            th {
+                padding: 8px 6px;
+                font-size: 0.62rem;
+            }
+
+            td {
+                padding: 8px 6px;
+                font-size: 0.8rem;
+            }
+
+            .header-painel {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+        }
     </style>
 </head>
 
