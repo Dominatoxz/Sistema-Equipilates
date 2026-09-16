@@ -4,6 +4,7 @@ require_once __DIR__ . '/csrf.php';
 
 ini_set('session.cookie_lifetime', 0);
 ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_secure', 1);
 
 
 if (session_status() === PHP_SESSION_NONE) {

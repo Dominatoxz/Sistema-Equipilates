@@ -1,6 +1,7 @@
 <?php
 ini_set('session.cookie_lifetime', 0);
 ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_secure', 1);
 session_start();
 date_default_timezone_set('America/Sao_Paulo');
 require_once '../config/Database.php';

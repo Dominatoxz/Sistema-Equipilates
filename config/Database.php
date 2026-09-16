@@ -29,8 +29,10 @@ class Database
 
             //pega a mensagem de erro e associa a uma variavel
         } catch (PDOException $e) {
-            //getMessage pega a mensagem de erro e exibe na tela
-            echo "Erro de conexão.";
+            error_log('Falha na conexao com o banco de dados: ' . $e->getMessage());
+            http_response_code(500);
+            echo "Erro de conexão com o banco de dados. Tente novamente em instantes.";
+            exit();
         }
         //com o sucesso da conexão, retorna a propria conexão
         return $this->conn;
