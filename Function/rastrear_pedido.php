@@ -27,5 +27,6 @@ try {
 
     echo json_encode(['success' => true, 'pedidos' => $resultado]);
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    error_log('rastrear_pedido: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Erro ao rastrear o pedido. Tente novamente.']);
 }

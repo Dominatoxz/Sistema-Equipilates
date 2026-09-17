@@ -37,5 +37,6 @@ try {
 
     echo json_encode(['success' => true]);
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    error_log('salvar_obs_expedicao: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Erro ao salvar a observação. Tente novamente.']);
 }

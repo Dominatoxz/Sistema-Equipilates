@@ -85,5 +85,6 @@ try {
     if (isset($db) && $db->inTransaction()) {
         $db->rollBack();
     }
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    error_log('api_confirmar_impressao_automatica: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Erro ao processar a solicitação. Tente novamente.']);
 }

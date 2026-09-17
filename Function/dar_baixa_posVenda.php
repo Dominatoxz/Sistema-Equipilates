@@ -69,9 +69,10 @@ try {
         echo json_encode(['success' => false, 'error' => 'Este pedido já não está mais no Pós-venda (outra pessoa já deve ter movido ele). Recarregue a página.']);
     }
 } catch (\PDOException $e) {
+    error_log('dar_baixa_posVenda: ' . $e->getMessage() . ' | Linha: ' . $e->getLine());
     echo json_encode([
         'success' => false,
-        'error' => 'Erro no MySQL: ' . $e->getMessage() . ' | Linha: ' . $e->getLine()
+        'error' => 'Erro ao processar a solicitação. Tente novamente.'
     ]);
 }
 exit();

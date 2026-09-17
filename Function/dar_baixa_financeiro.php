@@ -72,9 +72,10 @@ try {
         echo json_encode(['success' => false, 'error' => 'Este pedido já não está mais no Financeiro (outra pessoa já deve ter movido ele). Recarregue a página.']);
     }
 } catch (\PDOException $e) {
+    error_log('dar_baixa_financeiro: ' . $e->getMessage() . ' | Linha: ' . $e->getLine());
     echo json_encode([
         'success' => false,
-        'error' => 'Erro no MySQL: ' . $e->getMessage() . ' | Linha: ' . $e->getLine()
+        'error' => 'Erro ao processar a solicitação. Tente novamente.'
     ]);
 }
 exit();

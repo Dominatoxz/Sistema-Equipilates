@@ -54,6 +54,22 @@ function notificarPosProducao(PDO $db, ?string $pedido): array
             $existe = $stmtCheck->fetchColumn();
 
             if (!$existe) {
+                // Pedido já foi removido manualmente (Financeiro/Pós-venda/Expedição
+                // usam o mesmo botão "Remover Pedido" -> reprogramar_pedido.php, que
+                // só apaga a linha de pedidos_prontos sem mexer no status dos itens).
+                // Sem essa checagem, a próxima bipagem de QUALQUER item restante desse
+                // pedido reinseria ele do zero na fila do Financeiro, mesmo tendo sido
+                // removido de propósito (Matheus, 2026-09-16: "o pessoal... quando
+                // removem um pedido, esse pedido volta pra tela depois"). Uma vez
+                // reprogramado, só volta pra fila com uma ação manual de verdade.
+                $stmtReprog = $db->prepare("SELECT COUNT(*) FROM pedidos_reprogramados WHERE numero_pedido = ?");
+                $stmtReprog->execute([$pedido]);
+                $foiReprogramado = (int) $stmtReprog->fetchColumn() > 0;
+
+                if ($foiReprogramado) {
+                    return ['success' => true, 'status_pedido' => 'REPROGRAMADO_BLOQUEADO'];
+                }
+
                 if ($isOS) {
                     $stmtPrazo = $db->prepare("SELECT prazo_producao FROM itens_os WHERE numero_pedido = ?");
                 } else {
@@ -85,7 +101,8 @@ function notificarPosProducao(PDO $db, ?string $pedido): array
             'pendentes' => $totalPendentes
         ];
     } catch (PDOException $e) {
-        return ['success' => false, 'error' => $e->getMessage()];
+        error_log('notificarPosProducao: ' . $e->getMessage());
+        return ['success' => false, 'error' => 'Erro ao processar a solicitação.'];
     }
 }
 

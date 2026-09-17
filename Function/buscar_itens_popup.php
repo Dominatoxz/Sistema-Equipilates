@@ -40,5 +40,6 @@ try {
 
     echo json_encode(['success' => true, 'itens' => $itensFormatados]);
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    error_log('buscar_itens_popup: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Erro ao carregar os itens. Tente novamente.']);
 }

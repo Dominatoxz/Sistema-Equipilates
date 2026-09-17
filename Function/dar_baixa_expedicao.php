@@ -96,5 +96,6 @@ try {
     if (isset($db) && $db->inTransaction()) {
         $db->rollBack();
     }
-    echo json_encode(['success' => false, 'error' => 'Erro no Banco: ' . $e->getMessage()]);
+    error_log('dar_baixa_expedicao: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Erro ao processar a solicitação. Tente novamente.']);
 }

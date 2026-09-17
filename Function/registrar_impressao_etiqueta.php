@@ -96,5 +96,6 @@ try {
     if (isset($db) && $db->inTransaction()) {
         $db->rollBack();
     }
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    error_log('registrar_impressao_etiqueta: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Erro ao processar a solicitação. Tente novamente.']);
 }

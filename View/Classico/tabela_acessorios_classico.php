@@ -204,6 +204,8 @@ require_once '../../Function/trava.php';
 
             $equipamentos = [
                 'CAIXA DO REFORMER CLÁSSICA'         => 'Caixa Reformer',
+                'SPINE CORRECTOR'                     => 'Spine Corrector',
+                'SMALL BARREL'                        => 'Small Barrel',
                 'SUPORTE SPINE CORRECTOR'             => 'Suporte Spine',
                 'MINI EXTENSÃO MOVE FLOW'             => 'Mini Extensão',
                 'PLATAFORMA BARREL CLÁSSICO'          => 'Plataforma Barrel',
@@ -220,6 +222,7 @@ require_once '../../Function/trava.php';
                 'TRAV. CABEC. 40 mm'                  => 'Trav Cabec 40',
                 'CAPA PROT. BARREL CLÁSS.'            => 'Capa Prot Barrel',
                 'SHEEPSKIN COVER'                      => 'Sheepskin',
+                'BASTÃO ALUMÍNIO 1,5 M'                => 'Bastão Alumínio',
                 'PUXADOR DE ALUMINIO'                  => 'Puxador Aluminio',
                 'ANEL DE PILATES ARCHIVE AÇO'          => 'Anel de Pilates',
                 'MAGIC SQUARE'                          => 'Magic Square',
@@ -231,6 +234,7 @@ require_once '../../Function/trava.php';
                 'TOE EXERCISER'                          => 'Toe Exerciser',
                 'AIR PLANE BOARD'                        => 'Air Plane',
                 'FINGER EXERCISE'                        => 'Finger Exercise',
+                'PUSH UP DEVICE (PAR)'                   => 'Push Up Device',
                 'MINI BARREL'                            => 'Mini Barrel',
                 'MINI SPINE'                              => 'Mini Spine',
             ];

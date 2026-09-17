@@ -46,5 +46,6 @@ try {
 
     echo json_encode(['success' => true, 'dados' => $dados]);
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    error_log('dados_tabelas: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Erro ao carregar os dados. Tente novamente.']);
 }
