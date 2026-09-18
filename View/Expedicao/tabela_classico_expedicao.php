@@ -223,6 +223,7 @@ require_once '../../Function/trava.php';
                 'LADDER BARREL CLÁSS.'        => 'Barrel',
                 'PEDI O POLE'                 => 'POP',
                 'WALL UNIT CLÁSSICO'          => 'Wall Unit',
+                'TORRE WALL UNIT CLÁSSICO'    => 'Torre WU',
                 'MAT CLÁSSICO'                => 'Mat (C)',
                 'MAT PORTÁTIL'                => 'Mat (P)',
                 'BENCH MAT'                   => 'Bench',
