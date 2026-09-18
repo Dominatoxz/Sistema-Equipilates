@@ -42,6 +42,25 @@ try {
         $dados = $sistema->mostrarTabelaExpedicaoClassico();
     } elseif ($tela === 'expedicao_acess_classico') {
         $dados = $sistema->mostrarTabelaExpedicaoClassicoAcessorios();
+    } elseif ($tela === 'armazenagem_unificada') {
+        // Usado pela tela unica de Armazenagem (2026-09-16), que juntou as 4
+        // telas antigas de Expedicao num so lugar — merge dos 4 conjuntos de
+        // pedidos elegiveis, sem duplicar quem aparece em mais de uma
+        // categoria.
+        $porNumero = [];
+        foreach ([
+            $sistema->mostrarTabelaExpedicaoContemporaneo(),
+            $sistema->mostrarTabelaExpedicaoContemporaneoAcessorios(),
+            $sistema->mostrarTabelaExpedicaoClassico(),
+            $sistema->mostrarTabelaExpedicaoClassicoAcessorios(),
+        ] as $lista) {
+            foreach ($lista as $p) {
+                if (!isset($porNumero[$p['numero']])) {
+                    $porNumero[$p['numero']] = $p;
+                }
+            }
+        }
+        $dados = array_values($porNumero);
     }
 
     echo json_encode(['success' => true, 'dados' => $dados]);

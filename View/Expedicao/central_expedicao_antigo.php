@@ -8,7 +8,7 @@ require_once '../../Function/trava.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Central de Expedição</title>
+    <title>Painel Central de Expedição (modo antigo)</title>
     <style>
         :root {
             --bg-color: #f4f6f9;
@@ -105,6 +105,17 @@ require_once '../../Function/trava.php';
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
             transform: scale(1.05);
             border-color: #1e1e26;
+        }
+
+        .header-painel a.btn-nova-visualizacao {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
+        .header-painel a.btn-nova-visualizacao:hover {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
         }
 
         h1 {
@@ -275,20 +286,6 @@ require_once '../../Function/trava.php';
             color: var(--color-osac);
         }
 
-        .pos-venda .icon-box {
-            color: var(--color-pos);
-            background: rgba(16, 185, 129, 0.06);
-        }
-
-        .pos-venda:hover {
-            box-shadow: 0 15px 30px rgba(16, 185, 129, 0.12);
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-
-        .pos-venda:hover h3 {
-            color: var(--color-pos);
-        }
-
         .footer {
             margin-top: 60px;
             margin-bottom: 30px;
@@ -305,23 +302,39 @@ require_once '../../Function/trava.php';
     <div class="header-painel">
         <img src="../../assets/logo_equipilates.png" alt="">
         <div style="display: flex; gap: 12px;">
-            <a class="btn-voltar" href="../Classico/central_classico.php">Clássico ></a>
-            <a class="btn-voltar" href="../Contemporaneo/central_contemporaneo.php">Contemporâneo ></a>
+            <a class="btn-voltar btn-nova-visualizacao" href="tabela_armazenagem.php">↩ Nova visualização</a>
             <a class="btn-voltar" href="../../index.php">Central ></a>
         </div>
     </div>
     <div class="container">
         <h1>Central de controle</h1>
-        <h2>Expedição<option value=""></option>
-        </h2>
-        <p class="subtitle">"Seu corpo é seu maior bem, ele guarda e reflete sua alma."</p>
-        <p class="sub-subtitle">- Joseph Pilates</p>
+        <h2>Expedição (modo antigo)</h2>
+        <p class="subtitle">Telas separadas por linha e categoria, como funcionava antes da tela única de Armazenagem.</p>
+        <p class="sub-subtitle">Use "Nova visualização" pra voltar pra lista unificada</p>
 
         <div class="grid-painel">
-            <a href="tabela_armazenagem.php" class="card-botao prod">
+            <a href="tabela_producao_expedicao.php" class="card-botao prod">
                 <div class="icon-box">📦</div>
-                <h3>Armazenagem</h3>
-                <p>Todos os itens (Contemporâneo + Clássico, equipamentos e acessórios) numa lista só, ordenada por atraso</p>
+                <h3>Equipamentos do Contemporâneo</h3>
+                <p>Equipamentos da linha contemporânea</p>
+            </a>
+
+            <a href="tabela_acessorios_expedicao.php" class="card-botao prod">
+                <div class="icon-box">➕</div>
+                <h3>Acessórios do Contemporâneo</h3>
+                <p>Acessórios da linha contemporânea</p>
+            </a>
+
+            <a href="tabela_classico_expedicao.php" class="card-botao os-eq">
+                <div class="icon-box">🏛️</div>
+                <h3>Equipamentos do Clássico</h3>
+                <p>Equipamentos da linha clássica</p>
+            </a>
+
+            <a href="tabela_classico_acess_expedicao.php" class="card-botao os-ac">
+                <div class="icon-box">➕</div>
+                <h3>Acessórios do Clássico</h3>
+                <p>Acessórios da linha clássica</p>
             </a>
         </div>
     </div>
