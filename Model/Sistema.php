@@ -1329,10 +1329,13 @@ public function mostrarFilaProducao(): array
 
     public function mostrarPedidosReprogramados(array $filtros = []): array
     {
-        $sql = "SELECT id, numero_pedido, prazo_producao, origem_tela, motivo, usuario_nome, criado_em
+        $sql = "SELECT id, numero_pedido, prazo_producao, origem_tela, motivo, usuario_nome, criado_em,
+                       confirmado_fisicamente, confirmado_em, confirmado_por
                 FROM pedidos_reprogramados
                 WHERE 1 = 1";
         $params = [];
+
+        $sql .= !empty($filtros['apenas_confirmados']) ? " AND confirmado_fisicamente = 1" : " AND confirmado_fisicamente = 0";
 
         if (!empty($filtros['pedido'])) {
             $sql .= " AND numero_pedido LIKE :pedido";
@@ -1372,5 +1375,18 @@ public function mostrarFilaProducao(): array
         }
 
         return $registros;
+    }
+
+    public function confirmarPedidoReprogramado(int $id, ?string $usuarioNome): bool
+    {
+        $stmt = $this->conn->prepare("UPDATE pedidos_reprogramados
+            SET confirmado_fisicamente = 1, confirmado_em = NOW(), confirmado_por = :usuario_nome
+            WHERE id = :id AND confirmado_fisicamente = 0");
+        $stmt->execute([
+            ':usuario_nome' => $usuarioNome,
+            ':id'           => $id,
+        ]);
+
+        return $stmt->rowCount() > 0;
     }
 }

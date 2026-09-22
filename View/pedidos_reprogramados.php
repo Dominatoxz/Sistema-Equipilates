@@ -15,13 +15,15 @@ $filtro_linha       = isset($_GET['filtro_linha']) ? trim($_GET['filtro_linha'])
 $filtro_origem_tela = isset($_GET['filtro_origem_tela']) ? trim($_GET['filtro_origem_tela']) : '';
 $filtro_data_ini    = isset($_GET['filtro_data_ini']) ? trim($_GET['filtro_data_ini']) : '';
 $filtro_data_fim    = isset($_GET['filtro_data_fim']) ? trim($_GET['filtro_data_fim']) : '';
+$apenas_confirmados = isset($_GET['apenas_confirmados']) && $_GET['apenas_confirmados'] === '1';
 
 $registros = $sistema->mostrarPedidosReprogramados([
-    'pedido'      => $filtro_pedido,
-    'linha'       => $filtro_linha,
-    'origem_tela' => $filtro_origem_tela,
-    'data_ini'    => $filtro_data_ini,
-    'data_fim'    => $filtro_data_fim,
+    'pedido'             => $filtro_pedido,
+    'linha'              => $filtro_linha,
+    'origem_tela'        => $filtro_origem_tela,
+    'data_ini'           => $filtro_data_ini,
+    'data_fim'           => $filtro_data_fim,
+    'apenas_confirmados' => $apenas_confirmados,
 ]);
 
 $rotulosOrigem = [
@@ -163,6 +165,19 @@ $rotulosOrigem = [
             background: #1d4ed8;
         }
 
+        .btn-filtro-ok {
+            background: #16a34a;
+            color: white;
+        }
+
+        .btn-filtro-ok:hover {
+            background: #15803d;
+        }
+
+        .btn-filtro-ok.ativo {
+            background: #0f172a;
+        }
+
         .btn-limpar {
             background: #e2e8f0;
             color: #334155;
@@ -170,6 +185,36 @@ $rotulosOrigem = [
 
         .btn-limpar:hover {
             background: #cbd5e1;
+        }
+
+        .btn-finalizar {
+            background: #16a34a;
+            color: white;
+            padding: 8px 14px;
+            font-size: 12px;
+            height: auto;
+        }
+
+        .btn-finalizar:hover {
+            background: #15803d;
+        }
+
+        .btn-finalizar:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .badge-ok {
+            background: #dcfce7;
+            color: #15803d;
+            font-weight: 700;
+        }
+
+        .info-confirmado {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: block;
+            margin-top: 4px;
         }
 
         table {
@@ -278,11 +323,13 @@ $rotulosOrigem = [
 
 <body>
     <div class="header-painel">
-        <h1>Pedidos Reprogramados</h1>
+        <h1>Pedidos Reprogramados <?= $apenas_confirmados ? '— Já Ajustados' : '— Pendentes de Ajuste' ?></h1>
         <a href="../index.php" class="btn-voltar">← Voltar para a Central</a>
     </div>
 
     <form method="GET" class="filter-form">
+        <input type="hidden" name="apenas_confirmados" value="<?= $apenas_confirmados ? '1' : '0' ?>">
+
         <div class="filter-group">
             <label for="filtro_pedido">Pedido / OS</label>
             <input type="text" name="filtro_pedido" id="filtro_pedido" value="<?= htmlspecialchars($filtro_pedido) ?>" placeholder="Ex: 4806">
@@ -320,6 +367,10 @@ $rotulosOrigem = [
 
         <button type="submit" class="btn-action btn-filtrar">Aplicar Filtros</button>
         <a href="pedidos_reprogramados.php" class="btn-action btn-limpar">Limpar</a>
+
+        <button type="button" class="btn-action btn-filtro-ok <?= $apenas_confirmados ? 'ativo' : '' ?>" onclick="alternarModo()">
+            <?= $apenas_confirmados ? '← Ver Pendentes' : 'Pedidos já Reprogramados ✓' ?>
+        </button>
     </form>
 
     <table>
@@ -331,16 +382,19 @@ $rotulosOrigem = [
                 <th>Motivo</th>
                 <th>Usuário</th>
                 <th>Data/Hora</th>
+                <th><?= $apenas_confirmados ? 'Confirmado' : 'Finalizar' ?></th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($registros)): ?>
                 <tr>
-                    <td colspan="6" class="sem-registros">Nenhum pedido reprogramado encontrado.</td>
+                    <td colspan="7" class="sem-registros">
+                        <?= $apenas_confirmados ? 'Nenhum pedido confirmado como já ajustado ainda.' : 'Nenhum pedido reprogramado pendente encontrado.' ?>
+                    </td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($registros as $r): ?>
-                    <tr>
+                    <tr id="linha-<?= $r['id'] ?>">
                         <td style="font-weight: bold; color: #2980b9; font-size: 16px;"><?= htmlspecialchars($r['numero_pedido']) ?></td>
                         <td>
                             <?php
@@ -357,6 +411,17 @@ $rotulosOrigem = [
                         <td class="motivo-texto"><?= htmlspecialchars($r['motivo']) ?></td>
                         <td><?= htmlspecialchars($r['usuario_nome'] ?? '—') ?></td>
                         <td><?= date('d/m/Y H:i', strtotime($r['criado_em'])) ?></td>
+                        <td>
+                            <?php if ($apenas_confirmados): ?>
+                                <span class="badge badge-ok">✓ OK</span>
+                                <span class="info-confirmado">
+                                    <?= htmlspecialchars($r['confirmado_por'] ?? '—') ?><br>
+                                    <?= $r['confirmado_em'] ? date('d/m/Y H:i', strtotime($r['confirmado_em'])) : '' ?>
+                                </span>
+                            <?php else: ?>
+                                <button class="btn-action btn-finalizar" onclick="finalizarPedido(<?= $r['id'] ?>, this)">Finalizar</button>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -366,6 +431,47 @@ $rotulosOrigem = [
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>
     </div>
+
+    <script>
+        const csrfToken = <?= json_encode(gerarTokenCSRF()) ?>;
+
+        function alternarModo() {
+            const params = new URLSearchParams(window.location.search);
+            params.set('apenas_confirmados', params.get('apenas_confirmados') === '1' ? '0' : '1');
+            window.location.href = 'pedidos_reprogramados.php?' + params.toString();
+        }
+
+        async function finalizarPedido(id, botao) {
+            if (!confirm('Confirmar que este pedido já foi ajustado fisicamente?')) {
+                return;
+            }
+
+            botao.disabled = true;
+            botao.textContent = 'Salvando...';
+
+            try {
+                const resposta = await fetch('../Function/confirmar_pedido_reprogramado.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, csrf_token: csrfToken })
+                });
+                const data = await resposta.json();
+
+                if (data.success) {
+                    const linha = document.getElementById('linha-' + id);
+                    if (linha) linha.remove();
+                } else {
+                    alert('Erro: ' + data.error);
+                    botao.disabled = false;
+                    botao.textContent = 'Finalizar';
+                }
+            } catch (e) {
+                alert('Erro de conexão. Tente novamente.');
+                botao.disabled = false;
+                botao.textContent = 'Finalizar';
+            }
+        }
+    </script>
 </body>
 
 </html>
