@@ -6,8 +6,12 @@ require_once '../config/Database.php';
 $idRegistro = $_GET['id'] ?? null;
 $volumesTotais = $_GET['volumes'] ?? null;
 
-$clientId = 'SEU_CLIENT_ID_AQUI';
-$clientSecret = 'SEU_CLIENT_SECRET_AQUI';
+$clientId = getenv('EGESTOR_CLIENT_ID');
+$clientSecret = getenv('EGESTOR_CLIENT_SECRET');
+
+if (!$clientId || !$clientSecret) {
+    die("Integração com o eGestor não configurada (defina EGESTOR_CLIENT_ID e EGESTOR_CLIENT_SECRET no .env).");
+}
 
 if (!$idRegistro) {
     die("ID do pedido não fornecido.");
