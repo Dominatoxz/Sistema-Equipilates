@@ -385,6 +385,7 @@ require_once '../../Function/trava.php';
         })();
 
         const inputPistola = document.getElementById('input-pistola');
+        let bipagemBloqueada = false;
 
         document.addEventListener('click', () => inputPistola.focus({
             preventScroll: true
@@ -397,6 +398,8 @@ require_once '../../Function/trava.php';
             if (e.key === 'Enter') {
                 const idLido = this.value;
                 this.value = '';
+
+                if (bipagemBloqueada) return;
 
                 if (idLido) {
                     atualizarStatusNoBanco(idLido);
@@ -411,7 +414,9 @@ require_once '../../Function/trava.php';
 
                 if (!data.success) {
                     console.error("Erro no servidor:", data.error);
-                    alert("Erro: " + data.error);
+                    bipagemBloqueada = true;
+                    await dispararFeedbackErro(data.error);
+                    bipagemBloqueada = false;
                     return;
                 }
 
@@ -433,7 +438,8 @@ require_once '../../Function/trava.php';
                     }
                 }
 
-                dispararFeedbackCerto(nrPedido, nmItem, data.statusGerado);
+                bipagemBloqueada = true;
+                dispararFeedbackCerto(nrPedido, nmItem, data.statusGerado).then(() => { bipagemBloqueada = false; });
 
                 setTimeout(async () => {
                     if (icon) {
@@ -523,6 +529,25 @@ require_once '../../Function/trava.php';
             setTimeout(() => {
                 box.classList.remove('active');
             }, 3000);
+        }
+
+        function dispararFeedbackErro(mensagem) {
+            return new Promise((resolve) => {
+                const box = document.getElementById('feedback-box');
+                const content = document.getElementById('feedback-content');
+
+                if (!box || !content) return resolve();
+
+                box.style.backgroundColor = 'rgba(192, 57, 43, 0.92)';
+                content.innerHTML = `<div class="sub-item">${mensagem}</div>`;
+
+                box.classList.add('active');
+
+                setTimeout(() => {
+                    box.classList.remove('active');
+                    resolve();
+                }, 3000);
+            });
         }
     </script>
     <div class="footer">
