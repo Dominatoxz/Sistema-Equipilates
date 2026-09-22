@@ -48,48 +48,68 @@ function notificarPosProducao(PDO $db, ?string $pedido): array
         $totalPendentes = (int) $stmt->fetchColumn();
 
         if ($totalPendentes === 0) {
-            $sqlCheck = 'SELECT COUNT(*) FROM pedidos_prontos WHERE numero_pedido = ?';
-            $stmtCheck = $db->prepare($sqlCheck);
-            $stmtCheck->execute([$pedido]);
-            $existe = $stmtCheck->fetchColumn();
+            // Lock de aplicação (GET_LOCK) serializa TODAS as chamadas concorrentes
+            // pra esse mesmo pedido, não importa a origem (atualizar_etapa.php e o
+            // GET de cada tela de bipagem chamam isso em paralelo o tempo todo).
+            // Sem isso, duas chamadas quase simultâneas podiam passar pela checagem
+            // de "existe/reprogramado" antes de qualquer uma delas inserir, e o
+            // pedido reaparecia na fila do Financeiro mesmo já reprogramado.
+            $nomeLock = 'pedido_pronto_' . $pedido;
+            $stmtLock = $db->prepare('SELECT GET_LOCK(?, 5)');
+            $stmtLock->execute([$nomeLock]);
+            $obteveLock = (bool) $stmtLock->fetchColumn();
 
-            if (!$existe) {
-                // Pedido já foi removido manualmente (Financeiro/Pós-venda/Expedição
-                // usam o mesmo botão "Remover Pedido" -> reprogramar_pedido.php, que
-                // só apaga a linha de pedidos_prontos sem mexer no status dos itens).
-                // Sem essa checagem, a próxima bipagem de QUALQUER item restante desse
-                // pedido reinseria ele do zero na fila do Financeiro, mesmo tendo sido
-                // removido de propósito (Matheus, 2026-09-16: "o pessoal... quando
-                // removem um pedido, esse pedido volta pra tela depois"). Uma vez
-                // reprogramado, só volta pra fila com uma ação manual de verdade.
-                $stmtReprog = $db->prepare("SELECT COUNT(*) FROM pedidos_reprogramados WHERE numero_pedido = ?");
-                $stmtReprog->execute([$pedido]);
-                $foiReprogramado = (int) $stmtReprog->fetchColumn() > 0;
+            if (!$obteveLock) {
+                error_log("notificarPosProducao: não conseguiu obter lock para o pedido {$pedido}");
+                return ['success' => false, 'error' => 'Sistema ocupado processando esse pedido, tente novamente.'];
+            }
 
-                if ($foiReprogramado) {
-                    return ['success' => true, 'status_pedido' => 'REPROGRAMADO_BLOQUEADO'];
+            try {
+                $sqlCheck = 'SELECT COUNT(*) FROM pedidos_prontos WHERE numero_pedido = ?';
+                $stmtCheck = $db->prepare($sqlCheck);
+                $stmtCheck->execute([$pedido]);
+                $existe = $stmtCheck->fetchColumn();
+
+                if (!$existe) {
+                    // Pedido já foi removido manualmente (Financeiro/Pós-venda/Expedição
+                    // usam o mesmo botão "Remover Pedido" -> reprogramar_pedido.php, que
+                    // só apaga a linha de pedidos_prontos sem mexer no status dos itens).
+                    // Sem essa checagem, a próxima bipagem de QUALQUER item restante desse
+                    // pedido reinseria ele do zero na fila do Financeiro, mesmo tendo sido
+                    // removido de propósito (Matheus, 2026-09-16: "o pessoal... quando
+                    // removem um pedido, esse pedido volta pra tela depois"). Uma vez
+                    // reprogramado, só volta pra fila com uma ação manual de verdade.
+                    $stmtReprog = $db->prepare("SELECT COUNT(*) FROM pedidos_reprogramados WHERE numero_pedido = ?");
+                    $stmtReprog->execute([$pedido]);
+                    $foiReprogramado = (int) $stmtReprog->fetchColumn() > 0;
+
+                    if ($foiReprogramado) {
+                        return ['success' => true, 'status_pedido' => 'REPROGRAMADO_BLOQUEADO'];
+                    }
+
+                    if ($isOS) {
+                        $stmtPrazo = $db->prepare("SELECT prazo_producao FROM itens_os WHERE numero_pedido = ?");
+                    } else {
+                        $stmtPrazo = $db->prepare("SELECT `PRAZO DE PRODUCAO` FROM tabela_adaptada WHERE `NUMERO PEDIDO` = ?");
+                    }
+                    $stmtPrazo->execute([$pedido]);
+                    $prazoOriginal = $stmtPrazo->fetchColumn();
+                    $prazo = $prazoOriginal ? trim($prazoOriginal) : 'Sem prazo';
+
+                    $sqlInsert = "INSERT INTO pedidos_prontos (numero_pedido, prazo_producao, data_conclusao, status_posvenda)
+                                    VALUES (?, ?, NOW(), 'Financeiro')";
+                    $stmtInsert = $db->prepare($sqlInsert);
+                    $stmtInsert->execute([$pedido, $prazo]);
+
+                    enviarNotificacaoPorSetor(
+                        CARGOS_FINANCEIRO_ACAO,
+                        "Novo Pedido no Financeiro! 💰",
+                        "O pedido {$pedido} acabou de chegar na fila do Financeiro.",
+                        "../View/tabela_financeiro.php"
+                    );
                 }
-
-                if ($isOS) {
-                    $stmtPrazo = $db->prepare("SELECT prazo_producao FROM itens_os WHERE numero_pedido = ?");
-                } else {
-                    $stmtPrazo = $db->prepare("SELECT `PRAZO DE PRODUCAO` FROM tabela_adaptada WHERE `NUMERO PEDIDO` = ?");
-                }
-                $stmtPrazo->execute([$pedido]);
-                $prazoOriginal = $stmtPrazo->fetchColumn();
-                $prazo = $prazoOriginal ? trim($prazoOriginal) : 'Sem prazo';
-
-                $sqlInsert = "INSERT INTO pedidos_prontos (numero_pedido, prazo_producao, data_conclusao, status_posvenda)
-                                VALUES (?, ?, NOW(), 'Financeiro')";
-                $stmtInsert = $db->prepare($sqlInsert);
-                $stmtInsert->execute([$pedido, $prazo]);
-
-                enviarNotificacaoPorSetor(
-                    CARGOS_FINANCEIRO_ACAO,
-                    "Novo Pedido no Financeiro! 💰",
-                    "O pedido {$pedido} acabou de chegar na fila do Financeiro.",
-                    "../View/tabela_financeiro.php"
-                );
+            } finally {
+                $db->prepare('SELECT RELEASE_LOCK(?)')->execute([$nomeLock]);
             }
 
             return ['success' => true, 'status_pedido' => 'SUBIU_POS_VENDA'];
