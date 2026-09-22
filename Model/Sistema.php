@@ -1175,21 +1175,31 @@ class Sistema
 
 public function mostrarFilaProducao(): array
 {
+    // Gaiola Cadilac nao conta pra esse painel pela mesma razao que nao conta
+    // pra fechar o pedido em notificarPosProducao(): desde 2026-08 ela virou
+    // contador agregado (ver EQUIPAMENTOS_GAIOLA_CADILAC), nao uma peca presa
+    // a um pedido especifico. Sem essa exclusao, um pedido com a gaiola ainda
+    // pendente nunca chegava a 100% aqui e ficava marcado como atrasado pra
+    // sempre, mesmo com todo o resto do pedido pronto.
+    $placeholdersGaiola = implode(',', array_fill(0, count(self::EQUIPAMENTOS_GAIOLA_CADILAC), '?'));
+
     $query = "SELECT id, numero_pedido, prazo_producao, status AS status_item, 'NORMAL' AS origem
-                FROM itens_producao 
+                FROM itens_producao
                 WHERE equipamento NOT LIKE '%Emb.%'
-                
+                  AND equipamento NOT IN ($placeholdersGaiola)
+
                 UNION ALL
-                
+
                 SELECT id, numero_pedido, prazo_producao, status AS status_item, 'OS' AS origem
                 FROM itens_os
                 WHERE equipamento NOT LIKE '%Emb.%'
-                
+                  AND equipamento NOT IN ($placeholdersGaiola)
+
                 ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC";
 
     try {
         $stmt = $this->conn->prepare($query);
-        $stmt->execute();
+        $stmt->execute(array_merge(self::EQUIPAMENTOS_GAIOLA_CADILAC, self::EQUIPAMENTOS_GAIOLA_CADILAC));
         $todosItens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $pedidosAgrupados = [];
