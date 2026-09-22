@@ -106,6 +106,9 @@ if ($codigoLido) {
                     $novoStatus = 'Embalado';
                     $colunaData = 'data_fim';
                     $podeAtualizar = true;
+                } elseif ($statusAtual === 'Embalado') {
+                    echo json_encode(['success' => false, 'error' => 'Esse item já foi embalado.']);
+                    exit;
                 } else {
                     echo json_encode(['success' => false, 'error' => 'Não é possível embalar um item que não foi fabricado!']);
                     exit;
