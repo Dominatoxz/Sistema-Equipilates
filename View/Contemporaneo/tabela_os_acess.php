@@ -472,10 +472,11 @@ require_once '../../Function/trava.php';
         document.querySelectorAll('tbody tr').forEach(tr => verificarLinha(tr));
 
         function dispararFeedbackCerto(pedido, item, status) {
+            return new Promise((resolve) => {
             const box = document.getElementById('feedback-box');
             const content = document.getElementById('feedback-content');
 
-            if (!box || !content) return;
+            if (!box || !content) return resolve();
 
             box.style.backgroundColor = (status === 'Embalado') ?
                 'rgba(39, 174, 96, 0.85)' :
@@ -488,7 +489,9 @@ require_once '../../Function/trava.php';
 
             setTimeout(() => {
                 box.classList.remove('active');
+                resolve();
             }, 3000);
+            });
         }
 
         function dispararFeedbackErro(mensagem) {
