@@ -304,9 +304,12 @@ require_once '../../Function/trava.php';
 
                                                 if ($peca['status'] === 'Produzido') {
                                                     $texto = '✅';
-                                                } elseif ($peca['status'] === 'Embalado' || $peca['status'] === 'Armazenado') {
+                                                } elseif ($peca['status'] === 'Embalado') {
                                                     $texto = 'E';
                                                     $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 28px;"';
+                                                } elseif ($peca['status'] === 'Armazenado') {
+                                                    $texto = 'A';
+                                                    $estilo = 'style="color: #2980b9; font-weight: bold; font-size: 28px;"';
                                                 }
                                         ?>
                                                 <span class="item-check"
@@ -453,7 +456,7 @@ require_once '../../Function/trava.php';
                 const itensLista = linha.querySelectorAll('.item-check');
                 if (itensLista.length === 0) return resolve();
 
-                const pendentes = Array.from(itensLista).filter(i => i.innerText.trim() !== 'E');
+                const pendentes = Array.from(itensLista).filter(i => !["E", "A"].includes(i.innerText.trim()));
 
                 if (pendentes.length > 0) return resolve();
 

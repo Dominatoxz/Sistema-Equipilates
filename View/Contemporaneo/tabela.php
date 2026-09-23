@@ -260,6 +260,7 @@ require_once '../../Function/trava.php';
                     <th>Carrinho (Ref)</th>
                     <th>Torre</th>
                     <th>Carrinho (Tor)</th>
+                    <th>Torre do Reformer</th>
                     <th>Cadilac</th>
                     <th>Step</th>
                     <th>Barrel</th>
@@ -276,6 +277,7 @@ require_once '../../Function/trava.php';
                     'Carrinho Excellence',
                     'Reformer Torre',
                     'Carrinho Torre',
+                    'Torre do Reformer',
                     'Cadilac Excelence',
                     'Step Chair Excelence',
                     'Lader Barrel Excelence',
@@ -302,7 +304,7 @@ require_once '../../Function/trava.php';
 
                 <?php if (empty($pedidos)): ?>
                     <tr>
-                        <td colspan="13" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
+                        <td colspan="14" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
                     </tr>
                 <?php else: ?>
 
@@ -349,9 +351,12 @@ require_once '../../Function/trava.php';
                                                         $corQ = ($peca['status_qualidade'] ?? '') === 'Aprovado' ? '#2a7a4f' : '#dfd54d';
                                                         $seloQ = ' <span title="Qualidade" style="position:absolute;top:-8px;right:-10px;display:inline-flex;align-items:center;justify-content:center;background:' . $corQ . ';color:#fff;font-size:13px;font-weight:bold;border-radius:50%;width:20px;height:20px;line-height:1;">Q</span>';
                                                     }
-                                                } elseif ($peca['status'] === 'Embalado' || $peca['status'] === 'Armazenado') {
+                                                } elseif ($peca['status'] === 'Embalado') {
                                                     $texto = 'E';
                                                     $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
+                                                } elseif ($peca['status'] === 'Armazenado') {
+                                                    $texto = 'A';
+                                                    $estilo = 'style="color: #2980b9; font-weight: bold; font-size: 30px;"';
                                                 }
                                         ?>
                                                 <span class="item-check"
@@ -397,7 +402,8 @@ require_once '../../Function/trava.php';
                                     }
 
                                     if ($totalEmbalados === $totalAcess) {
-                                        echo '<span class="item-check status-acessorio-coletivo" data-pedido="' . htmlspecialchars($pedido['numero']) . '" data-equipamento="Acessórios" style="color: #27ae60; font-weight: bold; font-size: 30px;">E</span>';
+                                        $letraAcess = (count(array_filter($status_acessorios, fn($s) => $s === 'Armazenado')) === $totalAcess) ? 'A' : 'E';
+                                        echo '<span class="item-check status-acessorio-coletivo" data-pedido="' . htmlspecialchars($pedido['numero']) . '" data-equipamento="Acessórios" style="color: ' . ($letraAcess === 'A' ? '#2980b9' : '#27ae60') . '; font-weight: bold; font-size: 30px;">' . $letraAcess . '</span>';
                                     } elseif (($totalEmbalados + $totalFinalizados) === $totalAcess) {
                                         echo '<span class="item-check status-acessorio-coletivo" data-pedido="' . htmlspecialchars($pedido['numero']) . '" data-equipamento="Acessórios" style="font-size: 25px;">✅</span>';
                                     } else {
@@ -411,7 +417,7 @@ require_once '../../Function/trava.php';
                     <?php endforeach; ?>
                 <?php endif; ?>
                 <tr class="linha-resumo-gaiola">
-                    <td colspan="13">Gaiola Cadilac da semana (todas as linhas) — Planejado: <strong><?= $gaiolasProducao['planejado'] ?></strong> &nbsp;|&nbsp; Real: <strong><?= $gaiolasProducao['real'] ?></strong> &nbsp;|&nbsp; <span style="color: #c0392b;">Atrasados: <strong><?= $gaiolasProducao['atrasados'] ?></strong></span></td>
+                    <td colspan="14">Gaiola Cadilac da semana (todas as linhas) — Planejado: <strong><?= $gaiolasProducao['planejado'] ?></strong> &nbsp;|&nbsp; Real: <strong><?= $gaiolasProducao['real'] ?></strong> &nbsp;|&nbsp; <span style="color: #c0392b;">Atrasados: <strong><?= $gaiolasProducao['atrasados'] ?></strong></span></td>
                 </tr>
             </tbody>
         </table>
@@ -540,7 +546,7 @@ require_once '../../Function/trava.php';
                 const itensLista = linha.querySelectorAll('.item-check');
                 if (itensLista.length === 0) return resolve();
 
-                const pendentes = Array.from(itensLista).filter(i => i.innerText.trim() !== 'E');
+                const pendentes = Array.from(itensLista).filter(i => !["E", "A"].includes(i.innerText.trim()));
 
                 if (pendentes.length > 0) return resolve();
 

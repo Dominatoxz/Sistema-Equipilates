@@ -382,9 +382,12 @@ require_once '../../Function/trava.php';
                                                         $corQ = ($peca['status_qualidade'] ?? '') === 'Aprovado' ? '#2a7a4f' : '#a9700f';
                                                         $seloQ = ' <span title="Qualidade" style="position:absolute;top:-8px;right:-10px;display:inline-flex;align-items:center;justify-content:center;background:' . $corQ . ';color:#fff;font-size:13px;font-weight:bold;border-radius:50%;width:20px;height:20px;line-height:1;">Q</span>';
                                                     }
-                                                } elseif ($peca['status'] === 'Embalado' || $peca['status'] === 'Armazenado') {
+                                                } elseif ($peca['status'] === 'Embalado') {
                                                     $texto = 'E';
                                                     $estilo = 'style="color: #27ae60; font-weight: bold; font-size: 30px;"';
+                                                } elseif ($peca['status'] === 'Armazenado') {
+                                                    $texto = 'A';
+                                                    $estilo = 'style="color: #2980b9; font-weight: bold; font-size: 30px;"';
                                                 }
                                         ?>
                                                 <span class="item-check"
@@ -422,7 +425,8 @@ require_once '../../Function/trava.php';
                                     }
 
                                     if ($totalEmbalados === $totalAcess) {
-                                        echo '<span class="item-check status-acessorio-coletivo" style="color: #27ae60; font-weight: bold; font-size: 30px;">E</span>';
+                                        $letraAcess = (count(array_filter($status_acessorios, fn($s) => $s === 'Armazenado')) === $totalAcess) ? 'A' : 'E';
+                                        echo '<span class="item-check status-acessorio-coletivo" style="color: ' . ($letraAcess === 'A' ? '#2980b9' : '#27ae60') . '; font-weight: bold; font-size: 30px;">' . $letraAcess . '</span>';
                                     } elseif (($totalEmbalados + $totalFinalizados) === $totalAcess) {
                                         echo '<span class="item-check status-acessorio-coletivo" style="font-size: 25px;">✅</span>';
                                     } else {
@@ -565,7 +569,7 @@ require_once '../../Function/trava.php';
                 const itensLista = linha.querySelectorAll('.item-check');
                 if (itensLista.length === 0) return resolve();
 
-                const pendentes = Array.from(itensLista).filter(i => i.innerText.trim() !== 'E');
+                const pendentes = Array.from(itensLista).filter(i => !["E", "A"].includes(i.innerText.trim()));
 
                 if (pendentes.length > 0) return resolve();
 
