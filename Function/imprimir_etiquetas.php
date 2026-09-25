@@ -95,11 +95,25 @@ if (!empty($filtro_data_ini) && !empty($filtro_data_fim)) {
     $params[':data_fim2'] = $filtro_data_fim;
 }
 
-$query = "($sql_producao) UNION ALL ($sql_os) ORDER BY STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC, id ASC";
+$query = "($sql_producao) UNION ALL ($sql_os) ORDER BY equipamento ASC, STR_TO_DATE(prazo_producao, '%d/%m/%Y') DESC, numero_pedido DESC, posicao_no_pedido DESC, id DESC";
 
 $stmt = $db->prepare($query);
 $stmt->execute($params);
 $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Ordem de saida: o primeiro pedido do quadro sai por ultimo (por isso a
+// consulta vem invertida). Por equipamento, saem primeiro todas as etiquetas
+// de PRODUCAO e depois todas as de EMBALAGEM, e so entao o proximo equipamento.
+$sequenciaEtiquetas = [];
+foreach (array_values(array_unique(array_map(fn($i) => trim($i['equipamento']), $itens))) as $nomeGrupo) {
+    foreach (['PRODUCAO', 'EMBALAGEM'] as $tipoSeq) {
+        foreach ($itens as $itemSeq) {
+            if (trim($itemSeq['equipamento']) === $nomeGrupo) {
+                $sequenciaEtiquetas[] = [$itemSeq, $tipoSeq];
+            }
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -483,7 +497,7 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="container-gabarito">
         <?php
         if (!empty($itens)):
-            foreach ($itens as $item):
+            foreach ($sequenciaEtiquetas as [$item, $tipoSequencia]):
                 $isOS = ($item['tabela_origem'] === 'OS');
                 $CodigoBarraBase = $isOS ? 'OS' . $item['id'] : $item['id'];
 
@@ -505,7 +519,7 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 // imprime a etiqueta de embalagem.
                 $apenasEmbalagem = (strcasecmp($nomeEquipamento, 'Carrinho') === 0 || strcasecmp($nomeEquipamento, 'Gaiola') === 0 || strcasecmp($nomeEquipamento, 'Gaiola Cadilac') === 0);
 
-                if (($filtro_tipo_eti === 'todos' || $filtro_tipo_eti === 'producao') && !$apenasEmbalagem):
+                if ($tipoSequencia === 'PRODUCAO' && ($filtro_tipo_eti === 'todos' || $filtro_tipo_eti === 'producao') && !$apenasEmbalagem):
         ?>
                     <div class="etiqueta etiqueta-fabrica" data-id="<?= (int)$item['id'] ?>" data-origem="<?= htmlspecialchars($item['tabela_origem']) ?>" data-tipo="PRODUCAO">
                         <div class="etiqueta-header">
@@ -528,7 +542,7 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php
                 endif;
 
-                if ($filtro_tipo_eti === 'todos' || $filtro_tipo_eti === 'embalagem'):
+                if ($tipoSequencia === 'EMBALAGEM' && ($filtro_tipo_eti === 'todos' || $filtro_tipo_eti === 'embalagem')):
                 ?>
                     <div class="etiqueta etiqueta-embalagem" data-id="<?= (int)$item['id'] ?>" data-origem="<?= htmlspecialchars($item['tabela_origem']) ?>" data-tipo="EMBALAGEM">
                         <div class="etiqueta-header">

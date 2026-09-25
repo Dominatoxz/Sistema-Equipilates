@@ -50,7 +50,7 @@ $sql = "
             (t.status_qualidade = 'Reprovado' AND t.reimpressao_liberada = 1)
             OR (t.status_qualidade != 'Reprovado' AND STR_TO_DATE(t.prazo_producao, '%d/%m/%Y') BETWEEN :data_ini2 AND :data_fim2)
           )
-    ORDER BY equipamento ASC, STR_TO_DATE(prazo_producao, '%d/%m/%Y') ASC, numero_pedido ASC, id ASC
+    ORDER BY equipamento ASC, STR_TO_DATE(prazo_producao, '%d/%m/%Y') DESC, numero_pedido DESC, posicao_no_pedido DESC, id DESC
 ";
 // Reprovado+liberado é sempre elegível, sem depender do prazo original —
 // (Vitor, 2026-09-09: "reimprima o 7778" revelou que um item reprovado cujo
