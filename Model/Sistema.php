@@ -281,7 +281,7 @@ class Sistema
     }
 
     //função de mostrar a tabela com todos os seus dados
-    public function mostrarTabela()
+    private function mostrarTabelaSoNormal()
     {
         $todosItens = array_merge(self::EQUIPAMENTOS_PRINCIPAIS_CONTEMPORANEO, self::ACESSORIOS_CONTEMPORANEO);
         $condicaoPendente = $this->condicaoItemPendente('`NUMERO PEDIDO`', $todosItens);
@@ -492,6 +492,42 @@ class Sistema
     }
 
 
+    /*
+     * Telas de producao (Contemporaneo e Classico) mostram pedidos normais e
+     * de OS juntos, na mesma grade (as telas separadas de OS foram eliminadas).
+     */
+    public function mostrarTabela(): array
+    {
+        return $this->juntarNormalEOs($this->mostrarTabelaSoNormal(), $this->mostrarTabelaOs());
+    }
+
+    public function mostrarTabelaClassico(): array
+    {
+        return $this->juntarNormalEOs($this->mostrarTabelaClassicoSoNormal(), $this->mostrarTabelaClassicoOs());
+    }
+
+    private function juntarNormalEOs(array $normais, array $os): array
+    {
+        $todos = array_merge($normais, $os);
+        $data = function (array $p): int {
+            $d = DateTime::createFromFormat('d/m/Y', substr(trim((string) ($p['prazo_producao'] ?? '')), 0, 10));
+            return $d ? (int) $d->format('Ymd') : 99999999;
+        };
+        usort($todos, fn($a, $b) => [$data($a), strtolower((string) $a['numero'])] <=> [$data($b), strtolower((string) $b['numero'])]);
+        return $todos;
+    }
+
+    public function contarGaiolasCadilacProducaoTodas(): array
+    {
+        $n = $this->contarGaiolasCadilacProducao('itens_producao');
+        $o = $this->contarGaiolasCadilacProducao('itens_os');
+        $soma = [];
+        foreach ($n as $chave => $valor) {
+            $soma[$chave] = $valor + ($o[$chave] ?? 0);
+        }
+        return $soma;
+    }
+
     public function mostrarTabelaOs()
     {
         $todosItens = array_merge(self::EQUIPAMENTOS_PRINCIPAIS_CONTEMPORANEO, self::ACESSORIOS_CONTEMPORANEO);
@@ -591,7 +627,7 @@ class Sistema
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function mostrarTabelaClassico()
+    private function mostrarTabelaClassicoSoNormal()
     {
         $todosItens = array_merge(self::EQUIPAMENTOS_PRINCIPAIS_CLASSICO, self::ACESSORIOS_CLASSICO);
         $condicaoPendente = $this->condicaoItemPendente('`NUMERO PEDIDO`', $todosItens);

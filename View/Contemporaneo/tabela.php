@@ -217,6 +217,22 @@ require_once '../../Function/trava.php';
                 width: 55px;
             }
         }
+        #relogio-tela {
+            position: fixed;
+            right: 14px;
+            bottom: 10px;
+            z-index: 50;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 38px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: #2c3e50;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid #1c1c1c;
+            border-radius: 10px;
+            padding: 6px 18px;
+            pointer-events: none;
+        }
     </style>
 </head>
 
@@ -233,7 +249,7 @@ require_once '../../Function/trava.php';
             $db = $database->getConnection();
 
             $sistema = new Sistema($db);
-            $pedidosMistos = $sistema->pedidosMistos('itens_producao');
+            $pedidosMistos = array_unique(array_merge($sistema->pedidosMistos('itens_producao'), $sistema->pedidosMistos('itens_os')));
 
             $arquivo_cache = __DIR__ . '/../../cache/dados_painel.json';
             $tempo_expiracao = 30;
@@ -284,7 +300,7 @@ require_once '../../Function/trava.php';
                     'Wall Unit',
                 ];
 
-                $gaiolasProducao = $sistema->contarGaiolasCadilacProducao('itens_producao');
+                $gaiolasProducao = $sistema->contarGaiolasCadilacProducaoTodas();
 
                 $lista_acessorios = [
                     'Caixa Mini',
@@ -309,11 +325,15 @@ require_once '../../Function/trava.php';
                 <?php else: ?>
 
                     <?php foreach ($pedidos_agrupados as $pedido):
-                        $stmtContagem = $db->prepare("SELECT COUNT(*) AS total, SUM(status IN ('Embalado', 'Armazenado')) AS embalados FROM itens_producao WHERE numero_pedido = ? AND equipamento NOT LIKE 'Emb.%' AND numero_pedido NOT LIKE 'OS%'");
+                        $isOsPedido = (stripos($pedido['numero'], 'os') !== false);
+                        $tabelaItensPedido = $isOsPedido ? 'itens_os' : 'itens_producao';
+                        $prefixoIdPedido = $isOsPedido ? 'OS' : '';
+                        $condicaoOs = $isOsPedido ? "numero_pedido LIKE 'OS%'" : "numero_pedido NOT LIKE 'OS%'";
+                        $stmtContagem = $db->prepare("SELECT COUNT(*) AS total, SUM(status IN ('Embalado', 'Armazenado')) AS embalados FROM $tabelaItensPedido WHERE numero_pedido = ? AND equipamento NOT LIKE 'Emb.%' AND $condicaoOs");
                         $stmtContagem->execute([$pedido['numero']]);
                         $contagemItens = $stmtContagem->fetch(PDO::FETCH_ASSOC);
 
-                        $stmtMolas = $db->prepare("SELECT COUNT(*) FROM itens_producao WHERE numero_pedido = ? AND equipamento IN ('P. de Molas - B R I N D E', 'P. de Molas - C O M P L E T A') AND numero_pedido NOT LIKE 'OS%'");
+                        $stmtMolas = $db->prepare("SELECT COUNT(*) FROM $tabelaItensPedido WHERE numero_pedido = ? AND equipamento IN ('P. de Molas - B R I N D E', 'P. de Molas - C O M P L E T A') AND $condicaoOs");
                         $stmtMolas->execute([$pedido['numero']]);
                         $temPranchaMolas = ((int) $stmtMolas->fetchColumn()) > 0;
                     ?>
@@ -327,7 +347,7 @@ require_once '../../Function/trava.php';
                             <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 5)) ?></td>
 
                             <?php foreach ($equipamentos as $nome_equipamento):
-                                $stmt = $db->prepare("SELECT id, status, status_qualidade, qualidade_tentativas FROM itens_producao WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido NOT LIKE 'OS%'");
+                                $stmt = $db->prepare("SELECT id, status, status_qualidade, qualidade_tentativas FROM $tabelaItensPedido WHERE numero_pedido = ? AND equipamento = ? AND $condicaoOs");
                                 $stmt->execute([$pedido['numero'], $nome_equipamento]);
                                 $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             ?>
@@ -360,7 +380,7 @@ require_once '../../Function/trava.php';
                                                 }
                                         ?>
                                                 <span class="item-check"
-                                                    data-id="<?= $peca['id'] ?>"
+                                                    data-id="<?= $prefixoIdPedido . $peca['id'] ?>"
                                                     data-pedido="<?= htmlspecialchars($pedido['numero']) ?>"
                                                     data-equipamento="<?= htmlspecialchars($nome_equipamento) ?>"
                                                     <?= $estilo ?>
@@ -383,7 +403,7 @@ require_once '../../Function/trava.php';
                             </td>
                             <td>
                                 <?php
-                                $sqlAcess = "SELECT status FROM itens_producao WHERE numero_pedido = ? AND equipamento IN ($placeholders_acessorios)";
+                                $sqlAcess = "SELECT status FROM $tabelaItensPedido WHERE numero_pedido = ? AND equipamento IN ($placeholders_acessorios)";
                                 $stmtAcess = $db->prepare($sqlAcess);
                                 $paramsAcess = array_merge([$pedido['numero']], $lista_acessorios);
                                 $stmtAcess->execute($paramsAcess);
@@ -432,7 +452,7 @@ require_once '../../Function/trava.php';
             .map(tr => tr.id.replace('linha-', ''));
 
         function verificarAtualizacoesRapidas() {
-            fetch('../../Function/dados_tabelas.php?tela=expedicao_producao')
+            fetch('../../Function/dados_tabelas.php?tela=producao')
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -634,6 +654,14 @@ require_once '../../Function/trava.php';
                 }, 3000);
             });
         }
+    </script>
+    <div id="relogio-tela"></div>
+    <script>
+        function atualizarRelogio() {
+            document.getElementById('relogio-tela').textContent = new Date().toLocaleTimeString('pt-BR');
+        }
+        atualizarRelogio();
+        setInterval(atualizarRelogio, 1000);
     </script>
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>

@@ -23,13 +23,6 @@ class SistemaController
         require_once './View/Contemporaneo/tabela.php';
     }
 
-    public function os()
-    {
-        //pede lista de dados ao Model
-        $pedidos = $this->sistema->mostrarTabelaOs();
-        require_once './View/Contemporaneo/tabela_os.php';
-    }
-
     public function acessorios()
     {
         $pedidos = $this->sistema->mostrarTabelaAcessorios();

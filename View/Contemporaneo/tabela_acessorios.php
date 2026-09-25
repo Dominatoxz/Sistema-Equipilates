@@ -185,6 +185,22 @@ require_once '../../Function/trava.php';
                 opacity: 0;
             }
         }
+        #relogio-tela {
+            position: fixed;
+            right: 14px;
+            bottom: 10px;
+            z-index: 50;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 38px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: #2c3e50;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid #1c1c1c;
+            border-radius: 10px;
+            padding: 6px 18px;
+            pointer-events: none;
+        }
     </style>
 </head>
 
@@ -523,6 +539,14 @@ require_once '../../Function/trava.php';
                 }, 3000);
             });
         }
+    </script>
+    <div id="relogio-tela"></div>
+    <script>
+        function atualizarRelogio() {
+            document.getElementById('relogio-tela').textContent = new Date().toLocaleTimeString('pt-BR');
+        }
+        atualizarRelogio();
+        setInterval(atualizarRelogio, 1000);
     </script>
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>

@@ -325,7 +325,7 @@ require_once '../../Function/trava.php';
             <a href="tabela_classico.php" class="card-botao prod">
                 <div class="icon-box">📦</div>
                 <h3>Equipamentos</h3>
-                <p>Equipamentos da linha clássica e pedidos normais</p>
+                <p>Equipamentos da linha clássica, pedidos normais e OS</p>
             </a>
 
             <a href="tabela_acessorios_classico.php" class="card-botao prod">
@@ -334,12 +334,6 @@ require_once '../../Function/trava.php';
                 <p>Acessórios da linha clássica e pedidos normais</p>
             </a>
 
-
-            <a href="tabela_classico_os.php" class="card-botao os-eq">
-                <div class="icon-box">🛠️</div>
-                <h3>Equipamentos OS</h3>
-                <p>Estruturas de Ordens de Serviço</p>
-            </a>
 
             <a href="tabela_os_acess_classico.php" class="card-botao os-ac">
                 <div class="icon-box">⚙️</div>

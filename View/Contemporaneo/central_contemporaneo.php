@@ -320,19 +320,13 @@ require_once '../../Function/trava.php';
             <a href="tabela.php" class="card-botao prod">
                 <div class="icon-box">📦</div>
                 <h3>Equipamentos</h3>
-                <p>Equipamentos da linha contemporânea e pedidos normais</p>
+                <p>Equipamentos da linha contemporânea, pedidos normais e OS</p>
             </a>
 
             <a href="tabela_acessorios.php" class="card-botao prod">
                 <div class="icon-box">➕</div>
                 <h3>Acessórios</h3>
                 <p>Acessórios da linha contemporânea e pedidos normais</p>
-            </a>
-
-            <a href="tabela_os.php" class="card-botao os-eq">
-                <div class="icon-box">🛠️</div>
-                <h3>Equipamentos OS</h3>
-                <p>Estruturas de Ordens de Serviço</p>
             </a>
 
             <a href="tabela_os_acess.php" class="card-botao os-ac">

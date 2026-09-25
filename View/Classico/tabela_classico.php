@@ -229,6 +229,22 @@ require_once '../../Function/trava.php';
                 width: 55px;
             }
         }
+        #relogio-tela {
+            position: fixed;
+            right: 14px;
+            bottom: 10px;
+            z-index: 50;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 38px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: #2c3e50;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid #1c1c1c;
+            border-radius: 10px;
+            padding: 6px 18px;
+            pointer-events: none;
+        }
     </style>
 </head>
 
@@ -245,7 +261,7 @@ require_once '../../Function/trava.php';
             $db = $database->getConnection();
 
             $sistema = new Sistema($db);
-            $pedidosMistos = $sistema->pedidosMistos('itens_producao');
+            $pedidosMistos = array_unique(array_merge($sistema->pedidosMistos('itens_producao'), $sistema->pedidosMistos('itens_os')));
 
             $arquivo_cache = __DIR__ . '/../../cache/dados_painel_classico.json';
             $tempo_expiracao = 30;
@@ -264,7 +280,7 @@ require_once '../../Function/trava.php';
             $pedidos = !empty($dados_tabela) ? $dados_tabela : [];
             $pedidos_agrupados = $pedidos;
 
-            $gaiolasProducao = $sistema->contarGaiolasCadilacProducao('itens_producao');
+            $gaiolasProducao = $sistema->contarGaiolasCadilacProducaoTodas();
 
             $equipamentos = [
                 'REF. CLASSICO ALUMINIO'      => 'Reformer Aluminio',
@@ -335,17 +351,26 @@ require_once '../../Function/trava.php';
                 $placeholdersPedidos = implode(',', array_fill(0, count($numerosPedidos), '?'));
                 $placeholdersEquip = implode(',', array_fill(0, count($nomesEquipamentos), '?'));
 
-                $sqlLote = "SELECT id, status, status_qualidade, qualidade_tentativas, numero_pedido, equipamento
-                            FROM itens_producao
-                            WHERE numero_pedido IN ($placeholdersPedidos)
-                              AND equipamento IN ($placeholdersEquip)
-                              AND numero_pedido NOT LIKE 'OS%'";
-                $stmtLote = $db->prepare($sqlLote);
-                $stmtLote->execute(array_merge($numerosPedidos, $nomesEquipamentos));
+                // Pedidos normais (itens_producao) e de OS (itens_os) na mesma grade.
+                $numerosOs = array_values(array_filter($numerosPedidos, fn($n) => stripos($n, 'os') !== false));
+                $numerosNormais = array_values(array_diff($numerosPedidos, $numerosOs));
 
-                foreach ($stmtLote->fetchAll(PDO::FETCH_ASSOC) as $peca) {
-                    $itensPorPedido[$peca['numero_pedido']][$peca['equipamento']][] = $peca;
-                    $equipamentosComDados[$peca['equipamento']] = true;
+                foreach ([['itens_producao', '', $numerosNormais, "NOT LIKE"], ['itens_os', 'OS', $numerosOs, "LIKE"]] as [$tabelaLote, $prefixoLote, $listaLote, $operadorOs]) {
+                    if (empty($listaLote)) continue;
+                    $phLote = implode(',', array_fill(0, count($listaLote), '?'));
+                    $sqlLote = "SELECT id, status, status_qualidade, qualidade_tentativas, numero_pedido, equipamento
+                                FROM $tabelaLote
+                                WHERE numero_pedido IN ($phLote)
+                                  AND equipamento IN ($placeholdersEquip)
+                                  AND numero_pedido $operadorOs 'OS%'";
+                    $stmtLote = $db->prepare($sqlLote);
+                    $stmtLote->execute(array_merge($listaLote, $nomesEquipamentos));
+
+                    foreach ($stmtLote->fetchAll(PDO::FETCH_ASSOC) as $peca) {
+                        $peca['id_prefixado'] = $prefixoLote . $peca['id'];
+                        $itensPorPedido[$peca['numero_pedido']][$peca['equipamento']][] = $peca;
+                        $equipamentosComDados[$peca['equipamento']] = true;
+                    }
                 }
             }
 
@@ -376,7 +401,10 @@ require_once '../../Function/trava.php';
                 <?php else: ?>
 
                     <?php foreach ($pedidos_agrupados as $pedido):
-                        $stmtContagem = $db->prepare("SELECT COUNT(*) AS total, SUM(status IN ('Embalado', 'Armazenado')) AS embalados FROM itens_producao WHERE numero_pedido = ? AND equipamento NOT LIKE 'Emb.%' AND numero_pedido NOT LIKE 'OS%'");
+                        $isOsPedido = (stripos($pedido['numero'], 'os') !== false);
+                        $tabelaItensPedido = $isOsPedido ? 'itens_os' : 'itens_producao';
+                        $condicaoOs = $isOsPedido ? "numero_pedido LIKE 'OS%'" : "numero_pedido NOT LIKE 'OS%'";
+                        $stmtContagem = $db->prepare("SELECT COUNT(*) AS total, SUM(status IN ('Embalado', 'Armazenado')) AS embalados FROM $tabelaItensPedido WHERE numero_pedido = ? AND equipamento NOT LIKE 'Emb.%' AND $condicaoOs");
                         $stmtContagem->execute([$pedido['numero']]);
                         $contagemItens = $stmtContagem->fetch(PDO::FETCH_ASSOC);
                     ?>
@@ -418,7 +446,7 @@ require_once '../../Function/trava.php';
                                                 }
                                         ?>
                                                 <span class="item-check"
-                                                    data-id="<?= $peca['id'] ?>"
+                                                    data-id="<?= $peca['id_prefixado'] ?>"
                                                     <?= $estilo ?>
                                                     style="font-size: 22px; position: relative; display: inline-block;">
                                                     <?= $texto . $seloQ ?>
@@ -432,7 +460,7 @@ require_once '../../Function/trava.php';
                             <?php endforeach; ?>
                             <td>
                                 <?php
-                                $sqlAcess = "SELECT status FROM itens_producao WHERE numero_pedido = ? AND equipamento IN ($placeholders_acessorios)";
+                                $sqlAcess = "SELECT status FROM $tabelaItensPedido WHERE numero_pedido = ? AND equipamento IN ($placeholders_acessorios)";
                                 $stmtAcess = $db->prepare($sqlAcess);
                                 $paramsAcess = array_merge([$pedido['numero']], $lista_acessorios);
                                 $stmtAcess->execute($paramsAcess);
@@ -685,6 +713,14 @@ require_once '../../Function/trava.php';
         }
     </script>
 
+    <div id="relogio-tela"></div>
+    <script>
+        function atualizarRelogio() {
+            document.getElementById('relogio-tela').textContent = new Date().toLocaleTimeString('pt-BR');
+        }
+        atualizarRelogio();
+        setInterval(atualizarRelogio, 1000);
+    </script>
     <div class="footer">
         Painel Operacional EQUIPILATES &copy; <?= date('Y'); ?>
     </div>

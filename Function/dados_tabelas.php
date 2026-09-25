@@ -20,14 +20,10 @@ try {
         $dados = $sistema->mostrarFilaFinanceiro();
     } elseif ($tela === 'producao') {
         $dados = $sistema->mostrarTabela();
-    } elseif ($tela === 'producao_os') {
-        $dados = $sistema->mostrarTabelaOs();
     } elseif ($tela === 'producao_acess') {
         $dados = $sistema->mostrarTabelaAcessorios();
     } elseif ($tela === 'producao_acess_os') {
         $dados = $sistema->mostrarTabelaAcessoriosOs();
-    } elseif ($tela === 'producao_os_classico') {
-        $dados = $sistema->mostrarTabelaClassicoOs();
     } elseif ($tela === 'producao_acess_os_classico') {
         $dados = $sistema->mostrarTabelaClassicoAcessoriosOs();
     } elseif ($tela === 'producao_classico') {
