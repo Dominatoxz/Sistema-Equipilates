@@ -631,9 +631,7 @@ require_once '../../Function/trava.php';
                     let nrPedido = data.pedidoReal || "Desconhecido";
                     let nmItem = data.equipamentoReal || "Equipamento";
 
-                    bipagemBloqueada = true;
-                    await dispararFeedbackCerto(nrPedido, nmItem, data.statusGerado);
-                    bipagemBloqueada = false;
+                    dispararFeedbackCerto(nrPedido, nmItem, data.statusGerado);
 
                     // Item virou Armazenado: some da tela na hora, sem recarregar a
                     // pagina inteira (Matheus, 2026-09-16: "quando o item for
@@ -667,30 +665,30 @@ require_once '../../Function/trava.php';
             }
         }
 
+        const DURACAO_FEEDBACK_MS = 2500;
+        let timerFeedbackCerto = null;
+        let timerPosBipagem = null;
+        const linhasParaVerificar = new Set();
+
         function dispararFeedbackCerto(pedido, item, status) {
-            return new Promise((resolve) => {
-                const box = document.getElementById('feedback-box');
-                const content = document.getElementById('feedback-content');
+            const box = document.getElementById('feedback-box');
+            const content = document.getElementById('feedback-content');
+            if (!box || !content) return;
 
-                if (status === 'Embalado') {
-                    box.style.backgroundColor = 'rgba(39, 174, 96, 0.85)';
-                } else {
-                    box.style.backgroundColor = 'rgba(46, 196, 182, 0.85)';
-                }
+            box.style.backgroundColor = (status === 'Embalado') ?
+                'rgba(39, 174, 96, 0.85)' :
+                'rgba(46, 196, 182, 0.85)';
 
-                content.innerHTML = `<div>PEDIDO: <strong>#${pedido}</strong></div>
+            content.innerHTML = `<div>PEDIDO: <strong>#${pedido}</strong></div>
                                  <div class="sub-item">${item} &rarr; <u>${status.toUpperCase()}</u></div>`;
 
-                box.classList.add('active');
-
-                setTimeout(() => {
-                    box.classList.remove('active');
-                    setTimeout(resolve, 400);
-                }, 3000);
-            });
+            box.classList.add('active');
+            clearTimeout(timerFeedbackCerto);
+            timerFeedbackCerto = setTimeout(() => box.classList.remove('active'), DURACAO_FEEDBACK_MS);
         }
 
         function dispararFeedbackErro(mensagem) {
+            clearTimeout(timerFeedbackCerto);
             return new Promise((resolve) => {
                 const box = document.getElementById('feedback-box');
                 const content = document.getElementById('feedback-content');
