@@ -268,7 +268,7 @@ require_once '../../Function/trava.php';
                         <tr id="linha-<?= htmlspecialchars($pedido['numero']) ?>">
                             <td class="num-column"><?= htmlspecialchars($pedido['numero']) ?></td>
 
-                            <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
+                            <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 5)) ?></td>
 
                             <?php foreach ($equipamentos as $nome_equipamento):
                                 $stmt = $db->prepare("SELECT id, status FROM $tabelaItensPedido WHERE numero_pedido = ? AND equipamento = ? AND $condicaoOs");

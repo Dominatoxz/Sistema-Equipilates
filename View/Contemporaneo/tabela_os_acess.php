@@ -254,7 +254,7 @@ require_once '../../Function/trava.php';
                     <tr>
                         <td class="num-column"><?= htmlspecialchars($pedido['numero']) ?></td>
 
-                        <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 10)) ?></td>
+                        <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 5)) ?></td>
 
                         <?php foreach ($equipamentos as $nome_equipamento):
                             $stmt = $db->prepare("SELECT id, status FROM itens_os WHERE numero_pedido = ? AND equipamento = ? AND numero_pedido LIKE 'OS%'");

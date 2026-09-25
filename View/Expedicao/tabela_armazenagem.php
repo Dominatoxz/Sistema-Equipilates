@@ -452,7 +452,7 @@ require_once '../../Function/trava.php';
             $linhasItens[] = [
                 'id_completo' => $prefixoIdPedido . $item['id'],
                 'numero_pedido' => $pedido['numero'],
-                'prazo' => $prazoData ? $prazoData->format('d/m/Y') : substr($item['prazo_producao'], 0, 10),
+                'prazo' => $prazoData ? $prazoData->format('d/m') : substr($item['prazo_producao'], 0, 5),
                 'item' => $item['equipamento'],
                 'status' => trim((string) $item['status']),
                 'dias_atraso' => $diasAtraso,
