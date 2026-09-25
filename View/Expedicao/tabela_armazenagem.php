@@ -665,7 +665,7 @@ require_once '../../Function/trava.php';
             }
         }
 
-        const DURACAO_FEEDBACK_MS = 2500;
+        const DURACAO_FEEDBACK_MS = 1200;
         let timerFeedbackCerto = null;
         let timerPosBipagem = null;
         const linhasParaVerificar = new Set();
