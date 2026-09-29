@@ -114,6 +114,12 @@ require_once '../../Function/trava.php';
             box-shadow: inset 0 2px 0 #1c1c1c;
         }
 
+        /* Pedido que já fechou a produção (foi pro Financeiro) hoje — fica
+           verde até sumir da tela às 19h (ver Sistema::mostrarTabelaClassicoSoNormal). */
+        tr.linha-completa td {
+            background-color: #d4edda;
+        }
+
         .column-data {
             font-weight: bold;
             font-size: 20px;
@@ -419,8 +425,9 @@ require_once '../../Function/trava.php';
                         $stmtContagem->execute([$pedido['numero']]);
                         $contagemItens = $stmtContagem->fetch(PDO::FETCH_ASSOC);
                         $ehPrioridade = !empty($pedido['prioridade']);
+                        $jaCompleto = !empty($pedido['ja_completo']);
                     ?>
-                        <tr id="linha-<?= htmlspecialchars($pedido['numero']) ?>">
+                        <tr id="linha-<?= htmlspecialchars($pedido['numero']) ?>"<?= $jaCompleto ? ' class="linha-completa"' : '' ?>>
                             <td>
                                 <div style="display: flex; justify-content: center; align-items: center;">
                                     <span class="numero-pedido<?= in_array($pedido['numero'], $pedidosMistos) ? ' misto' : '' ?><?= $ehPrioridade ? ' prioridade' : '' ?>" <?= in_array($pedido['numero'], $pedidosMistos) ? 'title="Pedido misto: tem itens da linha Contemporânea e da Clássica"' : ($ehPrioridade ? 'title="Prioridade marcada pelo PCP"' : '') ?>><?= htmlspecialchars($pedido['numero']) ?></span>
@@ -650,18 +657,15 @@ require_once '../../Function/trava.php';
                             celulas.forEach(td => td.style.transition = "background-color 0.6s ease");
 
                             if (data.status_pedido === 'SUBIU_POS_VENDA') {
-                                linha.style.backgroundColor = "#d4edda";
-                                celulas.forEach(td => td.style.backgroundColor = "#d4edda");
-
-                                setTimeout(() => {
-                                    linha.style.opacity = "0";
-
-                                    setTimeout(() => {
-                                        linha.remove();
-                                        resolve();
-                                    }, 800);
-
-                                }, 800);
+                                // Sobe pro Financeiro mas continua na tela, verde,
+                                // até sumir sozinho às 19h (backend para de
+                                // devolver o pedido depois do corte — ver
+                                // verificarAtualizacoesRapidas). Não remove mais
+                                // a linha aqui.
+                                linha.classList.add('linha-completa');
+                                linha.style.backgroundColor = "";
+                                celulas.forEach(td => td.style.backgroundColor = "");
+                                resolve();
 
                             } else {
                                 linha.style.backgroundColor = "#ffeaa7";
