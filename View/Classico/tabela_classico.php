@@ -135,6 +135,17 @@ require_once '../../Function/trava.php';
             border-radius: 6px;
         }
 
+        /* Pedido priorizado pelo PCP (marcado no ERP) — some o azul padrão
+           do numero-pedido e vira vermelho, inclusive por cima do "misto". */
+        .numero-pedido.prioridade {
+            color: #c0392b;
+            font-weight: 900;
+        }
+
+        .numero-pedido.misto.prioridade {
+            background: #c0392b;
+        }
+
         input#input-pistola {
             position: fixed;
             top: 0;
@@ -407,11 +418,12 @@ require_once '../../Function/trava.php';
                         $stmtContagem = $db->prepare("SELECT COUNT(*) AS total, SUM(status IN ('Embalado', 'Armazenado')) AS embalados FROM $tabelaItensPedido WHERE numero_pedido = ? AND equipamento NOT LIKE 'Emb.%' AND $condicaoOs");
                         $stmtContagem->execute([$pedido['numero']]);
                         $contagemItens = $stmtContagem->fetch(PDO::FETCH_ASSOC);
+                        $ehPrioridade = !empty($pedido['prioridade']);
                     ?>
                         <tr id="linha-<?= htmlspecialchars($pedido['numero']) ?>">
                             <td>
                                 <div style="display: flex; justify-content: center; align-items: center;">
-                                    <span class="numero-pedido<?= in_array($pedido['numero'], $pedidosMistos) ? ' misto' : '' ?>" <?= in_array($pedido['numero'], $pedidosMistos) ? 'title="Pedido misto: tem itens da linha Contemporânea e da Clássica"' : '' ?>><?= htmlspecialchars($pedido['numero']) ?></span>
+                                    <span class="numero-pedido<?= in_array($pedido['numero'], $pedidosMistos) ? ' misto' : '' ?><?= $ehPrioridade ? ' prioridade' : '' ?>" <?= in_array($pedido['numero'], $pedidosMistos) ? 'title="Pedido misto: tem itens da linha Contemporânea e da Clássica"' : ($ehPrioridade ? 'title="Prioridade marcada pelo PCP"' : '') ?>><?= htmlspecialchars($pedido['numero']) ?></span>
                                 </div>
                             </td>
 

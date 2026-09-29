@@ -295,7 +295,8 @@ class Sistema
                          `Lader Barrel Excelence`,
                          `Wall Unit`,
                          'Carrinho',
-                         'Gaiola'
+                         'Gaiola',
+                         `prioridade`
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
                   AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND (
@@ -547,7 +548,8 @@ class Sistema
                          `Lader Barrel Excelence`,
                          `Wall Unit`,
                          'Carrinho',
-                         'Gaiola'
+                         'Gaiola',
+                         `prioridade`
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) LIKE '%os%'
                   AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND (
@@ -658,7 +660,8 @@ class Sistema
                          'BENCH MAT',
                          'GUILHOTINA',
                          'CARRINHO',
-                         'GAIOLA'
+                         'GAIOLA',
+                         `prioridade`
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
                   AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND (
@@ -982,7 +985,8 @@ class Sistema
                          'BENCH MAT',
                          'GUILHOTINA',
                          'CARRINHO',
-                         'GAIOLA'
+                         'GAIOLA',
+                         `prioridade`
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) LIKE '%os%'
                   AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND (
