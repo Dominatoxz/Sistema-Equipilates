@@ -18,22 +18,46 @@ class Sistema
     const HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO = '19:00:00';
 
     /**
-     * EXISTS que mantém visível, na tela de produção, um pedido que já
-     * fechou (foi pra pedidos_prontos) HOJE, antes do corte das 19h — pra
-     * usar junto (OR) da condição normal de "ainda tem item pendente".
+     * data_fim do último item "de verdade" bipado do pedido (mesmo critério
+     * de pendência que notificarPosProducao() usa pra decidir quando o
+     * pedido fecha: ignora as etiquetas de Embalagem e a Gaiola Cadilac).
+     *
+     * NÃO usa pedidos_prontos.data_conclusao pra decidir "foi hoje" — essa
+     * coluna é reescrita toda vez que o pedido muda de etapa no Financeiro/
+     * Pós-venda/Expedição (ver dar_baixa_financeiro.php e
+     * dar_baixa_posVenda.php), então um pedido embalado há dias reaparecia
+     * verde só porque alguém empurrou ele de etapa hoje (Matheus, 2026-09-29:
+     * "toda vez que ele muda de etapa... eu acho que é isso" — confirmado).
      */
-    private function condicaoAindaVisivelPosProducao(string $colunaPedido): string
+    private function ultimoItemEmbaladoHoje(string $colunaPedido, string $tabelaItens = 'itens_producao'): string
     {
-        return "EXISTS (
-                    SELECT 1 FROM pedidos_prontos pp
-                    WHERE pp.numero_pedido = $colunaPedido
-                      AND DATE(pp.data_conclusao) = CURDATE()
-                      AND CURTIME() < '" . self::HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO . "'
-                )";
+        return "(SELECT MAX(x.data_fim) FROM $tabelaItens x
+                  WHERE x.numero_pedido = $colunaPedido
+                    AND x.equipamento NOT LIKE 'Emb.%'
+                    AND x.equipamento != 'Gaiola Cadilac')";
     }
 
-    /** SELECT extra pra marcar a linha de verde na view (1 = pedido já fechou a produção, ainda dentro da janela de hoje). */
-    private const SELECT_JA_COMPLETO = "(SELECT 1 FROM pedidos_prontos WHERE numero_pedido = tabela_adaptada.`NUMERO PEDIDO` AND DATE(data_conclusao) = CURDATE() LIMIT 1) as ja_completo";
+    /**
+     * EXISTS que mantém visível, na tela de produção, um pedido que já
+     * fechou (foi pra pedidos_prontos) e cujo último item foi bipado HOJE,
+     * antes do corte das 19h — pra usar junto (OR) da condição normal de
+     * "ainda tem item pendente".
+     */
+    private function condicaoAindaVisivelPosProducao(string $colunaPedido, string $tabelaItens = 'itens_producao'): string
+    {
+        $ultimoItem = $this->ultimoItemEmbaladoHoje($colunaPedido, $tabelaItens);
+        return "EXISTS (SELECT 1 FROM pedidos_prontos pp WHERE pp.numero_pedido = $colunaPedido)
+                AND DATE($ultimoItem) = CURDATE()
+                AND CURTIME() < '" . self::HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO . "'";
+    }
+
+    /** SELECT extra pra marcar a linha de verde na view (1 = pedido já fechou a produção, último item de hoje). */
+    private function selectJaCompleto(string $colunaPedido, string $tabelaItens = 'itens_producao'): string
+    {
+        $ultimoItem = $this->ultimoItemEmbaladoHoje($colunaPedido, $tabelaItens);
+        return "(EXISTS (SELECT 1 FROM pedidos_prontos pp WHERE pp.numero_pedido = $colunaPedido)
+                  AND DATE($ultimoItem) = CURDATE()) as ja_completo";
+    }
 
     /*
      * Gaiola Cadilac (Contemporâneo) e Gaiola Classico / Gaiola Cadilac
@@ -327,7 +351,7 @@ class Sistema
                          'Carrinho',
                          'Gaiola',
                          `prioridade`,
-                         " . self::SELECT_JA_COMPLETO . "
+                         " . $this->selectJaCompleto('`NUMERO PEDIDO`') . "
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
                   AND (
                         (NULLIF(TRIM(`Reformer Excellence`), '') IS NOT NULL AND TRIM(`Reformer Excellence`) != '0') OR
@@ -568,7 +592,7 @@ class Sistema
     {
         $todosItens = array_merge(self::EQUIPAMENTOS_PRINCIPAIS_CONTEMPORANEO, self::ACESSORIOS_CONTEMPORANEO);
         $condicaoPendente = $this->condicaoItemPendente('`NUMERO PEDIDO`', $todosItens, 'itens_os');
-        $condicaoAindaVisivel = $this->condicaoAindaVisivelPosProducao('`NUMERO PEDIDO`');
+        $condicaoAindaVisivel = $this->condicaoAindaVisivelPosProducao('`NUMERO PEDIDO`', 'itens_os');
 
         $query = "SELECT `NUMERO PEDIDO` as numero,
                          `PRAZO DE PRODUCAO` as prazo_producao,
@@ -581,7 +605,7 @@ class Sistema
                          'Carrinho',
                          'Gaiola',
                          `prioridade`,
-                         " . self::SELECT_JA_COMPLETO . "
+                         " . $this->selectJaCompleto('`NUMERO PEDIDO`', 'itens_os') . "
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) LIKE '%os%'
                   AND (
                         (NULLIF(TRIM(`Reformer Excellence`), '') IS NOT NULL AND TRIM(`Reformer Excellence`) != '0') OR
@@ -694,7 +718,7 @@ class Sistema
                          'CARRINHO',
                          'GAIOLA',
                          `prioridade`,
-                         " . self::SELECT_JA_COMPLETO . "
+                         " . $this->selectJaCompleto('`NUMERO PEDIDO`') . "
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
                   AND (
                         (NULLIF(TRIM(`REF. CLASSICO ALUMINIO`), '') IS NOT NULL AND TRIM(`REF. CLASSICO ALUMINIO`) != '0') OR
@@ -997,7 +1021,7 @@ class Sistema
     {
         $todosItens = array_merge(self::EQUIPAMENTOS_PRINCIPAIS_CLASSICO, self::ACESSORIOS_CLASSICO);
         $condicaoPendente = $this->condicaoItemPendente('`NUMERO PEDIDO`', $todosItens, 'itens_os');
-        $condicaoAindaVisivel = $this->condicaoAindaVisivelPosProducao('`NUMERO PEDIDO`');
+        $condicaoAindaVisivel = $this->condicaoAindaVisivelPosProducao('`NUMERO PEDIDO`', 'itens_os');
 
         $query = "SELECT `NUMERO PEDIDO` as numero,
                          `PRAZO DE PRODUCAO` as prazo_producao,
@@ -1020,7 +1044,7 @@ class Sistema
                          'CARRINHO',
                          'GAIOLA',
                          `prioridade`,
-                         " . self::SELECT_JA_COMPLETO . "
+                         " . $this->selectJaCompleto('`NUMERO PEDIDO`', 'itens_os') . "
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) LIKE '%os%'
                   AND (
                         (NULLIF(TRIM(`REF. CLASSICO ALUMINIO`), '') IS NOT NULL AND TRIM(`REF. CLASSICO ALUMINIO`) != '0') OR
