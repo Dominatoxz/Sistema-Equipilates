@@ -7,35 +7,6 @@ class Sistema
     const CORTE_EXPEDICAO_CONTEMPORANEO = '2026-08-04';
 
     /*
-     * Pedido que acabou de fechar a produção (todo item Embalado/Armazenado)
-     * sobe pro Financeiro (pedidos_prontos) mas continua aparecendo no quadro
-     * da produção, pintado de verde — só some de vez às 19h do mesmo dia em
-     * que fechou (Matheus, 2026-09-29: "vai ficar o tempo todo verde, e
-     * quando der 19:00 vão sumir esses itens verde"). Um pedido que fechou
-     * num dia anterior nunca reaparece: à meia-noite já passou das 19h de
-     * "hoje" pra ele, então a condição abaixo já exclui.
-     */
-    const HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO = '19:00:00';
-
-    /**
-     * EXISTS que mantém visível, na tela de produção, um pedido que já
-     * fechou (foi pra pedidos_prontos) HOJE, antes do corte das 19h — pra
-     * usar junto (OR) da condição normal de "ainda tem item pendente".
-     */
-    private function condicaoAindaVisivelPosProducao(string $colunaPedido): string
-    {
-        return "EXISTS (
-                    SELECT 1 FROM pedidos_prontos pp
-                    WHERE pp.numero_pedido = $colunaPedido
-                      AND DATE(pp.data_conclusao) = CURDATE()
-                      AND CURTIME() < '" . self::HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO . "'
-                )";
-    }
-
-    /** SELECT extra pra marcar a linha de verde na view (1 = pedido já fechou a produção, ainda dentro da janela de hoje). */
-    private const SELECT_JA_COMPLETO = "(SELECT 1 FROM pedidos_prontos WHERE numero_pedido = tabela_adaptada.`NUMERO PEDIDO` AND DATE(data_conclusao) = CURDATE() LIMIT 1) as ja_completo";
-
-    /*
      * Gaiola Cadilac (Contemporâneo) e Gaiola Classico / Gaiola Cadilac
      * Tauari (Clássico) são fisicamente o mesmo item — só entram no sistema
      * com nomes diferentes por conta da linha do pedido. Toda a família de
@@ -315,8 +286,6 @@ class Sistema
         $todosItens = array_merge(self::EQUIPAMENTOS_PRINCIPAIS_CONTEMPORANEO, self::ACESSORIOS_CONTEMPORANEO);
         $condicaoPendente = $this->condicaoItemPendente('`NUMERO PEDIDO`', $todosItens);
 
-        $condicaoAindaVisivel = $this->condicaoAindaVisivelPosProducao('`NUMERO PEDIDO`');
-
         $query = "SELECT `NUMERO PEDIDO` as numero,
                          `PRAZO DE PRODUCAO` as prazo_producao,
                          `Reformer Excellence`,
@@ -326,9 +295,9 @@ class Sistema
                          `Lader Barrel Excelence`,
                          `Wall Unit`,
                          'Carrinho',
-                         'Gaiola',
-                         " . self::SELECT_JA_COMPLETO . "
+                         'Gaiola'
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
+                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND (
                         (NULLIF(TRIM(`Reformer Excellence`), '') IS NOT NULL AND TRIM(`Reformer Excellence`) != '0') OR
                         (NULLIF(TRIM(`Reformer Torre`), '') IS NOT NULL AND TRIM(`Reformer Torre`) != '0') OR
@@ -337,7 +306,7 @@ class Sistema
                         (NULLIF(TRIM(`Lader Barrel Excelence`), '') IS NOT NULL AND TRIM(`Lader Barrel Excelence`) != '0') OR
                         (NULLIF(TRIM(`Wall Unit`), '') IS NOT NULL AND TRIM(`Wall Unit`) != '0')
                     )
-                    AND ($condicaoPendente OR $condicaoAindaVisivel)
+                    AND $condicaoPendente
                     ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute(array_merge($todosItens, $todosItens));
@@ -568,7 +537,6 @@ class Sistema
     {
         $todosItens = array_merge(self::EQUIPAMENTOS_PRINCIPAIS_CONTEMPORANEO, self::ACESSORIOS_CONTEMPORANEO);
         $condicaoPendente = $this->condicaoItemPendente('`NUMERO PEDIDO`', $todosItens, 'itens_os');
-        $condicaoAindaVisivel = $this->condicaoAindaVisivelPosProducao('`NUMERO PEDIDO`');
 
         $query = "SELECT `NUMERO PEDIDO` as numero,
                          `PRAZO DE PRODUCAO` as prazo_producao,
@@ -579,9 +547,9 @@ class Sistema
                          `Lader Barrel Excelence`,
                          `Wall Unit`,
                          'Carrinho',
-                         'Gaiola',
-                         " . self::SELECT_JA_COMPLETO . "
+                         'Gaiola'
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) LIKE '%os%'
+                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND (
                         (NULLIF(TRIM(`Reformer Excellence`), '') IS NOT NULL AND TRIM(`Reformer Excellence`) != '0') OR
                         (NULLIF(TRIM(`Reformer Torre`), '') IS NOT NULL AND TRIM(`Reformer Torre`) != '0') OR
@@ -590,7 +558,7 @@ class Sistema
                         (NULLIF(TRIM(`Lader Barrel Excelence`), '') IS NOT NULL AND TRIM(`Lader Barrel Excelence`) != '0') OR
                         (NULLIF(TRIM(`Wall Unit`), '') IS NOT NULL AND TRIM(`Wall Unit`) != '0')
                     )
-                    AND ($condicaoPendente OR $condicaoAindaVisivel)
+                    AND $condicaoPendente
                     ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute(array_merge($todosItens, $todosItens));
@@ -670,7 +638,6 @@ class Sistema
     {
         $todosItens = array_merge(self::EQUIPAMENTOS_PRINCIPAIS_CLASSICO, self::ACESSORIOS_CLASSICO);
         $condicaoPendente = $this->condicaoItemPendente('`NUMERO PEDIDO`', $todosItens);
-        $condicaoAindaVisivel = $this->condicaoAindaVisivelPosProducao('`NUMERO PEDIDO`');
 
         $query = "SELECT `NUMERO PEDIDO` as numero,
                          `PRAZO DE PRODUCAO` as prazo_producao,
@@ -691,9 +658,9 @@ class Sistema
                          'BENCH MAT',
                          'GUILHOTINA',
                          'CARRINHO',
-                         'GAIOLA',
-                         " . self::SELECT_JA_COMPLETO . "
+                         'GAIOLA'
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) NOT LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) NOT LIKE '%os%'
+                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND (
                         (NULLIF(TRIM(`REF. CLASSICO ALUMINIO`), '') IS NOT NULL AND TRIM(`REF. CLASSICO ALUMINIO`) != '0') OR
                         (NULLIF(TRIM(`REF. CLASSICO TORRE`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TORRE`) != '0') OR
@@ -713,7 +680,7 @@ class Sistema
                         (NULLIF(TRIM(`GUILHOTINA`), '') IS NOT NULL AND TRIM(`GUILHOTINA`) != '0') OR
                         (NULLIF(TRIM(`REF. CLASSICO TAUARI`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TAUARI`) != '0')
                     )
-                    AND ($condicaoPendente OR $condicaoAindaVisivel)
+                    AND $condicaoPendente
                     ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute(array_merge($todosItens, $todosItens));
@@ -995,7 +962,6 @@ class Sistema
     {
         $todosItens = array_merge(self::EQUIPAMENTOS_PRINCIPAIS_CLASSICO, self::ACESSORIOS_CLASSICO);
         $condicaoPendente = $this->condicaoItemPendente('`NUMERO PEDIDO`', $todosItens, 'itens_os');
-        $condicaoAindaVisivel = $this->condicaoAindaVisivelPosProducao('`NUMERO PEDIDO`');
 
         $query = "SELECT `NUMERO PEDIDO` as numero,
                          `PRAZO DE PRODUCAO` as prazo_producao,
@@ -1016,9 +982,9 @@ class Sistema
                          'BENCH MAT',
                          'GUILHOTINA',
                          'CARRINHO',
-                         'GAIOLA',
-                         " . self::SELECT_JA_COMPLETO . "
+                         'GAIOLA'
                   FROM tabela_adaptada WHERE LOWER(`NUMERO PEDIDO`) LIKE 'os%' AND LOWER(`NUMERO PEDIDO`) LIKE '%os%'
+                  AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)
                   AND (
                         (NULLIF(TRIM(`REF. CLASSICO ALUMINIO`), '') IS NOT NULL AND TRIM(`REF. CLASSICO ALUMINIO`) != '0') OR
                         (NULLIF(TRIM(`REF. CLASSICO TORRE`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TORRE`) != '0') OR
@@ -1038,14 +1004,14 @@ class Sistema
                         (NULLIF(TRIM(`GUILHOTINA`), '') IS NOT NULL AND TRIM(`GUILHOTINA`) != '0') OR
                         (NULLIF(TRIM(`REF. CLASSICO TAUARI`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TAUARI`) != '0')
                     )
-                    AND ($condicaoPendente OR $condicaoAindaVisivel)
+                    AND $condicaoPendente
                     ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute(array_merge($todosItens, $todosItens));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-
+   
     public function mostrarTabelaClassicoAcessoriosOs()
     {
         $condicaoPendente = $this->condicaoItemPendente('`NUMERO PEDIDO`', self::ACESSORIOS_CLASSICO, 'itens_os');
