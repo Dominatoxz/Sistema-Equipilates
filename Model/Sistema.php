@@ -337,7 +337,7 @@ class Sistema
                         (NULLIF(TRIM(`Lader Barrel Excelence`), '') IS NOT NULL AND TRIM(`Lader Barrel Excelence`) != '0') OR
                         (NULLIF(TRIM(`Wall Unit`), '') IS NOT NULL AND TRIM(`Wall Unit`) != '0')
                     )
-                    AND ($condicaoPendente OR $condicaoAindaVisivel)
+                    AND (($condicaoPendente AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)) OR $condicaoAindaVisivel)
                     ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute(array_merge($todosItens, $todosItens));
@@ -591,7 +591,7 @@ class Sistema
                         (NULLIF(TRIM(`Lader Barrel Excelence`), '') IS NOT NULL AND TRIM(`Lader Barrel Excelence`) != '0') OR
                         (NULLIF(TRIM(`Wall Unit`), '') IS NOT NULL AND TRIM(`Wall Unit`) != '0')
                     )
-                    AND ($condicaoPendente OR $condicaoAindaVisivel)
+                    AND (($condicaoPendente AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)) OR $condicaoAindaVisivel)
                     ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute(array_merge($todosItens, $todosItens));
@@ -715,7 +715,7 @@ class Sistema
                         (NULLIF(TRIM(`GUILHOTINA`), '') IS NOT NULL AND TRIM(`GUILHOTINA`) != '0') OR
                         (NULLIF(TRIM(`REF. CLASSICO TAUARI`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TAUARI`) != '0')
                     )
-                    AND ($condicaoPendente OR $condicaoAindaVisivel)
+                    AND (($condicaoPendente AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)) OR $condicaoAindaVisivel)
                     ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute(array_merge($todosItens, $todosItens));
@@ -1041,7 +1041,7 @@ class Sistema
                         (NULLIF(TRIM(`GUILHOTINA`), '') IS NOT NULL AND TRIM(`GUILHOTINA`) != '0') OR
                         (NULLIF(TRIM(`REF. CLASSICO TAUARI`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TAUARI`) != '0')
                     )
-                    AND ($condicaoPendente OR $condicaoAindaVisivel)
+                    AND (($condicaoPendente AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)) OR $condicaoAindaVisivel)
                     ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute(array_merge($todosItens, $todosItens));
