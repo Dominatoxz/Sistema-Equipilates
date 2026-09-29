@@ -671,10 +671,15 @@ class Sistema
 
     public function mostrarFilaPosVenda()
     {
-        $query = "SELECT id, numero_pedido, prazo_producao, data_conclusao
+        // data_entrada_posvenda é travada assim que o pedido chega aqui —
+        // não muda mais depois (ver dar_baixa_financeiro.php). COALESCE só
+        // cobre pedidos que já estavam em Pós-venda antes dessa coluna
+        // existir (data_entrada_posvenda ainda NULL pra eles).
+        $query = "SELECT id, numero_pedido, prazo_producao,
+                         COALESCE(data_entrada_posvenda, data_conclusao) as data_conclusao
                   FROM pedidos_prontos
                   WHERE status_posvenda = 'Pós-venda'
-                  ORDER BY data_conclusao DESC";
+                  ORDER BY COALESCE(data_entrada_posvenda, data_conclusao) DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -682,10 +687,12 @@ class Sistema
 
     public function mostrarFilaExpedicao()
     {
-        $query = "SELECT id, numero_pedido, prazo_producao, data_conclusao
+        // Mesma lógica de mostrarFilaPosVenda(), com data_entrada_expedicao.
+        $query = "SELECT id, numero_pedido, prazo_producao,
+                         COALESCE(data_entrada_expedicao, data_conclusao) as data_conclusao
                   FROM pedidos_prontos
                   WHERE status_posvenda = 'Expedicao'
-                  ORDER BY data_conclusao DESC";
+                  ORDER BY COALESCE(data_entrada_expedicao, data_conclusao) DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

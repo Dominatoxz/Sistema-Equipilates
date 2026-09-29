@@ -48,9 +48,11 @@ try {
     $stmtBusca->execute([$idPedido]);
     $numeroPedido = $stmtBusca->fetchColumn();
 
-    $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Expedicao', data_conclusao = :data_conclusao WHERE id = :id AND status_posvenda = 'Pós-venda'");
+    // Mesma lógica de dar_baixa_financeiro.php: data própria pra essa etapa,
+    // sem mexer em data_conclusao (produção) nem em data_entrada_posvenda.
+    $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Expedicao', data_entrada_expedicao = :data_entrada WHERE id = :id AND status_posvenda = 'Pós-venda'");
     $stmt->execute([
-        'data_conclusao' => $dataConclusaoPHP,
+        'data_entrada' => $dataConclusaoPHP,
         'id' => $idPedido
     ]);
 

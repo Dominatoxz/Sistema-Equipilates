@@ -48,9 +48,17 @@ try {
     $stmtBusca->execute([$idPedido]);
     $numeroPedido = $stmtBusca->fetchColumn();
 
-    $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Pós-venda', data_conclusao = :data_conclusao WHERE id = :id AND status_posvenda = 'Financeiro'");
+    // data_conclusao fica travada (é quando o pedido fechou a produção e
+    // entrou no Financeiro, gravada uma única vez lá em
+    // notificar_pos_producao.php) — cada etapa seguinte ganha a sua PRÓPRIA
+    // coluna de data, também travada. Antes o Pós-venda/Expedição reescreviam
+    // data_conclusao a cada avanço de etapa, o que zerava a data real de
+    // conclusão da produção (Matheus, 2026-09-29: "tem como cada data ser
+    // travada, sem mudar" — depois de um pedido embalado há dias mostrar
+    // "verde" só porque mudou de etapa hoje).
+    $stmt = $db->prepare("UPDATE pedidos_prontos SET status_posvenda = 'Pós-venda', data_entrada_posvenda = :data_entrada WHERE id = :id AND status_posvenda = 'Financeiro'");
     $stmt->execute([
-        'data_conclusao' => $dataConclusaoPHP,
+        'data_entrada' => $dataConclusaoPHP,
         'id' => $idPedido
     ]);
 
