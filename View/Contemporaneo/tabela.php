@@ -366,7 +366,12 @@ require_once '../../Function/trava.php';
                             <td class="column-data"><?= htmlspecialchars(substr($pedido['prazo_producao'], 0, 5)) ?></td>
 
                             <?php foreach ($equipamentos as $nome_equipamento):
-                                $stmt = $db->prepare("SELECT id, status, status_qualidade, qualidade_tentativas FROM $tabelaItensPedido WHERE numero_pedido = ? AND equipamento = ? AND $condicaoOs");
+                                $stmt = $db->prepare("SELECT id, status, status_qualidade, qualidade_tentativas,
+                                                             (SELECT qi.decisao FROM qualidade_inspecoes qi
+                                                              WHERE qi.tabela_origem = '$tabelaItensPedido' AND qi.item_id = $tabelaItensPedido.id
+                                                                AND qi.decisao IN ('Retrabalho', 'Reprovado')
+                                                              ORDER BY qi.id DESC LIMIT 1) AS ultima_decisao
+                                                      FROM $tabelaItensPedido WHERE numero_pedido = ? AND equipamento = ? AND $condicaoOs");
                                 $stmt->execute([$pedido['numero'], $nome_equipamento]);
                                 $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             ?>
@@ -383,7 +388,11 @@ require_once '../../Function/trava.php';
 
                                                 if ($peca['status'] === 'Pendente' && ((int) ($peca['qualidade_tentativas'] ?? 0)) > 0) {
                                                     $texto = '✅';
-                                                    $seloQ = ' <span title="Retrabalho" style="position:absolute;top:-8px;right:-10px;display:inline-flex;align-items:center;justify-content:center;background:#c0392b;color:#fff;font-size:13px;font-weight:bold;border-radius:50%;width:20px;height:20px;line-height:1;">Q</span>';
+                                                    if (($peca['ultima_decisao'] ?? null) === 'Retrabalho') {
+                                                        $seloQ = ' <span title="Retrabalho" style="position:absolute;top:-8px;right:-10px;font-size:18px;line-height:1;">⚠️</span>';
+                                                    } else {
+                                                        $seloQ = ' <span title="Reprovado" style="position:absolute;top:-8px;right:-10px;display:inline-flex;align-items:center;justify-content:center;background:#c0392b;color:#fff;font-size:13px;font-weight:bold;border-radius:50%;width:20px;height:20px;line-height:1;">Q</span>';
+                                                    }
                                                 } elseif ($peca['status'] === 'Produzido') {
                                                     $texto = '✅';
                                                     if (!in_array($peca['status_qualidade'] ?? 'N/A', ['N/A', ''], true)) {

@@ -17,11 +17,17 @@ try {
 
     if ($origem === 'OS') {
         $tabela = 'itens_os';
-        $query = "SELECT equipamento AS nome_produto, status, status_qualidade, qualidade_tentativas FROM $tabela WHERE numero_pedido = :pedido AND equipamento NOT LIKE '%Emb.%'";
     } else {
         $tabela = 'itens_producao';
-        $query = "SELECT equipamento AS nome_produto, status, status_qualidade, qualidade_tentativas FROM $tabela WHERE numero_pedido = :pedido AND equipamento NOT LIKE '%Emb.%'";
     }
+    // ultima_decisao: pega o Retrabalho/Reprovado mais recente pra distinguir
+    // os dois no selo de qualidade (mesmo status_qualidade='Reprovado' pros dois).
+    $query = "SELECT equipamento AS nome_produto, status, status_qualidade, qualidade_tentativas,
+                     (SELECT qi.decisao FROM qualidade_inspecoes qi
+                      WHERE qi.tabela_origem = '$tabela' AND qi.item_id = $tabela.id
+                        AND qi.decisao IN ('Retrabalho', 'Reprovado')
+                      ORDER BY qi.id DESC LIMIT 1) AS ultima_decisao
+              FROM $tabela WHERE numero_pedido = :pedido AND equipamento NOT LIKE '%Emb.%'";
 
     $stmt = $db->prepare($query);
     $stmt->bindParam(':pedido', $pedido);
@@ -35,6 +41,7 @@ try {
             'status' => trim($l['status']),
             'status_qualidade' => $l['status_qualidade'] ?? 'N/A',
             'qualidade_tentativas' => (int) ($l['qualidade_tentativas'] ?? 0),
+            'ultima_decisao' => $l['ultima_decisao'] ?? null,
         ];
     }
 
