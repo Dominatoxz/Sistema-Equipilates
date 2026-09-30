@@ -287,7 +287,7 @@ foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
 // RECONSTRUÍDO em 2026-09-11 depois de outro deploy externo apagar
 // Function/ de novo (tabela reimpressao_manual no banco não foi afetada).
 $manuais = $db->query(
-    "SELECT rm.id, rm.tabela_origem, rm.item_id, rm.tipo_base
+    "SELECT rm.id, rm.tabela_origem, rm.item_id, rm.tipo_base, rm.motivo
      FROM reimpressao_manual rm
      WHERE NOT EXISTS (
        SELECT 1 FROM impressoes_etiquetas ie
@@ -305,6 +305,14 @@ foreach ($manuais as $m) {
     $itemManual = $stmtItemManual->fetch(PDO::FETCH_ASSOC);
     if (!$itemManual) continue;
     $itemManual['tabela_origem'] = $m['tabela_origem'];
+
+    // Idêntico a api_etiquetas_pendentes.php — ver lá os comentários sobre a
+    // reimpressão de QM não poder depender do status "ao vivo" do item.
+    if (str_starts_with((string) $m['motivo'], 'Etiqueta QM ') && in_array($m['tipo_base'], ['PRODUCAO', 'EMBALAGEM'], true)) {
+        $itemManual['status_qualidade'] = 'Reprovado';
+        $itemManual['reimpressao_liberada'] = 1;
+    }
+
     $tipoJob = $m['tipo_base'] . '_R' . $m['id'];
     $jobs[] = [
         'id' => "etq:{$m['tabela_origem']}:{$m['item_id']}:{$tipoJob}",

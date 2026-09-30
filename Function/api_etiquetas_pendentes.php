@@ -287,7 +287,7 @@ foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
 // sobrescreveu Function/ e apagou este bloco de novo; a tabela
 // reimpressao_manual no banco não foi afetada.
 $manuais = $db->query(
-    "SELECT rm.id, rm.tabela_origem, rm.item_id, rm.tipo_base
+    "SELECT rm.id, rm.tabela_origem, rm.item_id, rm.tipo_base, rm.motivo
      FROM reimpressao_manual rm
      WHERE NOT EXISTS (
        SELECT 1 FROM impressoes_etiquetas ie
@@ -305,6 +305,18 @@ foreach ($manuais as $m) {
     $itemManual = $stmtItemManual->fetch(PDO::FETCH_ASSOC);
     if (!$itemManual) continue;
     $itemManual['tabela_origem'] = $m['tabela_origem'];
+
+    // Pedido de reimpressão de QM (qm.php, api/qm.php reimpressao_manual_inserir
+    // com motivo "Etiqueta QM <código>") sempre precisa do sufixo -PQ/-EQ,
+    // mesmo que o item já tenha voltado a ser bipado e o status_qualidade
+    // ao vivo não esteja mais 'Reprovado' (Matheus, 2026-09-30: pedido 8074
+    // saiu sem o Q porque foi rebipado antes da impressão sair — o gatilho
+    // não pode depender do status "ao vivo" pra esse tipo de pedido).
+    if (str_starts_with((string) $m['motivo'], 'Etiqueta QM ') && in_array($m['tipo_base'], ['PRODUCAO', 'EMBALAGEM'], true)) {
+        $itemManual['status_qualidade'] = 'Reprovado';
+        $itemManual['reimpressao_liberada'] = 1;
+    }
+
     $jobs[] = [
         'id_item' => (int) $m['item_id'],
         'tabela_origem' => $m['tabela_origem'],
