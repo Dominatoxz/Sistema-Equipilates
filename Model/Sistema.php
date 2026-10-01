@@ -573,7 +573,13 @@ class Sistema
             $d = DateTime::createFromFormat('d/m/Y', substr(trim((string) ($p['prazo_producao'] ?? '')), 0, 10));
             return $d ? (int) $d->format('Ymd') : 99999999;
         };
-        usort($todos, fn($a, $b) => [$data($a), strtolower((string) $a['numero'])] <=> [$data($b), strtolower((string) $b['numero'])]);
+        // Reordenar aqui perdia a prioridade que as duas consultas (normal e OS) já
+        // trazem no ORDER BY — prioridade tem que vencer antes do prazo também no
+        // merge, senão o pedido prioritário de uma tabela cai no meio dos itens
+        // normais da outra (Matheus, 2026-10-01: prioridade não estava subindo pra
+        // primeira linha porque isso aqui sobrescrevia a ordem).
+        $prio = fn(array $p): int => empty($p['prioridade']) ? 0 : 1;
+        usort($todos, fn($a, $b) => [-$prio($a), $data($a), strtolower((string) $a['numero'])] <=> [-$prio($b), $data($b), strtolower((string) $b['numero'])]);
         return $todos;
     }
 
