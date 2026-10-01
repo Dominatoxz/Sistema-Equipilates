@@ -362,7 +362,7 @@ class Sistema
                         (NULLIF(TRIM(`Wall Unit`), '') IS NOT NULL AND TRIM(`Wall Unit`) != '0')
                     )
                     AND (($condicaoPendente AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)) OR $condicaoAindaVisivel)
-                    ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
+                    ORDER BY `prioridade` DESC, STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute(array_merge($todosItens, $todosItens));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -616,7 +616,7 @@ class Sistema
                         (NULLIF(TRIM(`Wall Unit`), '') IS NOT NULL AND TRIM(`Wall Unit`) != '0')
                     )
                     AND (($condicaoPendente AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)) OR $condicaoAindaVisivel)
-                    ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
+                    ORDER BY `prioridade` DESC, STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute(array_merge($todosItens, $todosItens));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -747,7 +747,7 @@ class Sistema
                         (NULLIF(TRIM(`REF. CLASSICO TAUARI`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TAUARI`) != '0')
                     )
                     AND (($condicaoPendente AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)) OR $condicaoAindaVisivel)
-                    ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
+                    ORDER BY `prioridade` DESC, STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute(array_merge($todosItens, $todosItens));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1073,7 +1073,7 @@ class Sistema
                         (NULLIF(TRIM(`REF. CLASSICO TAUARI`), '') IS NOT NULL AND TRIM(`REF. CLASSICO TAUARI`) != '0')
                     )
                     AND (($condicaoPendente AND `NUMERO PEDIDO` NOT IN (SELECT numero_pedido FROM pedidos_prontos)) OR $condicaoAindaVisivel)
-                    ORDER BY STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
+                    ORDER BY `prioridade` DESC, STR_TO_DATE(`PRAZO DE PRODUCAO`, '%d/%m/%Y') ASC, `NUMERO PEDIDO` ASC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute(array_merge($todosItens, $todosItens));
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
