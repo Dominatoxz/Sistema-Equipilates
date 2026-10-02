@@ -304,6 +304,7 @@ require_once '../../Function/trava.php';
                 'CARRINHO CLASSICO'           => 'Carrinho Aluminio',
                 'REF. CLASSICO TORRE'         => 'Reformer Torre',
                 'CARRINHO CLASSICO TORRE'     => 'Carrinho Torre',
+                'Torre do Reformer'           => 'Torre do Reformer',
                 'CAD. CLASSICO ALUMINIO'      => 'Cadilac Aluminio',
                 'GAIOLA CLASSICO'             => 'Gaiola Aluminio',
                 'REF. CLASSICO TAUARI'        => 'Reformer Tauari',
