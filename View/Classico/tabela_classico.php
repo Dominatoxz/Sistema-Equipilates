@@ -356,6 +356,7 @@ require_once '../../Function/trava.php';
                 'PUXADOR DE ALUMINIO',
                 'ANEL DE PILATES ARCHIVE AÇO',
                 'MAGIC SQUARE',
+                'SPINE CORRECTOR',
             ];
             $placeholders_acessorios = implode(',', array_fill(0, count($lista_acessorios), '?'));
 

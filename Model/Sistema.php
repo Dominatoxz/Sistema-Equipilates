@@ -151,6 +151,9 @@ class Sistema
         'FINGER EXERCISE',
         'MINI BARREL',
         'MINI SPINE',
+        // Spine Corrector aparece nos dois quadros (Matheus, 2026-10-02): sem ele aqui o pedido
+        // 8069 sumia do Clássico com o item ainda Produzido e nunca subia pro Financeiro.
+        'SPINE CORRECTOR',
     ];
 
     private function condicaoItemPendente(string $colunaPedido, array $equipamentos, string $tabelaItens = 'itens_producao'): string
