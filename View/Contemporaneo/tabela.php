@@ -293,7 +293,6 @@ require_once '../../Function/trava.php';
                     <th>Carrinho (Ref)</th>
                     <th>Torre</th>
                     <th>Carrinho (Tor)</th>
-                    <th>Torre do Reformer</th>
                     <th>Cadilac</th>
                     <th>Step</th>
                     <th>Barrel</th>
@@ -310,7 +309,6 @@ require_once '../../Function/trava.php';
                     'Carrinho Excellence',
                     'Reformer Torre',
                     'Carrinho Torre',
-                    'Torre do Reformer',
                     'Cadilac Excelence',
                     'Step Chair Excelence',
                     'Lader Barrel Excelence',
@@ -337,7 +335,7 @@ require_once '../../Function/trava.php';
 
                 <?php if (empty($pedidos)): ?>
                     <tr>
-                        <td colspan="14" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
+                        <td colspan="13" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
                     </tr>
                 <?php else: ?>
 
@@ -465,7 +463,7 @@ require_once '../../Function/trava.php';
                     <?php endforeach; ?>
                 <?php endif; ?>
                 <tr class="linha-resumo-gaiola">
-                    <td colspan="14">Gaiola Cadilac da semana (todas as linhas) — Planejado: <strong><?= $gaiolasProducao['planejado'] ?></strong> &nbsp;|&nbsp; Real: <strong><?= $gaiolasProducao['real'] ?></strong> &nbsp;|&nbsp; <span style="color: #c0392b;">Atrasados: <strong><?= $gaiolasProducao['atrasados'] ?></strong></span></td>
+                    <td colspan="13">Gaiola Cadilac da semana (todas as linhas) — Planejado: <strong><?= $gaiolasProducao['planejado'] ?></strong> &nbsp;|&nbsp; Real: <strong><?= $gaiolasProducao['real'] ?></strong> &nbsp;|&nbsp; <span style="color: #c0392b;">Atrasados: <strong><?= $gaiolasProducao['atrasados'] ?></strong></span></td>
                 </tr>
             </tbody>
         </table>
