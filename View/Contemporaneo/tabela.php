@@ -397,6 +397,9 @@ if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) uns
                                 <td>
                                     <div style="display: flex; justify-content: center;">
                                         <?php if ($pecas && count($pecas) > 0):
+                                            // Mais de 3 ❌ na mesma célula viram contador (4X, 5X...); até 3 continua X, XX, XXX.
+                                            $qtdX = count(array_filter($pecas, fn($p) => $p['status'] === 'Pendente' && ((int) ($p['qualidade_tentativas'] ?? 0)) === 0));
+                                            $xMostrado = false;
                                             foreach ($pecas as $peca):
                                                 $status = isset($peca['status']) ? $peca['status'] : 'Em Produção';
                                                 $id_peca = isset($peca['id']) ? $peca['id'] : 0;
@@ -424,6 +427,16 @@ if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) uns
                                                 } elseif ($peca['status'] === 'Armazenado') {
                                                     $texto = 'A';
                                                     $estilo = 'style="color: #2980b9; font-weight: bold; font-size: 30px;"';
+                                                }
+
+                                                if ($texto === '❌' && $qtdX > 3) {
+                                                    if (!$xMostrado) {
+                                                        $texto = $qtdX . 'X';
+                                                        $estilo = 'style="color: #e11d48; font-weight: bold; font-size: 30px;"';
+                                                        $xMostrado = true;
+                                                    } else {
+                                                        $estilo = 'style="display: none;"';
+                                                    }
                                                 }
                                         ?>
                                                 <span class="item-check"

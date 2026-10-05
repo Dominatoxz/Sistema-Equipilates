@@ -468,6 +468,9 @@ require_once '../../Function/trava.php';
                                 <td>
                                     <div style="display: flex; justify-content: center;">
                                         <?php if (!empty($pecas)):
+                                            // Mais de 3 ❌ na mesma célula viram contador (4X, 5X...); até 3 continua X, XX, XXX.
+                                            $qtdX = count(array_filter($pecas, fn($p) => $p['status'] === 'Pendente' && ((int) ($p['qualidade_tentativas'] ?? 0)) === 0));
+                                            $xMostrado = false;
                                             foreach ($pecas as $peca):
                                                 $texto = '❌';
                                                 $estilo = '';
@@ -492,6 +495,16 @@ require_once '../../Function/trava.php';
                                                 } elseif ($peca['status'] === 'Armazenado') {
                                                     $texto = 'A';
                                                     $estilo = 'style="color: #2980b9; font-weight: bold; font-size: 28px;"';
+                                                }
+
+                                                if ($texto === '❌' && $qtdX > 3) {
+                                                    if (!$xMostrado) {
+                                                        $texto = $qtdX . 'X';
+                                                        $estilo = 'style="color: #e11d48; font-weight: bold; font-size: 28px;"';
+                                                        $xMostrado = true;
+                                                    } else {
+                                                        $estilo = 'style="display: none;"';
+                                                    }
                                                 }
                                         ?>
                                                 <span class="item-check"
