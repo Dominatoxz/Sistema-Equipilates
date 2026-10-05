@@ -62,6 +62,10 @@ $agora = new DateTime('now');
     <header>
         <a class="voltar" href="../index.php">← Central</a>
         <h1>🕒 Linha do tempo do quadro</h1>
+        <div class="ctl" id="linhas">
+            <button data-l="Contemporaneo/tabela.php" class="ativo">Contemporâneo</button>
+            <button data-l="Classico/tabela_classico.php">Clássico</button>
+        </div>
         <div class="ctl">
             <button data-h="-3">−3h</button>
             <button data-h="-1">−1h</button>
@@ -79,7 +83,7 @@ $agora = new DateTime('now');
         <div class="faixa">
             <div class="horas" id="horas"></div>
         </div>
-        <iframe id="quadro" title="Quadro Contemporâneo no momento escolhido"></iframe>
+        <iframe id="quadro" title="Quadro no momento escolhido"></iframe>
     <?php endif; ?>
 
     <script>
@@ -90,6 +94,8 @@ $agora = new DateTime('now');
         const quadro = document.getElementById('quadro');
         if (!quadro) throw new Error('sem registro');
 
+        let tela = "Contemporaneo/tabela.php";
+        try { tela = localStorage.getItem("ltTela") || tela; } catch (e) {}
         const pad = n => String(n).padStart(2, '0');
         const fmt = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
@@ -100,7 +106,7 @@ $agora = new DateTime('now');
             inp.value = v;
             inp.min = inicio || '';
             inp.max = fmt(agora);
-            quadro.src = 'Contemporaneo/tabela.php?t=' + encodeURIComponent(v.replace('T', ' ') + ':00');
+            quadro.src = tela + '?t=' + encodeURIComponent(v.replace('T', ' ') + ':00');
             document.querySelectorAll('.h').forEach(e => e.classList.toggle('sel', e.dataset.k === v.slice(0, 13)));
         }
 
@@ -134,6 +140,16 @@ $agora = new DateTime('now');
             b.textContent = t;
             b.onclick = () => ir(new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + dd, h, m, 0));
             at.appendChild(b);
+        });
+
+        document.querySelectorAll('#linhas button').forEach(b => {
+            b.classList.toggle('ativo', b.dataset.l === tela);
+            b.onclick = () => {
+                tela = b.dataset.l;
+                try { localStorage.setItem('ltTela', tela); } catch (e) {}
+                document.querySelectorAll('#linhas button').forEach(x => x.classList.toggle('ativo', x === b));
+                ir(new Date(inp.value || fmt(agora)));
+            };
         });
 
         ir(agora);

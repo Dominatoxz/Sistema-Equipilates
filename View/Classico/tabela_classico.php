@@ -1,5 +1,6 @@
 <?php
 require_once '../../Function/trava.php';
+if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) unset($_GET['t']); // histórico só para quem vê a linha do tempo
 ?>
 
 <!DOCTYPE html>
@@ -266,7 +267,12 @@ require_once '../../Function/trava.php';
 </head>
 
 <body>
-    <input type="text" id="input-pistola" autofocus>
+    <?php $modoHist = !empty($_GET['t']); ?>
+    <?php if ($modoHist): ?>
+    <div style="position:fixed;top:0;left:0;right:0;z-index:99;background:#1e3a8a;color:#fff;padding:5px 12px;font-weight:700;font-size:13px;text-align:center">HISTÓRICO · quadro Clássico como estava em <?= htmlspecialchars((new DateTime($_GET['t']))->format('d/m/Y H:i')) ?> · somente leitura</div>
+    <style>body { padding-top: 26px; } .table-container { height: calc(100vh - 130px) !important; }</style>
+    <?php endif; ?>
+    <input type="text" id="input-pistola" autofocus<?= $modoHist ? ' disabled style="display:none"' : '' ?>>
 
     <div class="table-container">
         <table>
@@ -277,13 +283,28 @@ require_once '../../Function/trava.php';
             $database = new Database();
             $db = $database->getConnection();
 
+            $momentoHistorico = null;
+            if (!empty($_GET['t'])) {
+                require_once '../../Function/historico_quadro.php';
+                try {
+                    $momentoHistorico = new DateTime($_GET['t'], new DateTimeZone('America/Sao_Paulo'));
+                    hqMontarEstadoEm($db, $momentoHistorico);
+                } catch (Throwable $e) {
+                    error_log('linha do tempo: ' . $e->getMessage());
+                    echo '<tr><td colspan="14" class="sem-pedidos">' . htmlspecialchars($e->getMessage()) . '</td></tr>';
+                    $momentoHistorico = null;
+                    $_GET['t'] = '';
+                }
+            }
+
             $sistema = new Sistema($db);
+            if ($momentoHistorico) $sistema->definirMomento($momentoHistorico);
             $pedidosMistos = array_unique(array_merge($sistema->pedidosMistos('itens_producao'), $sistema->pedidosMistos('itens_os')));
 
             $arquivo_cache = __DIR__ . '/../../cache/dados_painel_classico.json';
             $tempo_expiracao = 30;
 
-            if (file_exists($arquivo_cache) && (time() - filemtime($arquivo_cache) < $tempo_expiracao)) {
+            if (!$momentoHistorico && file_exists($arquivo_cache) && (time() - filemtime($arquivo_cache) < $tempo_expiracao)) {
                 $dados_tabela = json_decode(file_get_contents($arquivo_cache), true);
             } else {
                 $dados_tabela = $sistema->mostrarTabelaClassico();
@@ -291,7 +312,7 @@ require_once '../../Function/trava.php';
                 if (!is_dir(__DIR__ . '/../../cache')) {
                     mkdir(__DIR__ . '/../../cache', 0777, true);
                 }
-                file_put_contents($arquivo_cache, json_encode($dados_tabela, JSON_UNESCAPED_UNICODE));
+                if (!$momentoHistorico) file_put_contents($arquivo_cache, json_encode($dados_tabela, JSON_UNESCAPED_UNICODE));
             }
 
             $pedidos = !empty($dados_tabela) ? $dados_tabela : [];
@@ -616,7 +637,8 @@ require_once '../../Function/trava.php';
                 .catch(err => console.error("Erro na sincronização rápida:", err));
         }
 
-        setInterval(verificarAtualizacoesRapidas, 30000);
+        const MODO_HISTORICO = <?= !empty($_GET['t']) ? 'true' : 'false' ?>;
+        if (!MODO_HISTORICO) setInterval(verificarAtualizacoesRapidas, 30000);
 
         (function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -798,7 +820,7 @@ require_once '../../Function/trava.php';
     <div id="relogio-tela"></div>
     <script>
         function atualizarRelogio() {
-            document.getElementById('relogio-tela').textContent = new Date().toLocaleTimeString('pt-BR');
+            document.getElementById('relogio-tela').textContent = MODO_HISTORICO ? <?= json_encode(!empty($_GET['t']) ? (new DateTime($_GET['t']))->format('H:i:s') : '') ?> : new Date().toLocaleTimeString('pt-BR');
         }
         atualizarRelogio();
         setInterval(atualizarRelogio, 1000);
