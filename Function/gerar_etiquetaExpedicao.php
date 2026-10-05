@@ -1,6 +1,6 @@
 <?php
 require_once '../Function/trava.php';
-require_once '../Services/EGestorService.php';
+require_once '../Services/EgestorService.php';
 require_once '../config/Database.php';
 
 $idRegistro = $_GET['id'] ?? null;
