@@ -397,6 +397,9 @@ require_once '../../Function/trava.php';
                 }
             }
 
+            // A coluna Torre do Reformer fica sempre visível no Clássico (Matheus, 2026-10-05).
+            $equipamentosComDados['Torre do Reformer'] = true;
+
             $equipamentosVisiveis = array_filter(
                 $equipamentos,
                 fn($nome) => isset($equipamentosComDados[$nome]),
@@ -444,6 +447,10 @@ require_once '../../Function/trava.php';
 
                             <?php foreach ($equipamentosVisiveis as $nome_equipamento => $rotulo):
                                 $pecas = $itensPorPedido[$pedido['numero']][$nome_equipamento] ?? [];
+                                // Reformer Torre tem torre: sem item cadastrado, mostra 1 ❌ por Reformer Torre do pedido
+                                $torrePrevista = ($nome_equipamento === 'Torre do Reformer' && empty($pecas))
+                                    ? count($itensPorPedido[$pedido['numero']]['REF. CLASSICO TORRE'] ?? [])
+                                    : 0;
                             ?>
                                 <td>
                                     <div style="display: flex; justify-content: center;">
@@ -481,6 +488,10 @@ require_once '../../Function/trava.php';
                                                     <?= $texto . $seloQ ?>
                                                 </span>
                                             <?php endforeach; ?>
+                                        <?php elseif ($torrePrevista > 0): ?>
+                                            <?php for ($ti = 0; $ti < $torrePrevista; $ti++): ?>
+                                                <span class="item-check" title="Torre prevista (Reformer Torre) — item ainda não cadastrado" style="font-size: 22px;">❌</span>
+                                            <?php endfor; ?>
                                         <?php else: ?>
                                             <span style="color: #ccc;">-</span>
                                         <?php endif; ?>
