@@ -1,5 +1,6 @@
 <?php
 require_once '../../Function/trava.php';
+if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) unset($_GET['t']); // histórico só para quem vê a linha do tempo
 ?>
 
 <!DOCTYPE html>

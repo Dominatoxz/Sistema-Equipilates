@@ -327,7 +327,7 @@ date_default_timezone_set('America/Sao_Paulo');
             </a>
             <?php endif; ?>
 
-            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_RASTREAMENTO)): ?>
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_LINHA_DO_TEMPO)): ?>
             <a href="View/linha_do_tempo.php" class="card-botao linha-expedicao">
                 <div class="icon-box">🕒</div>
                 <h3>Linha do tempo do quadro</h3>

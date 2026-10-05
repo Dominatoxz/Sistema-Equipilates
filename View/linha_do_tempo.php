@@ -1,6 +1,6 @@
 <?php
 require_once '../Function/trava.php';
-verificarAcessoSetor(CARGOS_RASTREAMENTO);
+verificarAcessoSetor(CARGOS_LINHA_DO_TEMPO);
 require_once '../config/Database.php';
 require_once '../Function/historico_quadro.php';
 date_default_timezone_set('America/Sao_Paulo');
