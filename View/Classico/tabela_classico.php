@@ -397,8 +397,20 @@ require_once '../../Function/trava.php';
                 }
             }
 
-            // A coluna Torre do Reformer fica sempre visível no Clássico (Matheus, 2026-10-05).
-            $equipamentosComDados['Torre do Reformer'] = true;
+            // Torre do Reformer no Clássico só vale para pedidos com prazo a partir de 05/10/2026 (Matheus):
+            // a coluna só aparece se algum pedido do quadro nessa data tiver Reformer Torre ou torre cadastrada.
+            $torreDesde = '2026-10-05';
+            $torreValePara = function ($prazo) use ($torreDesde) {
+                $d = DateTime::createFromFormat('d/m/Y', substr(trim((string) $prazo), 0, 10));
+                return $d && $d->format('Y-m-d') >= $torreDesde;
+            };
+            foreach ($pedidos as $pTorre) {
+                $it = $itensPorPedido[$pTorre['numero']] ?? [];
+                if ($torreValePara($pTorre['prazo_producao'] ?? '') && (!empty($it['REF. CLASSICO TORRE']) || !empty($it['Torre do Reformer']))) {
+                    $equipamentosComDados['Torre do Reformer'] = true;
+                    break;
+                }
+            }
 
             $equipamentosVisiveis = array_filter(
                 $equipamentos,
@@ -447,8 +459,9 @@ require_once '../../Function/trava.php';
 
                             <?php foreach ($equipamentosVisiveis as $nome_equipamento => $rotulo):
                                 $pecas = $itensPorPedido[$pedido['numero']][$nome_equipamento] ?? [];
+                                if ($nome_equipamento === 'Torre do Reformer' && !$torreValePara($pedido['prazo_producao'] ?? '')) $pecas = [];
                                 // Reformer Torre tem torre: sem item cadastrado, mostra 1 ❌ por Reformer Torre do pedido
-                                $torrePrevista = ($nome_equipamento === 'Torre do Reformer' && empty($pecas))
+                                $torrePrevista = ($nome_equipamento === 'Torre do Reformer' && empty($pecas) && $torreValePara($pedido['prazo_producao'] ?? ''))
                                     ? count($itensPorPedido[$pedido['numero']]['REF. CLASSICO TORRE'] ?? [])
                                     : 0;
                             ?>
