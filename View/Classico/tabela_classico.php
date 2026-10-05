@@ -472,26 +472,27 @@ require_once '../../Function/trava.php';
                                             // Até 3 itens continua um ícone por peça. Os ícones individuais ficam escondidos (a bipagem usa o data-id deles).
                                             $resumoCelula = '';
                                             if (count($pecas) > 3) {
-                                                $grupos = ['X' => 0, 'Q' => 0, 'W' => 0, 'P' => 0, 'E' => 0, 'A' => 0];
+                                                $grupos = ['X' => 0, 'Q' => 0, 'W' => 0, 'P' => 0, 'PA' => 0, 'PV' => 0, 'E' => 0, 'A' => 0];
                                                 foreach ($pecas as $pc) {
                                                     if ($pc['status'] === 'Pendente' && ((int) ($pc['qualidade_tentativas'] ?? 0)) > 0) $kg = (($pc['ultima_decisao'] ?? null) === 'Retrabalho') ? 'W' : 'Q';
-                                                    elseif ($pc['status'] === 'Produzido') $kg = 'P';
+                                                    elseif ($pc['status'] === 'Produzido') $kg = in_array($pc['status_qualidade'] ?? 'N/A', ['N/A', ''], true) ? 'P' : (($pc['status_qualidade'] ?? '') === 'Aprovado' ? 'PV' : 'PA');
                                                     elseif ($pc['status'] === 'Embalado') $kg = 'E';
                                                     elseif ($pc['status'] === 'Armazenado') $kg = 'A';
                                                     else $kg = 'X';
                                                     $grupos[$kg]++;
                                                 }
                                                 $grupos = array_filter($grupos);
-                                                $rotG = ['X' => 'X', 'Q' => 'Q', 'W' => '⚠️', 'P' => '✅', 'E' => 'E', 'A' => 'A'];
-                                                $corG = ['X' => '#e11d48', 'Q' => '#c0392b', 'W' => '#d97706', 'P' => '#16a34a', 'E' => '#27ae60', 'A' => '#2980b9'];
-                                                $dicaG = ['X' => 'pendente', 'Q' => 'reprovado', 'W' => 'retrabalho', 'P' => 'produzido', 'E' => 'embalado', 'A' => 'armazenado'];
+                                                $rotG = ['X' => 'X', 'Q' => 'Q', 'W' => '⚠️', 'P' => '✅', 'PA' => '✅', 'PV' => '✅', 'E' => 'E', 'A' => 'A'];
+                                                $corG = ['X' => '#e11d48', 'Q' => '#c0392b', 'W' => '#d97706', 'P' => '#16a34a', 'PA' => '#a16207', 'PV' => '#2a7a4f', 'E' => '#27ae60', 'A' => '#2980b9'];
+                                                $dicaG = ['X' => 'pendente', 'Q' => 'reprovado', 'W' => 'retrabalho', 'P' => 'produzido', 'PA' => 'produzido, aguardando inspeção', 'PV' => 'produzido e aprovado', 'E' => 'embalado', 'A' => 'armazenado'];
+                                                $seloG = fn($k, $d) => in_array($k, ['PA', 'PV'], true) ? '<span style="display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;margin-left:3px;background:' . ($k === 'PV' ? '#2a7a4f' : '#dfd54d') . ';color:#fff;font-size:' . $d . 'px;font-weight:bold;border-radius:50%;width:' . ($d + 8) . 'px;height:' . ($d + 8) . 'px;line-height:1;">Q</span>' : '';
                                                 if (count($grupos) === 1) {
                                                     $kg = array_key_first($grupos);
-                                                    $resumoCelula = '<span class="resumo-celula" title="' . $dicaG[$kg] . '" style="color:' . $corG[$kg] . ';font-weight:bold;font-size:28px;">' . $grupos[$kg] . $rotG[$kg] . '</span>';
+                                                    $resumoCelula = '<span class="resumo-celula" title="' . $dicaG[$kg] . '" style="color:' . $corG[$kg] . ';font-weight:bold;font-size:28px;">' . $grupos[$kg] . $rotG[$kg] . $seloG($kg, 16) . '</span>';
                                                 } else {
                                                     $chips = '';
                                                     foreach ($grupos as $kg => $n) {
-                                                        $chips .= '<span title="' . $dicaG[$kg] . '" style="background:' . $corG[$kg] . '1f;color:' . $corG[$kg] . ';border:1px solid ' . $corG[$kg] . '55;border-radius:6px;padding:0 5px;font-weight:bold;font-size:14px;white-space:nowrap;">' . $n . $rotG[$kg] . '</span>';
+                                                        $chips .= '<span title="' . $dicaG[$kg] . '" style="background:' . $corG[$kg] . '1f;color:' . $corG[$kg] . ';border:1px solid ' . $corG[$kg] . '55;border-radius:6px;padding:0 5px;font-weight:bold;font-size:15px;white-space:nowrap;">' . $n . $rotG[$kg] . $seloG($kg, 12) . '</span>';
                                                     }
                                                     $resumoCelula = '<span class="resumo-celula" style="display:inline-flex;flex-wrap:wrap;gap:3px;justify-content:center;align-items:center;">' . $chips . '</span>';
                                                 }
@@ -505,15 +506,15 @@ require_once '../../Function/trava.php';
                                                 if ($peca['status'] === 'Pendente' && ((int) ($peca['qualidade_tentativas'] ?? 0)) > 0) {
                                                     $texto = '✅';
                                                     if (($peca['ultima_decisao'] ?? null) === 'Retrabalho') {
-                                                        $seloQ = ' <span title="Retrabalho" style="position:absolute;top:-8px;right:-10px;font-size:18px;line-height:1;">⚠️</span>';
+                                                        $seloQ = ' <span title="Retrabalho" style="position:absolute;top:-10px;right:-12px;font-size:22px;line-height:1;">⚠️</span>';
                                                     } else {
-                                                        $seloQ = ' <span title="Reprovado" style="position:absolute;top:-8px;right:-10px;display:inline-flex;align-items:center;justify-content:center;background:#c0392b;color:#fff;font-size:13px;font-weight:bold;border-radius:50%;width:20px;height:20px;line-height:1;">Q</span>';
+                                                        $seloQ = ' <span title="Reprovado" style="position:absolute;top:-10px;right:-12px;display:inline-flex;align-items:center;justify-content:center;background:#c0392b;color:#fff;font-size:16px;font-weight:bold;border-radius:50%;width:25px;height:25px;line-height:1;">Q</span>';
                                                     }
                                                 } elseif ($peca['status'] === 'Produzido') {
                                                     $texto = '✅';
                                                     if (!in_array($peca['status_qualidade'] ?? 'N/A', ['N/A', ''], true)) {
                                                         $corQ = ($peca['status_qualidade'] ?? '') === 'Aprovado' ? '#2a7a4f' : '#dfd54d';
-                                                        $seloQ = ' <span title="Qualidade" style="position:absolute;top:-8px;right:-10px;display:inline-flex;align-items:center;justify-content:center;background:' . $corQ . ';color:#fff;font-size:13px;font-weight:bold;border-radius:50%;width:20px;height:20px;line-height:1;">Q</span>';
+                                                        $seloQ = ' <span title="Qualidade" style="position:absolute;top:-10px;right:-12px;display:inline-flex;align-items:center;justify-content:center;background:' . $corQ . ';color:#fff;font-size:16px;font-weight:bold;border-radius:50%;width:25px;height:25px;line-height:1;">Q</span>';
                                                     }
                                                 } elseif ($peca['status'] === 'Embalado') {
                                                     $texto = 'E';
