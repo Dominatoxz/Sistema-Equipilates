@@ -468,9 +468,35 @@ require_once '../../Function/trava.php';
                                 <td>
                                     <div style="display: flex; justify-content: center;">
                                         <?php if (!empty($pecas)):
-                                            // Mais de 3 ❌ na mesma célula viram contador (4X, 5X...); até 3 continua X, XX, XXX.
-                                            $qtdX = count(array_filter($pecas, fn($p) => $p['status'] === 'Pendente' && ((int) ($p['qualidade_tentativas'] ?? 0)) === 0));
-                                            $xMostrado = false;
+                                            // Célula com mais de 3 itens vira resumo: um status só = contador (6E, 4X); status misturados = chips (2X · 1✅ · 3E).
+                                            // Até 3 itens continua um ícone por peça. Os ícones individuais ficam escondidos (a bipagem usa o data-id deles).
+                                            $resumoCelula = '';
+                                            if (count($pecas) > 3) {
+                                                $grupos = ['X' => 0, 'Q' => 0, 'W' => 0, 'P' => 0, 'E' => 0, 'A' => 0];
+                                                foreach ($pecas as $pc) {
+                                                    if ($pc['status'] === 'Pendente' && ((int) ($pc['qualidade_tentativas'] ?? 0)) > 0) $kg = (($pc['ultima_decisao'] ?? null) === 'Retrabalho') ? 'W' : 'Q';
+                                                    elseif ($pc['status'] === 'Produzido') $kg = 'P';
+                                                    elseif ($pc['status'] === 'Embalado') $kg = 'E';
+                                                    elseif ($pc['status'] === 'Armazenado') $kg = 'A';
+                                                    else $kg = 'X';
+                                                    $grupos[$kg]++;
+                                                }
+                                                $grupos = array_filter($grupos);
+                                                $rotG = ['X' => 'X', 'Q' => 'Q', 'W' => '⚠️', 'P' => '✅', 'E' => 'E', 'A' => 'A'];
+                                                $corG = ['X' => '#e11d48', 'Q' => '#c0392b', 'W' => '#d97706', 'P' => '#16a34a', 'E' => '#27ae60', 'A' => '#2980b9'];
+                                                $dicaG = ['X' => 'pendente', 'Q' => 'reprovado', 'W' => 'retrabalho', 'P' => 'produzido', 'E' => 'embalado', 'A' => 'armazenado'];
+                                                if (count($grupos) === 1) {
+                                                    $kg = array_key_first($grupos);
+                                                    $resumoCelula = '<span class="resumo-celula" title="' . $dicaG[$kg] . '" style="color:' . $corG[$kg] . ';font-weight:bold;font-size:28px;">' . $grupos[$kg] . $rotG[$kg] . '</span>';
+                                                } else {
+                                                    $chips = '';
+                                                    foreach ($grupos as $kg => $n) {
+                                                        $chips .= '<span title="' . $dicaG[$kg] . '" style="background:' . $corG[$kg] . '1f;color:' . $corG[$kg] . ';border:1px solid ' . $corG[$kg] . '55;border-radius:6px;padding:0 5px;font-weight:bold;font-size:14px;white-space:nowrap;">' . $n . $rotG[$kg] . '</span>';
+                                                    }
+                                                    $resumoCelula = '<span class="resumo-celula" style="display:inline-flex;flex-wrap:wrap;gap:3px;justify-content:center;align-items:center;">' . $chips . '</span>';
+                                                }
+                                            }
+                                            echo $resumoCelula;
                                             foreach ($pecas as $peca):
                                                 $texto = '❌';
                                                 $estilo = '';
@@ -497,15 +523,7 @@ require_once '../../Function/trava.php';
                                                     $estilo = 'style="color: #2980b9; font-weight: bold; font-size: 28px;"';
                                                 }
 
-                                                if ($texto === '❌' && $qtdX > 3) {
-                                                    if (!$xMostrado) {
-                                                        $texto = $qtdX . 'X';
-                                                        $estilo = 'style="color: #e11d48; font-weight: bold; font-size: 28px;"';
-                                                        $xMostrado = true;
-                                                    } else {
-                                                        $estilo = 'style="display: none;"';
-                                                    }
-                                                }
+                                                if ($resumoCelula !== '') $estilo = 'style="display: none;"';
                                         ?>
                                                 <span class="item-check"
                                                     data-id="<?= $peca['id_prefixado'] ?>"
