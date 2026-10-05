@@ -47,8 +47,8 @@ class Sistema
     {
         $ultimoItem = $this->ultimoItemEmbaladoHoje($colunaPedido, $tabelaItens);
         return "EXISTS (SELECT 1 FROM pedidos_prontos pp WHERE pp.numero_pedido = $colunaPedido)
-                AND DATE($ultimoItem) = CURDATE()
-                AND CURTIME() < '" . self::HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO . "'";
+                AND DATE($ultimoItem) = " . $this->sqlDiaRef() . "
+                AND " . $this->sqlHoraRef() . " < '" . self::HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO . "'";
     }
 
     /** SELECT extra pra marcar a linha de verde na view (1 = pedido já fechou a produção, último item de hoje). */
@@ -56,7 +56,7 @@ class Sistema
     {
         $ultimoItem = $this->ultimoItemEmbaladoHoje($colunaPedido, $tabelaItens);
         return "(EXISTS (SELECT 1 FROM pedidos_prontos pp WHERE pp.numero_pedido = $colunaPedido)
-                  AND DATE($ultimoItem) = CURDATE()) as ja_completo";
+                  AND DATE($ultimoItem) = " . $this->sqlDiaRef() . ") as ja_completo";
     }
 
     /*
@@ -190,6 +190,24 @@ class Sistema
                     WHERE ip.numero_pedido = $colunaPedido AND ip.equipamento IN ($placeholders)
                       AND ip.status != 'Armazenado'
                 )";
+    }
+
+    /** Momento de referência da linha do tempo (null = agora). Só leitura; usado pela tela de histórico. */
+    private ?DateTime $momento = null;
+
+    public function definirMomento(?DateTime $momento): void
+    {
+        $this->momento = $momento;
+    }
+
+    private function sqlDiaRef(): string
+    {
+        return $this->momento ? "'" . $this->momento->format('Y-m-d') . "'" : 'CURDATE()';
+    }
+
+    private function sqlHoraRef(): string
+    {
+        return $this->momento ? "'" . $this->momento->format('H:i:s') . "'" : 'CURTIME()';
     }
 
     public function __construct($db)

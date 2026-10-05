@@ -326,6 +326,13 @@ date_default_timezone_set('America/Sao_Paulo');
                 <h3>Armazem Expedição</h3>
             </a>
             <?php endif; ?>
+
+            <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_RASTREAMENTO)): ?>
+            <a href="View/linha_do_tempo.php" class="card-botao linha-expedicao">
+                <div class="icon-box">🕒</div>
+                <h3>Linha do tempo do quadro</h3>
+            </a>
+            <?php endif; ?>
         </div>
     </div>
 
