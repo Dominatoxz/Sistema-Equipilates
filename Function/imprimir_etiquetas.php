@@ -47,7 +47,7 @@ $params = [];
 
 $sql_producao = "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, qualidade_tentativas, 'PRODUCAO' AS tabela_origem
                  FROM itens_producao
-                 WHERE status != 'Embalado' AND equipamento NOT LIKE 'Emb.%'";
+                 WHERE status = 'Pendente' AND equipamento NOT LIKE 'Emb.%'";
 
 if (!empty($filtro_pedido)) {
     $sql_producao .= " AND numero_pedido LIKE :pedido1";
@@ -72,7 +72,7 @@ if (!empty($filtro_data_ini) && !empty($filtro_data_fim)) {
 
 $sql_os = "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, qualidade_tentativas, 'OS' AS tabela_origem
            FROM itens_os
-           WHERE status != 'Embalado' AND equipamento NOT LIKE 'Emb.%'";
+           WHERE status = 'Pendente' AND equipamento NOT LIKE 'Emb.%'";
 
 if (!empty($filtro_pedido)) {
     $sql_os .= " AND numero_pedido LIKE :pedido2";
