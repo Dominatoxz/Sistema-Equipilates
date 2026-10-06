@@ -19,6 +19,7 @@
 require_once '../global.php';
 require_once '../config/Database.php';
 require_once '../Model/Sistema.php';
+require_once '../Function/rotulo_peca.php';
 
 date_default_timezone_set('America/Sao_Paulo');
 header('Content-Type: application/json');
@@ -124,7 +125,7 @@ function montarZpl(array $item, string $tipo, bool $misto): string
     $moduleWidth  = 5;
 
     $numeroPedido = zplEscape('PEDIDO #' . $item['numero_pedido']);
-    $equipamento  = zplEscape($item['equipamento']);
+    $equipamento  = zplEscape(nomeComRotulo($item));
     $prazo        = zplEscape(substr((string) $item['prazo_producao'], 0, 10));
     $subLinha     = zplEscape('Peça: ' . $item['posicao_no_pedido'] . ' | Prazo: ' . $prazo);
     $corExibir    = (!empty($item['cor']) && $item['cor'] !== 'COD. COR') ? $item['cor'] : 'NAO INFORMADA';
@@ -177,7 +178,7 @@ function montarZplIdentificacao(array $item): string
 
     $idExibicao = ($item['tabela_origem'] === 'OS') ? 'OS' . $item['id'] : $item['id'];
     $qmCode = zplEscape((string) $item['qm_code']);
-    $cabecalho = zplEscape('PEDIDO #' . $item['numero_pedido'] . ' — ' . $item['equipamento']);
+    $cabecalho = zplEscape('PEDIDO #' . $item['numero_pedido'] . ' — ' . nomeComRotulo($item));
     $peca = zplEscape('Peça: ' . $item['posicao_no_pedido'] . ' | ID: ' . $idExibicao);
     $motivo = zplEscape('Motivo: ' . (string) ($item['qm_motivo'] ?: '-'));
     $inspetor = zplEscape('Reprovado por: ' . (string) ($item['qm_inspetor'] ?: '-'));

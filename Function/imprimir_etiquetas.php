@@ -6,6 +6,7 @@ use Picqer\Barcode\BarcodeGeneratorPNG;
 
 require_once '../config/Database.php';
 require_once '../Model/Sistema.php';
+require_once '../Function/rotulo_peca.php';
 
 $db = (new Database())->getConnection();
 $generator = new BarcodeGeneratorPNG();
@@ -531,7 +532,7 @@ foreach (array_values(array_unique(array_map(fn($i) => trim($i['equipamento']), 
                             </div>
                             <span class="tipo-etiqueta">PRODUÇÃO</span>
                         </div>
-                        <div class="etiqueta-titulo"><?= htmlspecialchars($item['equipamento']) ?></div>
+                        <div class="etiqueta-titulo"><?= htmlspecialchars(nomeComRotulo($item, $db)) ?></div>
                         <div class="etiqueta-sub">Peça: <?= htmlspecialchars($item['posicao_no_pedido']) ?> | Prazo: <?= htmlspecialchars(substr($item['prazo_producao'], 0, 10))  ?></div>
                         <div class="etiqueta-cor">Cor: <?= htmlspecialchars($corExibir) ?></div>
                         <div class="barcodeSection">
@@ -554,7 +555,7 @@ foreach (array_values(array_unique(array_map(fn($i) => trim($i['equipamento']), 
                             </div>
                             <span class="tipo-etiqueta">EMBALAGEM</span>
                         </div>
-                        <div class="etiqueta-titulo"><?= htmlspecialchars($item['equipamento']) ?></div>
+                        <div class="etiqueta-titulo"><?= htmlspecialchars(nomeComRotulo($item, $db)) ?></div>
                         <div class="etiqueta-sub">Peça: <?= htmlspecialchars($item['posicao_no_pedido']) ?> | Prazo: <?= htmlspecialchars(substr($item['prazo_producao'], 0, 10))  ?></div>
                         <div class="etiqueta-cor">Cor: <?= htmlspecialchars($corExibir) ?></div>
                         <div class="barcodeSection">
