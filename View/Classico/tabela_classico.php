@@ -503,7 +503,7 @@ if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) uns
                                                     $grupos[$kg]++;
                                                 }
                                                 $grupos = array_filter($grupos);
-                                                $rotG = ['X' => 'X', 'Q' => 'Q', 'W' => '⚠️', 'P' => '✅', 'PA' => '✅', 'PV' => '✅', 'E' => 'E', 'A' => 'A'];
+                                                $rotG = ['X' => '❌', 'Q' => 'Q', 'W' => '⚠️', 'P' => '✅', 'PA' => '✅', 'PV' => '✅', 'E' => 'E', 'A' => 'A'];
                                                 $corG = ['X' => '#e11d48', 'Q' => '#c0392b', 'W' => '#d97706', 'P' => '#16a34a', 'PA' => '#a16207', 'PV' => '#2a7a4f', 'E' => '#27ae60', 'A' => '#2980b9'];
                                                 $dicaG = ['X' => 'pendente', 'Q' => 'reprovado', 'W' => 'retrabalho', 'P' => 'produzido', 'PA' => 'produzido, aguardando inspeção', 'PV' => 'produzido e aprovado', 'E' => 'embalado', 'A' => 'armazenado'];
                                                 $seloG = fn($k, $d) => in_array($k, ['PA', 'PV'], true) ? '<span style="display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;margin-left:3px;background:' . ($k === 'PV' ? '#2a7a4f' : '#dfd54d') . ';color:#fff;font-size:' . $d . 'px;font-weight:bold;border-radius:50%;width:' . ($d + 8) . 'px;height:' . ($d + 8) . 'px;line-height:1;">Q</span>' : '';
