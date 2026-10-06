@@ -18,47 +18,56 @@ class Sistema
     const HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO = '19:00:00';
 
     /**
-     * data_fim do último item "de verdade" bipado do pedido (mesmo critério
-     * de pendência que notificarPosProducao() usa pra decidir quando o
-     * pedido fecha: ignora as etiquetas de Embalagem e a Gaiola Cadilac).
-     *
-     * NÃO usa pedidos_prontos.data_conclusao pra decidir "foi hoje" — essa
-     * coluna é reescrita toda vez que o pedido muda de etapa no Financeiro/
-     * Pós-venda/Expedição (ver dar_baixa_financeiro.php e
-     * dar_baixa_posVenda.php), então um pedido embalado há dias reaparecia
-     * verde só porque alguém empurrou ele de etapa hoje (Matheus, 2026-09-29:
-     * "toda vez que ele muda de etapa... eu acho que é isso" — confirmado).
+     * Itens "de verdade" do pedido (ignora as etiquetas de Embalagem e a família da Gaiola Cadilac,
+     * que tem fluxo próprio semanal). Usado pra decidir quando o pedido está totalmente Armazenado.
      */
-    private function ultimoItemEmbaladoHoje(string $colunaPedido, string $tabelaItens = 'itens_producao'): string
+    private function itemRealForaDeArmazenado(string $colunaPedido, string $tabelaItens = 'itens_producao'): string
     {
-        return "(SELECT MAX(x.data_fim) FROM $tabelaItens x
+        $gaiolas = "'" . implode("','", self::EQUIPAMENTOS_GAIOLA_CADILAC) . "'";
+        return "EXISTS (SELECT 1 FROM $tabelaItens x
                   WHERE x.numero_pedido = $colunaPedido
                     AND x.equipamento NOT LIKE 'Emb.%'
-                    AND x.equipamento != 'Gaiola Cadilac')";
+                    AND x.equipamento NOT IN ($gaiolas)
+                    AND x.status <> 'Armazenado')";
+    }
+
+    /** data_armazem do último item real do pedido a ser Armazenado. */
+    private function ultimoItemArmazenado(string $colunaPedido, string $tabelaItens = 'itens_producao'): string
+    {
+        $gaiolas = "'" . implode("','", self::EQUIPAMENTOS_GAIOLA_CADILAC) . "'";
+        return "(SELECT MAX(x.data_armazem) FROM $tabelaItens x
+                  WHERE x.numero_pedido = $colunaPedido
+                    AND x.equipamento NOT LIKE 'Emb.%'
+                    AND x.equipamento NOT IN ($gaiolas))";
     }
 
     /**
-     * EXISTS que mantém visível, na tela de produção, um pedido que já
-     * fechou (foi pra pedidos_prontos) e cujo último item foi bipado HOJE,
-     * antes do corte das 19h — pra usar junto (OR) da condição normal de
-     * "ainda tem item pendente".
+     * Mantém visível, na tela de produção, o pedido que já fechou a produção (foi pra pedidos_prontos / Financeiro):
+     *  - enquanto algum item real ainda não está Armazenado (e o pedido ainda não foi Expedido/Finalizado); e
+     *  - depois que TODOS ficaram Armazenados, só até as 19h do dia em que o último foi armazenado (aí fica verde).
+     * Usar junto (OR) da condição normal de "ainda tem item pendente".
      */
     private function condicaoAindaVisivelPosProducao(string $colunaPedido, string $tabelaItens = 'itens_producao'): string
     {
-        $ultimoItem = $this->ultimoItemEmbaladoHoje($colunaPedido, $tabelaItens);
-        return "EXISTS (SELECT 1 FROM pedidos_prontos pp WHERE pp.numero_pedido = $colunaPedido)
-                AND DATE($ultimoItem) = " . $this->sqlDiaRef() . "
-                AND " . $this->sqlHoraRef() . " < '" . self::HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO . "'";
+        $foraArm = $this->itemRealForaDeArmazenado($colunaPedido, $tabelaItens);
+        $ultimoArm = $this->ultimoItemArmazenado($colunaPedido, $tabelaItens);
+        return "EXISTS (SELECT 1 FROM pedidos_prontos pp WHERE pp.numero_pedido = $colunaPedido
+                  AND (
+                        (COALESCE(pp.status_posvenda, 'Financeiro') NOT IN ('Expedido', 'Finalizado') AND $foraArm)
+                        OR (NOT $foraArm AND DATE($ultimoArm) = " . $this->sqlDiaRef() . "
+                            AND " . $this->sqlHoraRef() . " < '" . self::HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO . "')
+                      ))";
     }
 
-    /** SELECT extra pra marcar a linha de verde na view (1 = pedido já fechou a produção, último item de hoje). */
+    /** SELECT extra pra marcar a linha de verde na view (1 = pedido fechou a produção e TODOS os itens já estão Armazenados, o último hoje). */
     private function selectJaCompleto(string $colunaPedido, string $tabelaItens = 'itens_producao'): string
     {
-        $ultimoItem = $this->ultimoItemEmbaladoHoje($colunaPedido, $tabelaItens);
+        $foraArm = $this->itemRealForaDeArmazenado($colunaPedido, $tabelaItens);
+        $ultimoArm = $this->ultimoItemArmazenado($colunaPedido, $tabelaItens);
         return "(EXISTS (SELECT 1 FROM pedidos_prontos pp WHERE pp.numero_pedido = $colunaPedido)
-                  AND DATE($ultimoItem) = " . $this->sqlDiaRef() . ") as ja_completo";
+                  AND NOT $foraArm
+                  AND DATE($ultimoArm) = " . $this->sqlDiaRef() . ") as ja_completo";
     }
-
     /*
      * Gaiola Cadilac (Contemporâneo) e Gaiola Classico / Gaiola Cadilac
      * Tauari (Clássico) são fisicamente o mesmo item — só entram no sistema
