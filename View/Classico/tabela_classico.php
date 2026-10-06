@@ -144,6 +144,29 @@ if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) uns
 
         /* Pedido priorizado pelo PCP (marcado no ERP) — some o azul padrão
            do numero-pedido e vira vermelho, inclusive por cima do "misto". */
+        /* OS = laranja, pedido de modelo EXP = amarelo (badge igual ao do misto; vence o roxo do misto). */
+        .numero-pedido.os,
+        .numero-pedido.exp {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+
+        .numero-pedido.os {
+            background: #e67e22;
+            color: #fff;
+        }
+
+        .numero-pedido.exp {
+            background: #f1c40f;
+            color: #1f2937;
+        }
+
+        .numero-pedido.os.prioridade,
+        .numero-pedido.exp.prioridade {
+            box-shadow: 0 0 0 2px #c0392b;
+        }
+
         .numero-pedido.prioridade {
             color: #c0392b;
             font-weight: 900;
@@ -299,6 +322,7 @@ if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) uns
 
             $sistema = new Sistema($db);
             if ($momentoHistorico) $sistema->definirMomento($momentoHistorico);
+            $modelosPedido = $db->query("SELECT `NUMERO PEDIDO`, MODELO FROM tabela_adaptada")->fetchAll(PDO::FETCH_KEY_PAIR);
             $pedidosMistos = array_unique(array_merge($sistema->pedidosMistos('itens_producao'), $sistema->pedidosMistos('itens_os')));
 
             $arquivo_cache = __DIR__ . '/../../cache/dados_painel_classico.json';
@@ -472,7 +496,8 @@ if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) uns
                         <tr id="linha-<?= htmlspecialchars($pedido['numero']) ?>"<?= $jaCompleto ? ' class="linha-completa"' : '' ?>>
                             <td>
                                 <div style="display: flex; justify-content: center; align-items: center;">
-                                    <span class="numero-pedido<?= in_array($pedido['numero'], $pedidosMistos) ? ' misto' : '' ?><?= $ehPrioridade ? ' prioridade' : '' ?>" <?= in_array($pedido['numero'], $pedidosMistos) ? 'title="Pedido misto: tem itens da linha Contemporânea e da Clássica"' : ($ehPrioridade ? 'title="Prioridade marcada pelo PCP"' : '') ?>><?= htmlspecialchars($pedido['numero']) ?></span>
+                                    <?php $ehOs = stripos($pedido['numero'], 'os') !== false; $ehExp = !$ehOs && strtoupper(trim($modelosPedido[$pedido['numero']] ?? '')) === 'EXP'; ?>
+                                    <span class="numero-pedido<?= $ehOs ? ' os' : ($ehExp ? ' exp' : (in_array($pedido['numero'], $pedidosMistos) ? ' misto' : '')) ?><?= $ehPrioridade ? ' prioridade' : '' ?>" <?= $ehOs ? 'title="Ordem de serviço (OS)"' : ($ehExp ? 'title="Pedido de modelo EXP"' : (in_array($pedido['numero'], $pedidosMistos) ? 'title="Pedido misto: tem itens da linha Contemporânea e da Clássica"' : ($ehPrioridade ? 'title="Prioridade marcada pelo PCP"' : ''))) ?>><?= htmlspecialchars($pedido['numero']) ?></span>
                                 </div>
                             </td>
 
