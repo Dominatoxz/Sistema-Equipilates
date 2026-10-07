@@ -1,8 +1,16 @@
 <?php
 require_once '../Function/trava.php';
 require_once '../config/Database.php';
+require_once '../Function/cargos.php';
 
 header('Content-Type: application/json');
+
+// Só quem enxerga o botão "Remover Pedido" (Financeiro, Pós-venda, Expedição) ou gerencia reprogramados pode chamar este endpoint.
+$cargosRemover = array_merge(CARGOS_FINANCEIRO_ACAO, CARGOS_POSVENDA_ACAO, CARGOS_EXPEDICAO_ACAO, CARGOS_PEDIDOS_REPROGRAMADOS);
+if (!in_array($_SESSION['nivel_acesso'] ?? '', $cargosRemover, true)) {
+    echo json_encode(['success' => false, 'error' => 'Seu cargo não tem permissão para esta ação.']);
+    exit;
+}
 
 $dados = json_decode(file_get_contents("php://input"), true);
 
