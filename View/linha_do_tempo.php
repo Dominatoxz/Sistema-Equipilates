@@ -65,8 +65,9 @@ $agora = new DateTime('now');
         <div class="ctl" id="linhas">
             <button data-l="Contemporaneo/tabela.php" class="ativo">Contemporâneo</button>
             <button data-l="Classico/tabela_classico.php">Clássico</button>
+            <button data-l="linha_do_tempo_pedidos.php">Por pedido</button>
         </div>
-        <div class="ctl">
+        <div class="ctl" id="ctlHora">
             <button data-h="-3">−3h</button>
             <button data-h="-1">−1h</button>
             <input type="datetime-local" id="momento" step="60">
@@ -106,7 +107,11 @@ $agora = new DateTime('now');
             inp.value = v;
             inp.min = inicio || '';
             inp.max = fmt(agora);
-            quadro.src = tela + '?t=' + encodeURIComponent(v.replace('T', ' ') + ':00');
+            const porPedido = tela === 'linha_do_tempo_pedidos.php';
+            ['ctlHora', 'atalhos'].forEach(id => document.getElementById(id).style.display = porPedido ? 'none' : '');
+            document.querySelector('.faixa').style.display = porPedido ? 'none' : '';
+            const alvo = porPedido ? tela : tela + '?t=' + encodeURIComponent(v.replace('T', ' ') + ':00');
+            if (quadro.getAttribute('src') !== alvo) quadro.src = alvo;
             document.querySelectorAll('.h').forEach(e => e.classList.toggle('sel', e.dataset.k === v.slice(0, 13)));
         }
 
