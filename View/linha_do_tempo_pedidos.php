@@ -144,10 +144,10 @@ $semana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
         .info { color: #64748b; font-size: 13px; }
         .aviso { margin: 14px; padding: 12px 16px; background: #fef2f2; color: #b91c1c; border-radius: 8px; font-weight: 600; }
         .nota { margin: 10px 14px 0; color: #64748b; font-size: 12px; }
-        .wrap { overflow: auto; padding: 10px 14px 30px; }
+        .wrap { overflow: auto; padding: 0 14px 14px; margin-top: 10px; max-height: calc(100vh - 140px); }
         table { border-collapse: separate; border-spacing: 0; background: #fff; font-size: 14px; }
         th, td { border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; padding: 6px 8px; text-align: center; white-space: nowrap; }
-        thead th { position: sticky; top: 54px; background: #e2e8f0; z-index: 3; font-size: 12px; }
+        thead th { position: sticky; top: 0; background: #e2e8f0; z-index: 3; font-size: 12px; }
         th.hoje { background: #fde68a; }
         td.p, th.p { position: sticky; left: 0; background: #fff; z-index: 2; text-align: left; font-weight: 700; min-width: 86px; }
         td.i, th.i { position: sticky; left: 86px; background: #fff; z-index: 2; text-align: left; min-width: 190px; border-right: 2px solid #94a3b8; }
