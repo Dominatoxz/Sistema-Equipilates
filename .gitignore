@@ -1,5 +1,6 @@
 vendor
 .env
-Services
 cache/*.json
 .htaccess
+_analises/
+_to_delete/
