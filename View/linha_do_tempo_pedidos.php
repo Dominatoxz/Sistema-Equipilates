@@ -171,7 +171,6 @@ $semana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
             <button type="submit">Pesquisar</button>
             <?php if ($q !== ''): ?><a class="btn sec" href="?">Pedidos no quadro</a><?php endif; ?>
         </form>
-        <span class="info"><?= $q === '' ? 'Mostrando os pedidos que estão hoje nos quadros' : 'Resultado da pesquisa' ?><?= isset($pedidos) ? ' · ' . count($pedidos) . ' pedido(s)' : '' ?></span>
     </div>
 
     <?php if ($erro): ?>
@@ -179,12 +178,6 @@ $semana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     <?php elseif (!$pedidos): ?>
         <div class="aviso">Nenhum pedido encontrado.</div>
     <?php else: ?>
-        <div class="nota">
-            ❌ pendente · ✅ produzido (Q amarelo = aguardando inspeção, Q verde = aprovado, Q vermelho = reprovado) · E embalado · A armazenado · cada coluna mostra o status no fim do dia · barra laranja = dia do prazo.
-            Dias <b>esmaecidos</b> são anteriores ao início do registro (<?= $h($inicioReg->format('d/m H:i')) ?>) e foram estimados pelas datas gravadas no item.
-            <?= $cortado ? ' Limitado aos últimos ' . LT_MAX_DIAS . ' dias.' : '' ?>
-            <?= count($pedidos) >= LT_MAX_PEDIDOS ? ' Mostrando só os primeiros ' . LT_MAX_PEDIDOS . ' pedidos; refine a pesquisa.' : '' ?>
-        </div>
         <div class="wrap">
             <table>
                 <thead>
