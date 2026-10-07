@@ -18,27 +18,23 @@ class Sistema
     const HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO = '19:00:00';
 
     /**
-     * Itens "de verdade" do pedido (ignora as etiquetas de Embalagem e a família da Gaiola Cadilac,
-     * que tem fluxo próprio semanal). Usado pra decidir quando o pedido está totalmente Armazenado.
+     * Itens "de verdade" do pedido (ignora só as etiquetas de Embalagem; a Gaiola conta). Usado pra decidir quando o
+     * pedido está totalmente Armazenado — com a gaiola ainda sem o A, o pedido não fica verde.
      */
     private function itemRealForaDeArmazenado(string $colunaPedido, string $tabelaItens = 'itens_producao'): string
     {
-        $gaiolas = "'" . implode("','", self::EQUIPAMENTOS_GAIOLA_CADILAC) . "'";
         return "EXISTS (SELECT 1 FROM $tabelaItens x
                   WHERE x.numero_pedido = $colunaPedido
                     AND x.equipamento NOT LIKE 'Emb.%'
-                    AND x.equipamento NOT IN ($gaiolas)
                     AND x.status <> 'Armazenado')";
     }
 
     /** data_armazem do último item real do pedido a ser Armazenado. */
     private function ultimoItemArmazenado(string $colunaPedido, string $tabelaItens = 'itens_producao'): string
     {
-        $gaiolas = "'" . implode("','", self::EQUIPAMENTOS_GAIOLA_CADILAC) . "'";
         return "(SELECT MAX(x.data_armazem) FROM $tabelaItens x
                   WHERE x.numero_pedido = $colunaPedido
-                    AND x.equipamento NOT LIKE 'Emb.%'
-                    AND x.equipamento NOT IN ($gaiolas))";
+                    AND x.equipamento NOT LIKE 'Emb.%')";
     }
 
     /**
@@ -73,7 +69,7 @@ class Sistema
         return "EXISTS (SELECT 1 FROM pedidos_prontos pp WHERE pp.numero_pedido = $colunaPedido
                   AND (
                         (COALESCE(pp.status_posvenda, 'Financeiro') NOT IN ('Expedido', 'Finalizado') AND $foraArm
-                         AND DATE($ultimoFechado) >= LEAST('" . self::DATA_MANTER_EMBALADOS_NO_QUADRO . "', $dia))
+                         AND DATE(GREATEST(COALESCE($ultimoFechado, '1970-01-01'), COALESCE($ultimoArm, '1970-01-01'))) >= LEAST('" . self::DATA_MANTER_EMBALADOS_NO_QUADRO . "', $dia))
                         OR (NOT $foraArm AND DATE($ultimoArm) = $dia
                             AND " . $this->sqlHoraRef() . " < '" . self::HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO . "')
                       ))";
