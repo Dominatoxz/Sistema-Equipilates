@@ -313,7 +313,7 @@ if (!$callback && isset($update['message']['chat']['id'])) {
         }
         $qtdItens = 0;
         foreach (['itens_producao', 'itens_os'] as $tab) {
-            $st = $db->prepare("SELECT COUNT(*) FROM $tab WHERE numero_pedido = ?");
+            $st = $db->prepare("SELECT COUNT(*) FROM $tab WHERE numero_pedido = ? AND equipamento NOT LIKE 'Emb.%'");
             $st->execute([$numeroReimp]);
             $qtdItens += (int) $st->fetchColumn();
         }
@@ -435,7 +435,7 @@ if (($partes[0] ?? '') === 'q' && ($partes[1] ?? '') === 'reimp') {
     );
     $n = 0;
     foreach (['itens_producao' => 'PRODUCAO', 'itens_os' => 'OS'] as $tab => $curta) {
-        $st = $db->prepare("SELECT id FROM $tab WHERE numero_pedido = ?");
+        $st = $db->prepare("SELECT id FROM $tab WHERE numero_pedido = ? AND equipamento NOT LIKE 'Emb.%'");
         $st->execute([$numeroReimp]);
         foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $itemId) {
             foreach ($tiposBase as $tb) {
