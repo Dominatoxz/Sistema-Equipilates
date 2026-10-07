@@ -211,6 +211,7 @@ require_once '../../Function/trava.php';
         <table>
             <?php
             require_once '../../config/Database.php';
+require_once '../../Function/resumo_celula.php';
             require_once '../../Model/Sistema.php';
 
             $database = new Database();
@@ -289,30 +290,8 @@ require_once '../../Function/trava.php';
                                 <td>
                                     <div style="display: flex; justify-content: center;">
                                         <?php if ($pecas && count($pecas) > 0):
-                                            // Célula com mais de 3 itens vira resumo: um status só = contador (6E, 4X); status misturados = chips (2X · 1✅ · 3E).
-$resumoCelula = '';
-if (count($pecas) > 3) {
-    $grupos = ['X' => 0, 'P' => 0, 'E' => 0, 'A' => 0];
-    foreach ($pecas as $pc) {
-        $kg = $pc['status'] === 'Produzido' ? 'P' : ($pc['status'] === 'Embalado' ? 'E' : ($pc['status'] === 'Armazenado' ? 'A' : 'X'));
-        $grupos[$kg]++;
-    }
-    $grupos = array_filter($grupos);
-    $rotG = ['X' => 'X', 'P' => '✅', 'E' => 'E', 'A' => 'A'];
-    $corG = ['X' => '#e11d48', 'P' => '#16a34a', 'E' => '#27ae60', 'A' => '#2980b9'];
-    $dicaG = ['X' => 'pendente', 'P' => 'produzido', 'E' => 'embalado', 'A' => 'armazenado'];
-    if (count($grupos) === 1) {
-        $kg = array_key_first($grupos);
-        $resumoCelula = '<span class="resumo-celula" title="' . $dicaG[$kg] . '" style="color:' . $corG[$kg] . ';font-weight:bold;font-size:30px;">' . $grupos[$kg] . $rotG[$kg] . '</span>';
-    } else {
-        $chips = '';
-        foreach ($grupos as $kg => $n) {
-            $chips .= '<span title="' . $dicaG[$kg] . '" style="background:' . $corG[$kg] . '1f;color:' . $corG[$kg] . ';border:1px solid ' . $corG[$kg] . '55;border-radius:6px;padding:0 5px;font-weight:bold;font-size:15px;white-space:nowrap;">' . $n . $rotG[$kg] . '</span>';
-        }
-        $resumoCelula = '<span class="resumo-celula" style="display:inline-flex;flex-wrap:wrap;gap:3px;justify-content:center;align-items:center;">' . $chips . '</span>';
-    }
-}
-echo $resumoCelula;
+                                            $resumoCelula = resumoCelulaItens($pecas, 30, false, 'X');
+                                            echo $resumoCelula;
                                             foreach ($pecas as $peca):
                                                 $status = isset($peca['status']) ? $peca['status'] : 'Pendente';
                                                 $id_peca = isset($peca['id']) ? $peca['id'] : 0;

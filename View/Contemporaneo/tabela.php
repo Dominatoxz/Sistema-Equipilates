@@ -289,6 +289,7 @@ if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) uns
         <table>
             <?php
             require_once '../../config/Database.php';
+require_once '../../Function/resumo_celula.php';
             require_once '../../Model/Sistema.php';
 
             $database = new Database();
@@ -429,35 +430,7 @@ if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) uns
                                 <td>
                                     <div style="display: flex; justify-content: center;">
                                         <?php if ($pecas && count($pecas) > 0):
-                                            // Célula com mais de 3 itens vira resumo: um status só = contador (6E, 4X); status misturados = chips (2X · 1✅ · 3E).
-                                            // Até 3 itens continua um ícone por peça. Os ícones individuais ficam escondidos (a bipagem usa o data-id deles).
-                                            $resumoCelula = '';
-                                            if (count($pecas) > 3) {
-                                                $grupos = ['X' => 0, 'Q' => 0, 'W' => 0, 'P' => 0, 'PA' => 0, 'PV' => 0, 'E' => 0, 'A' => 0];
-                                                foreach ($pecas as $pc) {
-                                                    if ($pc['status'] === 'Pendente' && ((int) ($pc['qualidade_tentativas'] ?? 0)) > 0) $kg = (($pc['ultima_decisao'] ?? null) === 'Retrabalho') ? 'W' : 'Q';
-                                                    elseif ($pc['status'] === 'Produzido') $kg = in_array($pc['status_qualidade'] ?? 'N/A', ['N/A', ''], true) ? 'P' : (($pc['status_qualidade'] ?? '') === 'Aprovado' ? 'PV' : 'PA');
-                                                    elseif ($pc['status'] === 'Embalado') $kg = 'E';
-                                                    elseif ($pc['status'] === 'Armazenado') $kg = 'A';
-                                                    else $kg = 'X';
-                                                    $grupos[$kg]++;
-                                                }
-                                                $grupos = array_filter($grupos);
-                                                $rotG = ['X' => '❌', 'Q' => 'Q', 'W' => '⚠️', 'P' => '✅', 'PA' => '✅', 'PV' => '✅', 'E' => 'E', 'A' => 'A'];
-                                                $corG = ['X' => '#e11d48', 'Q' => '#c0392b', 'W' => '#d97706', 'P' => '#16a34a', 'PA' => '#a16207', 'PV' => '#2a7a4f', 'E' => '#27ae60', 'A' => '#2980b9'];
-                                                $dicaG = ['X' => 'pendente', 'Q' => 'reprovado', 'W' => 'retrabalho', 'P' => 'produzido', 'PA' => 'produzido, aguardando inspeção', 'PV' => 'produzido e aprovado', 'E' => 'embalado', 'A' => 'armazenado'];
-                                                $seloG = fn($k, $d) => in_array($k, ['PA', 'PV'], true) ? '<span style="display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;margin-left:3px;background:' . ($k === 'PV' ? '#2a7a4f' : '#dfd54d') . ';color:#fff;font-size:' . $d . 'px;font-weight:bold;border-radius:50%;width:' . ($d + 8) . 'px;height:' . ($d + 8) . 'px;line-height:1;">Q</span>' : '';
-                                                if (count($grupos) === 1) {
-                                                    $kg = array_key_first($grupos);
-                                                    $resumoCelula = '<span class="resumo-celula" title="' . $dicaG[$kg] . '" style="color:' . $corG[$kg] . ';font-weight:bold;font-size:30px;">' . $grupos[$kg] . $rotG[$kg] . $seloG($kg, 16) . '</span>';
-                                                } else {
-                                                    $chips = '';
-                                                    foreach ($grupos as $kg => $n) {
-                                                        $chips .= '<span title="' . $dicaG[$kg] . '" style="background:' . $corG[$kg] . '1f;color:' . $corG[$kg] . ';border:1px solid ' . $corG[$kg] . '55;border-radius:6px;padding:0 5px;font-weight:bold;font-size:15px;white-space:nowrap;">' . $n . $rotG[$kg] . $seloG($kg, 12) . '</span>';
-                                                    }
-                                                    $resumoCelula = '<span class="resumo-celula" style="display:inline-flex;flex-wrap:wrap;gap:3px;justify-content:center;align-items:center;">' . $chips . '</span>';
-                                                }
-                                            }
+                                            $resumoCelula = resumoCelulaItens($pecas, 30, true, '❌');
                                             echo $resumoCelula;
                                             foreach ($pecas as $peca):
                                                 $status = isset($peca['status']) ? $peca['status'] : 'Em Produção';
