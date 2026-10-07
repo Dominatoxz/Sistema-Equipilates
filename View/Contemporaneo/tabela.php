@@ -310,7 +310,6 @@ if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) uns
 
             $sistema = new Sistema($db);
             if ($momentoHistorico) $sistema->definirMomento($momentoHistorico);
-            $modelosPedido = $db->query("SELECT `NUMERO PEDIDO`, MODELO FROM tabela_adaptada")->fetchAll(PDO::FETCH_KEY_PAIR);
             $pedidosMistos = array_unique(array_merge($sistema->pedidosMistos('itens_producao'), $sistema->pedidosMistos('itens_os')));
 
             $arquivo_cache = __DIR__ . '/../../cache/dados_painel.json';
@@ -329,6 +328,14 @@ if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) uns
 
             $pedidos = !empty($dados_tabela) ? $dados_tabela : [];
             $pedidos_agrupados = $pedidos;
+
+            // Modelo (EXP) só dos pedidos que estão na tela, depois do cache (evita ler a tabela inteira a cada carga).
+            $modelosPedido = [];
+            if ($pedidos) {
+                $stM = $db->prepare("SELECT `NUMERO PEDIDO`, MODELO FROM tabela_adaptada WHERE `NUMERO PEDIDO` IN (" . implode(',', array_fill(0, count($pedidos), '?')) . ")");
+                $stM->execute(array_column($pedidos, 'numero'));
+                $modelosPedido = $stM->fetchAll(PDO::FETCH_KEY_PAIR);
+            }
             ?>
             <thead>
                 <tr>
@@ -402,7 +409,7 @@ if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) uns
                         <tr id="linha-<?= htmlspecialchars($pedido['numero']) ?>"<?= $jaCompleto ? ' class="linha-completa"' : '' ?>>
                             <td>
                                 <div style="display: flex; justify-content: center; align-items: center;">
-                                    <?php $ehOs = stripos($pedido['numero'], 'os') !== false; $ehExp = !$ehOs && strtoupper(trim($modelosPedido[$pedido['numero']] ?? '')) === 'EXP'; ?>
+                                    <?php $ehOs = preg_match('/^OS\s/i', trim($pedido['numero'])) === 1; $ehExp = !$ehOs && strtoupper(trim($modelosPedido[$pedido['numero']] ?? '')) === 'EXP'; ?>
                                     <span class="numero-pedido<?= $ehOs ? ' os' : ($ehExp ? ' exp' : (in_array($pedido['numero'], $pedidosMistos) ? ' misto' : '')) ?><?= $ehPrioridade ? ' prioridade' : '' ?>" <?= $ehOs ? 'title="Ordem de serviço (OS)"' : ($ehExp ? 'title="Pedido de modelo EXP"' : (in_array($pedido['numero'], $pedidosMistos) ? 'title="Pedido misto: tem itens da linha Contemporânea e da Clássica"' : ($ehPrioridade ? 'title="Prioridade marcada pelo PCP"' : ''))) ?>><?= htmlspecialchars($pedido['numero']) ?></span>
                                 </div>
                             </td>

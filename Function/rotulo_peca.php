@@ -18,6 +18,8 @@ function rotuloPeca(?PDO $db, string $tabelaOrigem, int $itemId): string
             $st->execute([$tabelaOrigem, $itemId]);
             $cache[$k] = (string) ($st->fetchColumn() ?: '');
         } catch (Throwable $e) {
+            // 1146 = tabela ainda não existe (normal antes da instalação); qualquer outro erro vai pro log
+            if (($e instanceof PDOException ? ($e->errorInfo[1] ?? 0) : 0) !== 1146) error_log('rotulo_peca: ' . $e->getMessage());
             $cache[$k] = '';
         }
     }
