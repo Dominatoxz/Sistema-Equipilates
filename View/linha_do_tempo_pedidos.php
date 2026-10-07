@@ -78,20 +78,33 @@ try {
         $st->execute($pedidos);
         foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $e) $eventos[$e['tabela'] . ':' . $e['chave']][] = $e;
     }
+
+    // 5) decisões de Retrabalho/Reprovado (para distinguir ⚠️ de Q vermelho, como no quadro)
+    $decisoes = [];
+    foreach (['itens_producao', 'itens_os'] as $tab) {
+        $ids = array_column(array_filter($itens, fn($r) => $r['tab'] === $tab), 'id');
+        if (!$ids) continue;
+        $st = $db->prepare("SELECT item_id, decisao, criado_em FROM qualidade_inspecoes WHERE tabela_origem = ? AND decisao IN ('Retrabalho', 'Reprovado') AND item_id IN (" . implode(',', array_map('intval', $ids)) . ") ORDER BY criado_em, id");
+        $st->execute([$tab]);
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $d) $decisoes[$tab . ':' . $d['item_id']][] = $d;
+    }
 } catch (Throwable $e) {
     $erro = $e->getMessage();
     error_log('linha_do_tempo_pedidos: ' . $e->getMessage());
 }
 
 /** Estado do item no instante $fim (DateTime local). Retorna [status, status_qualidade, estimado] ou null se o item não existia. */
-function lt_estado(array $item, array $ev, DateTime $fim, DateTime $inicioReg): ?array
+function lt_estado(array $item, array $ev, DateTime $fim, DateTime $inicioReg, array $dec = []): ?array
 {
     if ($fim >= $inicioReg) {
         $utc = (clone $fim)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s.999');
         $ult = null;
         foreach ($ev as $e) { if ($e['ocorrido_utc'] <= $utc) $ult = $e; else break; }
         if (!$ult || $ult['operacao'] === 'D') return null;
-        return [$ult['st'], $ult['sq'], false];
+        // última decisão de qualidade (Retrabalho/Reprovado) até este instante — decide ⚠️ x Q vermelho
+        $f = $fim->format('Y-m-d H:i:s'); $ud = null;
+        foreach ($dec as $d) { if ($d['criado_em'] <= $f) $ud = $d['decisao']; else break; }
+        return [$ult['st'], $ult['sq'], false, $ud];
     }
     // antes do registro: estimativa pelas datas do próprio item
     $f = $fim->format('Y-m-d H:i:s');
@@ -106,12 +119,14 @@ function lt_celula(array $estados): string
 {
     $cor = ['X' => '#e11d48', 'P' => '#16a34a', 'PA' => '#a16207', 'PV' => '#2a7a4f', 'Q' => '#c0392b', 'E' => '#27ae60', 'A' => '#2980b9'];
     $rot = ['X' => '❌', 'P' => '✅', 'PA' => '✅', 'PV' => '✅', 'Q' => '✅', 'E' => 'E', 'A' => 'A'];
-    $selo = fn($k) => in_array($k, ['PA', 'PV', 'Q'], true) ? '<i class="q" style="background:' . ($k === 'PV' ? '#2a7a4f' : ($k === 'Q' ? '#c0392b' : '#dfd54d')) . '">Q</i>' : '';
+    $cor['W'] = '#d97706';
+    $rot['W'] = '✅';
+    $selo = fn($k) => $k === 'W' ? '<i class="w" title="Retrabalho">⚠️</i>' : (in_array($k, ['PA', 'PV', 'Q'], true) ? '<i class="q" style="background:' . ($k === 'PV' ? '#2a7a4f' : ($k === 'Q' ? '#c0392b' : '#dfd54d')) . '">Q</i>' : '');
     $g = [];
     foreach ($estados as $s) {
         if ($s === null) continue;
-        [$st, $sq] = $s;
-        if ($st === 'Pendente') $k = $sq === 'Reprovado' ? 'Q' : 'X';
+        [$st, $sq, $dec] = $s;
+        if ($st === 'Pendente') $k = $sq === 'Reprovado' ? ($dec === 'Retrabalho' ? 'W' : 'Q') : 'X';
         elseif ($st === 'Produzido') $k = in_array($sq, ['N/A', '', null], true) ? 'P' : ($sq === 'Aprovado' ? 'PV' : 'PA');
         elseif ($st === 'Embalado') $k = 'E';
         elseif ($st === 'Armazenado') $k = 'A';
@@ -157,6 +172,7 @@ $semana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
         td.est { opacity: .5; }
         .cel { display: inline-flex; gap: 5px; align-items: center; justify-content: center; font-size: 28px; }
         .cel b { background: #f1f5f9; border-radius: 8px; padding: 1px 8px; white-space: nowrap; font-size: 24px; }
+        i.w { font-style: normal; font-size: 22px; line-height: 1; margin-left: 2px; vertical-align: middle; }
         i.q { display: inline-flex; align-items: center; justify-content: center; color: #fff; font-style: normal; font-size: 15px; font-weight: 700; border-radius: 50%; width: 25px; height: 25px; margin-left: 3px; vertical-align: middle; }
         .vz { color: #cbd5e1; }
         .prazo { color: #b45309; font-size: 15px; font-weight: 600; }
@@ -209,8 +225,8 @@ $semana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
                                     if ($fim > $agora) $fim = clone $agora;
                                     $estados = []; $est = false;
                                     foreach ($unidades as $u) {
-                                        $s = lt_estado($u, $eventos[$u['tab'] . ':' . $u['id']] ?? [], $fim, $inicioReg);
-                                        if ($s) { $estados[] = [$s[0], $s[1]]; $est = $est || $s[2]; }
+                                        $s = lt_estado($u, $eventos[$u['tab'] . ':' . $u['id']] ?? [], $fim, $inicioReg, $decisoes[$u['tab'] . ':' . $u['id']] ?? []);
+                                        if ($s) { $estados[] = [$s[0], $s[1], $s[3] ?? null]; $est = $est || $s[2]; }
                                     }
                                     $classe = trim(($d == $hoje ? 'hoje ' : '') . ($est ? 'est ' : '') . ($pz && $d == $pz ? 'prz' : ''));
                                 ?>
