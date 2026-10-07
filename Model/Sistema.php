@@ -42,21 +42,42 @@ class Sistema
     }
 
     /**
-     * Mantém visível, na tela de produção, o pedido que já fechou a produção (foi pra pedidos_prontos / Financeiro)
-     * SÓ quando TODOS os itens reais ficaram Armazenados HOJE (aí fica verde), e só até as 19h.
-     * Embalado não conta: o que vale é o Armazenado. Pedido armazenado em dia anterior não volta.
+     * Pedidos embalados a partir desta data seguem no quadro até serem totalmente Armazenados (pedidos mais antigos que
+     * já estavam na Expedição sem o A não voltam). Mudar aqui se quiser reaproveitar a regra a partir de outro dia.
+     */
+    const DATA_MANTER_EMBALADOS_NO_QUADRO = '2026-10-07';
+
+    /** data_fim do último item real do pedido a ser bipado (= quando fechou a produção, todos Embalados). */
+    private function ultimoItemFechado(string $colunaPedido, string $tabelaItens = 'itens_producao'): string
+    {
+        $gaiolas = "'" . implode("','", self::EQUIPAMENTOS_GAIOLA_CADILAC) . "'";
+        return "(SELECT MAX(x.data_fim) FROM $tabelaItens x
+                  WHERE x.numero_pedido = $colunaPedido
+                    AND x.equipamento NOT LIKE 'Emb.%'
+                    AND x.equipamento NOT IN ($gaiolas))";
+    }
+
+    /**
+     * Mantém visível, na tela de produção, o pedido que já fechou a produção (foi pra pedidos_prontos / Financeiro):
+     *  - enquanto todos os itens estão Embalados mas algum ainda não está Armazenado (e o pedido ainda não foi
+     *    Expedido/Finalizado) — segue no quadro, sem verde;
+     *  - quando TODOS ficam Armazenados HOJE, fica verde, até as 19h.
      * Usar junto (OR) da condição normal de "ainda tem item pendente".
      */
     private function condicaoAindaVisivelPosProducao(string $colunaPedido, string $tabelaItens = 'itens_producao'): string
     {
         $foraArm = $this->itemRealForaDeArmazenado($colunaPedido, $tabelaItens);
         $ultimoArm = $this->ultimoItemArmazenado($colunaPedido, $tabelaItens);
-        return "EXISTS (SELECT 1 FROM pedidos_prontos pp WHERE pp.numero_pedido = $colunaPedido)
-                AND " . $this->sqlHoraRef() . " < '" . self::HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO . "'
-                AND NOT $foraArm
-                AND DATE($ultimoArm) = " . $this->sqlDiaRef();
+        $ultimoFechado = $this->ultimoItemFechado($colunaPedido, $tabelaItens);
+        $dia = $this->sqlDiaRef();
+        return "EXISTS (SELECT 1 FROM pedidos_prontos pp WHERE pp.numero_pedido = $colunaPedido
+                  AND (
+                        (COALESCE(pp.status_posvenda, 'Financeiro') NOT IN ('Expedido', 'Finalizado') AND $foraArm
+                         AND DATE($ultimoFechado) >= LEAST('" . self::DATA_MANTER_EMBALADOS_NO_QUADRO . "', $dia))
+                        OR (NOT $foraArm AND DATE($ultimoArm) = $dia
+                            AND " . $this->sqlHoraRef() . " < '" . self::HORA_SOME_PEDIDOS_PRONTOS_DO_QUADRO . "')
+                      ))";
     }
-
     /** SELECT extra pra marcar a linha de verde na view (1 = pedido fechou a produção e TODOS os itens já estão Armazenados, o último hoje). */
     private function selectJaCompleto(string $colunaPedido, string $tabelaItens = 'itens_producao'): string
     {
