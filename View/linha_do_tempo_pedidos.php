@@ -138,29 +138,29 @@ $semana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f4f7f6; color: #0f172a; }
         .barra { position: sticky; top: 0; z-index: 5; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px 14px; background: #fff; border-bottom: 1px solid #e2e8f0; }
         .barra form { display: flex; gap: 6px; }
-        .barra input[type=text] { font: inherit; padding: 7px 12px; border: 1px solid #94a3b8; border-radius: 8px; width: 280px; }
-        .barra button, .barra a.btn { font: inherit; font-weight: 600; border: 0; border-radius: 8px; padding: 7px 14px; background: #1e3a8a; color: #fff; cursor: pointer; text-decoration: none; }
+        .barra input[type=text] { font: inherit; font-size: 17px; padding: 9px 14px; border: 1px solid #94a3b8; border-radius: 8px; width: 340px; }
+        .barra button, .barra a.btn { font: inherit; font-size: 16px; font-weight: 600; border: 0; border-radius: 8px; padding: 9px 18px; background: #1e3a8a; color: #fff; cursor: pointer; text-decoration: none; }
         .barra a.btn.sec { background: #e2e8f0; color: #0f172a; }
-        .info { color: #64748b; font-size: 13px; }
+        .info { color: #64748b; font-size: 15px; }
         .aviso { margin: 14px; padding: 12px 16px; background: #fef2f2; color: #b91c1c; border-radius: 8px; font-weight: 600; }
-        .nota { margin: 10px 14px 0; color: #64748b; font-size: 12px; }
-        .wrap { overflow: auto; padding: 0 14px 14px; margin-top: 10px; max-height: calc(100vh - 140px); }
-        table { border-collapse: separate; border-spacing: 0; background: #fff; font-size: 14px; }
-        th, td { border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; padding: 6px 8px; text-align: center; white-space: nowrap; }
-        thead th { position: sticky; top: 0; background: #e2e8f0; z-index: 3; font-size: 12px; }
+        .nota { margin: 10px 14px 0; color: #475569; font-size: 15px; line-height: 1.5; }
+        .wrap { overflow: auto; padding: 0 14px 14px; margin-top: 10px; max-height: calc(100vh - 190px); }
+        table { border-collapse: separate; border-spacing: 0; background: #fff; font-size: 20px; }
+        th, td { border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; padding: 10px 14px; text-align: center; white-space: nowrap; }
+        thead th { position: sticky; top: 0; background: #e2e8f0; z-index: 3; font-size: 17px; }
         th.hoje { background: #fde68a; }
-        td.p, th.p { position: sticky; left: 0; background: #fff; z-index: 2; text-align: left; font-weight: 700; min-width: 86px; }
-        td.i, th.i { position: sticky; left: 86px; background: #fff; z-index: 2; text-align: left; min-width: 190px; border-right: 2px solid #94a3b8; }
+        td.p, th.p { position: sticky; left: 0; background: #fff; z-index: 2; text-align: left; font-weight: 700; min-width: 120px; }
+        td.i, th.i { position: sticky; left: 120px; background: #fff; z-index: 2; text-align: left; min-width: 290px; border-right: 2px solid #94a3b8; }
         thead th.p, thead th.i { background: #cbd5e1; z-index: 4; }
         tr.novo td { border-top: 2px solid #475569; }
         td.hoje { background: #fffbeb; }
         td.est { opacity: .5; }
-        .cel { display: inline-flex; gap: 3px; align-items: center; justify-content: center; font-size: 17px; }
-        .cel b { background: #f1f5f9; border-radius: 6px; padding: 0 5px; white-space: nowrap; font-size: 15px; }
-        i.q { display: inline-flex; align-items: center; justify-content: center; color: #fff; font-style: normal; font-size: 11px; font-weight: 700; border-radius: 50%; width: 17px; height: 17px; margin-left: 2px; vertical-align: middle; }
+        .cel { display: inline-flex; gap: 5px; align-items: center; justify-content: center; font-size: 28px; }
+        .cel b { background: #f1f5f9; border-radius: 8px; padding: 1px 8px; white-space: nowrap; font-size: 24px; }
+        i.q { display: inline-flex; align-items: center; justify-content: center; color: #fff; font-style: normal; font-size: 15px; font-weight: 700; border-radius: 50%; width: 25px; height: 25px; margin-left: 3px; vertical-align: middle; }
         .vz { color: #cbd5e1; }
-        .prazo { color: #b45309; font-size: 11px; font-weight: 600; }
-        td.prz { box-shadow: inset 0 -3px 0 #f59e0b; }
+        .prazo { color: #b45309; font-size: 15px; font-weight: 600; }
+        td.prz { box-shadow: inset 0 -4px 0 #f59e0b; }
     </style>
 </head>
 
@@ -192,7 +192,7 @@ $semana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
                         <th class="p">Pedido</th>
                         <th class="i">Item</th>
                         <?php foreach ($dias as $d): $eh = $d == $hoje; ?>
-                            <th class="<?= $eh ? 'hoje' : '' ?>"><?= $eh ? 'Hoje' : $d->format('d/m') ?><br><small><?= $semana[(int) $d->format('w')] ?></small></th>
+                            <th class="<?= $eh ? 'hoje' : '' ?>"><?= $eh ? 'Hoje' : $d->format('d/m') ?><br><small style="font-size:14px"><?= $semana[(int) $d->format('w')] ?></small></th>
                         <?php endforeach; ?>
                     </tr>
                 </thead>
