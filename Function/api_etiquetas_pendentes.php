@@ -211,7 +211,9 @@ $jobs = [];
 foreach ($itensPorEquipamento as $nomeEquipamento => $itensDoEquipamento) {
     $apenasEmbalagem = strcasecmp($nomeEquipamento, 'Carrinho') === 0
         || strcasecmp($nomeEquipamento, 'Gaiola') === 0
-        || strcasecmp($nomeEquipamento, 'Gaiola Cadilac') === 0;
+        || strcasecmp($nomeEquipamento, 'Gaiola Cadilac') === 0
+        || strcasecmp($nomeEquipamento, 'GAIOLA CLASSICO') === 0
+        || strcasecmp($nomeEquipamento, 'GAIOLA CADILCAC TAUARI') === 0;
 
     if (!$apenasEmbalagem) {
         foreach ($itensDoEquipamento as $item) {

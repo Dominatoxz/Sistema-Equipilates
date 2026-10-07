@@ -518,7 +518,7 @@ foreach (array_values(array_unique(array_map(fn($i) => trim($i['equipamento']), 
                 // Gaiola Cadilac não tem etiqueta de produção física — ela já
                 // entra "produzida" no sistema (ver atualizar_etapa.php), só
                 // imprime a etiqueta de embalagem.
-                $apenasEmbalagem = (strcasecmp($nomeEquipamento, 'Carrinho') === 0 || strcasecmp($nomeEquipamento, 'Gaiola') === 0 || strcasecmp($nomeEquipamento, 'Gaiola Cadilac') === 0);
+                $apenasEmbalagem = (strcasecmp($nomeEquipamento, 'Carrinho') === 0 || strcasecmp($nomeEquipamento, 'Gaiola') === 0 || strcasecmp($nomeEquipamento, 'Gaiola Cadilac') === 0 || strcasecmp($nomeEquipamento, 'GAIOLA CLASSICO') === 0 || strcasecmp($nomeEquipamento, 'GAIOLA CADILCAC TAUARI') === 0);
 
                 if ($tipoSequencia === 'PRODUCAO' && ($filtro_tipo_eti === 'todos' || $filtro_tipo_eti === 'producao') && !$apenasEmbalagem):
         ?>

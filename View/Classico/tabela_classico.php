@@ -350,8 +350,6 @@ require_once '../../Function/resumo_celula.php';
                 $modelosPedido = $stM->fetchAll(PDO::FETCH_KEY_PAIR);
             }
 
-            $gaiolasProducao = $sistema->contarGaiolasCadilacProducaoTodas();
-
             $equipamentos = [
                 'REF. CLASSICO ALUMINIO'      => 'Reformer Aluminio',
                 'CARRINHO CLASSICO'           => 'Carrinho Aluminio',
@@ -604,9 +602,6 @@ require_once '../../Function/resumo_celula.php';
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
-                <tr class="linha-resumo-gaiola">
-                    <td colspan="<?= $totalColunas ?>">Gaiola Cadilac da semana (todas as linhas) — Planejado: <strong><?= $gaiolasProducao['planejado'] ?></strong> &nbsp;|&nbsp; Real: <strong><?= $gaiolasProducao['real'] ?></strong> &nbsp;|&nbsp; <span style="color: #c0392b;">Atrasados: <strong><?= $gaiolasProducao['atrasados'] ?></strong></span></td>
-                </tr>
             </tbody>
         </table>
     </div>

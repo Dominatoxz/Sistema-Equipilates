@@ -98,7 +98,7 @@ if ($codigoLido) {
                     $novoStatus = 'Embalado';
                     $colunaData = 'data_fim';
                     $podeAtualizar = true;
-                } elseif ($statusAtual === 'Pendente' && $nomeEquipamentoAtual === 'Gaiola Cadilac') {
+                } elseif ($statusAtual === 'Pendente' && in_array($nomeEquipamentoAtual, ['Gaiola Cadilac', 'GAIOLA CLASSICO', 'GAIOLA CADILCAC TAUARI'], true)) {
                     // Gaiola Cadilac não tem etiqueta física de produção — ela
                     // entra no sistema já considerada "produzida", então a
                     // primeira bipagem (etiqueta de embalagem) já leva direto
