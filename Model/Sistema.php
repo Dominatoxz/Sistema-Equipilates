@@ -95,7 +95,6 @@ class Sistema
     const EQUIPAMENTOS_PRINCIPAIS_CONTEMPORANEO = [
         'Reformer Excellence',
         'Reformer Torre',
-        'Torre do Reformer',
         'Cadilac Excelence',
         'Step Chair Excelence',
         'Lader Barrel Excelence',
