@@ -300,10 +300,25 @@ $manuais = $db->query(
 )->fetchAll(PDO::FETCH_ASSOC);
 foreach ($manuais as $m) {
     $tabelaReal = $m['tabela_origem'] === 'OS' ? 'itens_os' : 'itens_producao';
-    $stmtItemManual = $db->prepare(
-        "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, status_qualidade, reimpressao_liberada, qualidade_tentativas
-         FROM $tabelaReal WHERE id = ?"
-    );
+    // IDENTIFICACAO (botão "Imprimir etiqueta" de QM/QRQC do ERP, Vitor, 2026-09-30) NÃO usa o
+    // layout de produção/embalagem: monta a etiqueta de identificação do reprovado
+    // (montarZplIdentificacao) com o código QM, motivo, inspetor e data da última decisão.
+    // RESTAURADO 2026-10-09 — este desvio tinha sumido deste arquivo (outra edição de Function/
+    // pisou nele) e a reimpressão de QM voltou a sair com o layout de PRODUÇÃO.
+    $ehIdentificacao = $m['tipo_base'] === 'IDENTIFICACAO';
+    $stmtItemManual = $ehIdentificacao
+        ? $db->prepare(
+            "SELECT t.id, t.numero_pedido, t.equipamento, t.posicao_no_pedido, t.cor, t.prazo_producao, t.status_qualidade, t.reimpressao_liberada, t.qualidade_tentativas,
+                    qi.qm_code AS qm_code, qi.motivo AS qm_motivo, qi.telegram_user AS qm_inspetor, qi.criado_em AS qm_decidido_em
+             FROM $tabelaReal t
+             LEFT JOIN qualidade_inspecoes qi ON qi.tabela_origem = '$tabelaReal' AND qi.item_id = t.id
+               AND qi.tentativa = (SELECT MAX(tentativa) FROM qualidade_inspecoes WHERE tabela_origem = '$tabelaReal' AND item_id = t.id)
+             WHERE t.id = ?"
+        )
+        : $db->prepare(
+            "SELECT id, numero_pedido, equipamento, posicao_no_pedido, cor, prazo_producao, status_qualidade, reimpressao_liberada, qualidade_tentativas
+             FROM $tabelaReal WHERE id = ?"
+        );
     $stmtItemManual->execute([$m['item_id']]);
     $itemManual = $stmtItemManual->fetch(PDO::FETCH_ASSOC);
     if (!$itemManual) continue;
@@ -324,7 +339,9 @@ foreach ($manuais as $m) {
         'id_item' => (int) $m['item_id'],
         'tabela_origem' => $m['tabela_origem'],
         'tipo_etiqueta' => $m['tipo_base'] . '_R' . $m['id'],
-        'zpl' => montarZpl($itemManual, $m['tipo_base'], in_array($itemManual['numero_pedido'], $pedidosMistos)),
+        'zpl' => $ehIdentificacao
+                ? montarZplIdentificacao($itemManual)
+                : montarZpl($itemManual, $m['tipo_base'], in_array($itemManual['numero_pedido'], $pedidosMistos)),
     ];
 }
 
