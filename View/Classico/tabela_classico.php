@@ -167,6 +167,14 @@ if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) uns
             box-shadow: 0 0 0 2px #c0392b;
         }
 
+        .numero-pedido.os.prioridade {
+            color: #fff;
+        }
+
+        .numero-pedido.exp.prioridade {
+            color: #1f2937;
+        }
+
         .numero-pedido.prioridade {
             color: #c0392b;
             font-weight: 900;
@@ -174,6 +182,7 @@ if (!in_array($_SESSION['nivel_acesso'] ?? '', CARGOS_LINHA_DO_TEMPO, true)) uns
 
         .numero-pedido.misto.prioridade {
             background: #c0392b;
+            color: #fff;
         }
 
         input#input-pistola {
