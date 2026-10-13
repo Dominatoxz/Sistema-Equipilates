@@ -73,7 +73,7 @@ try {
     $eventos = [];
     if ($pedidos) {
         $in = implode(',', array_fill(0, count($pedidos), '?'));
-        $st = $db->prepare("SELECT tabela, chave, operacao, ocorrido_utc, JSON_VALUE(dados, '$.status') AS st, JSON_VALUE(dados, '$.status_qualidade') AS sq
+        $st = $db->prepare("SELECT tabela, chave, operacao, ocorrido_utc, JSON_VALUE(dados, '$.status') AS st, JSON_VALUE(dados, '$.status_qualidade') AS sq, JSON_VALUE(dados, '$.qualidade_tentativas') AS qt
                             FROM historico_quadro WHERE tabela IN ('itens_producao', 'itens_os') AND numero_pedido IN ($in) ORDER BY id");
         $st->execute($pedidos);
         foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $e) $eventos[$e['tabela'] . ':' . $e['chave']][] = $e;
@@ -104,7 +104,7 @@ function lt_estado(array $item, array $ev, DateTime $fim, DateTime $inicioReg, a
         // última decisão de qualidade (Retrabalho/Reprovado) até este instante — decide ⚠️ x Q vermelho
         $f = $fim->format('Y-m-d H:i:s'); $ud = null;
         foreach ($dec as $d) { if ($d['criado_em'] <= $f) $ud = $d['decisao']; else break; }
-        return [$ult['st'], $ult['sq'], false, $ud];
+        return [$ult['st'], $ult['sq'], false, $ud, (int) ($ult['qt'] ?? 0)];
     }
     // antes do registro: estimativa pelas datas do próprio item
     $f = $fim->format('Y-m-d H:i:s');
@@ -125,8 +125,9 @@ function lt_celula(array $estados): string
     $g = [];
     foreach ($estados as $s) {
         if ($s === null) continue;
-        [$st, $sq, $dec] = $s;
-        if ($st === 'Pendente') $k = $sq === 'Reprovado' ? ($dec === 'Retrabalho' ? 'W' : 'Q') : 'X';
+        [$st, $sq, $dec, $qt] = $s;
+        // mesma regra do quadro: Pendente com tentativas de qualidade > 0 = voltou da qualidade (⚠️ retrabalho ou Q reprovado)
+        if ($st === 'Pendente') $k = ((int) $qt > 0 || $sq === 'Reprovado') ? ($dec === 'Retrabalho' ? 'W' : 'Q') : 'X';
         elseif ($st === 'Produzido') $k = in_array($sq, ['N/A', '', null], true) ? 'P' : ($sq === 'Aprovado' ? 'PV' : 'PA');
         elseif ($st === 'Embalado') $k = 'E';
         elseif ($st === 'Armazenado') $k = 'A';
@@ -226,7 +227,7 @@ $semana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
                                     $estados = []; $est = false;
                                     foreach ($unidades as $u) {
                                         $s = lt_estado($u, $eventos[$u['tab'] . ':' . $u['id']] ?? [], $fim, $inicioReg, $decisoes[$u['tab'] . ':' . $u['id']] ?? []);
-                                        if ($s) { $estados[] = [$s[0], $s[1], $s[3] ?? null]; $est = $est || $s[2]; }
+                                        if ($s) { $estados[] = [$s[0], $s[1], $s[3] ?? null, $s[4] ?? 0]; $est = $est || $s[2]; }
                                     }
                                     $classe = trim(($d == $hoje ? 'hoje ' : '') . ($est ? 'est ' : '') . ($pz && $d == $pz ? 'prz' : ''));
                                 ?>
