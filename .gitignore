@@ -4,3 +4,4 @@ cache/*.json
 .htaccess
 _analises/
 _to_delete/
+.claude/
