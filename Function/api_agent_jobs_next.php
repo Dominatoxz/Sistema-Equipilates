@@ -299,6 +299,8 @@ $manuais = $db->query(
      )"
 )->fetchAll(PDO::FETCH_ASSOC);
 foreach ($manuais as $m) {
+    // $tabelaReal só pode valer 'itens_os' ou 'itens_producao' (ternário fixo, nunca texto vindo do banco/usuário),
+    // por isso é seguro interpolá-lo nas consultas abaixo.
     $tabelaReal = $m['tabela_origem'] === 'OS' ? 'itens_os' : 'itens_producao';
     // IDENTIFICACAO (botão "Imprimir etiqueta" de QM/QRQC do ERP, Vitor, 2026-09-30) NÃO usa o
     // layout de produção/embalagem: monta a etiqueta de identificação do reprovado

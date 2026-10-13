@@ -1443,7 +1443,7 @@ public function mostrarFilaProducao(): array
 
     public function linhaDoPedido(string $numeroPedido): string
     {
-        $tabela = (stripos($numeroPedido, 'os') !== false) ? 'itens_os' : 'itens_producao';
+        $tabela = (preg_match('/^OS/i', trim($numeroPedido)) === 1) ? 'itens_os' : 'itens_producao';
 
         // 1ª checagem: equipamentos principais (mais confiável, nomes não se
         // repetem entre as linhas).

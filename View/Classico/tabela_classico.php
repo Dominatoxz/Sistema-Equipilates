@@ -422,7 +422,7 @@ require_once '../../Function/resumo_celula.php';
                 $placeholdersEquip = implode(',', array_fill(0, count($nomesEquipamentos), '?'));
 
                 // Pedidos normais (itens_producao) e de OS (itens_os) na mesma grade.
-                $numerosOs = array_values(array_filter($numerosPedidos, fn($n) => stripos($n, 'os') !== false));
+                $numerosOs = array_values(array_filter($numerosPedidos, fn($n) => preg_match('/^OS/i', trim($n)) === 1));
                 $numerosNormais = array_values(array_diff($numerosPedidos, $numerosOs));
 
                 foreach ([['itens_producao', '', $numerosNormais, "NOT LIKE"], ['itens_os', 'OS', $numerosOs, "LIKE"]] as [$tabelaLote, $prefixoLote, $listaLote, $operadorOs]) {
@@ -490,7 +490,7 @@ require_once '../../Function/resumo_celula.php';
                 <?php else: ?>
 
                     <?php foreach ($pedidos_agrupados as $pedido):
-                        $isOsPedido = (stripos($pedido['numero'], 'os') !== false);
+                        $isOsPedido = (preg_match('/^OS/i', trim($pedido['numero'])) === 1);
                         $tabelaItensPedido = $isOsPedido ? 'itens_os' : 'itens_producao';
                         $condicaoOs = $isOsPedido ? "numero_pedido LIKE 'OS%'" : "numero_pedido NOT LIKE 'OS%'";
                         $stmtContagem = $db->prepare("SELECT COUNT(*) AS total, SUM(status IN ('Embalado', 'Armazenado')) AS embalados FROM $tabelaItensPedido WHERE numero_pedido = ? AND equipamento NOT LIKE 'Emb.%' AND $condicaoOs");

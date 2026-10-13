@@ -52,7 +52,7 @@ try {
     $numeroPedidoReal = $dadosPedido['numero_pedido'];
     $prazoProducao = $dadosPedido['prazo_producao'];
 
-    $isOS = (stripos($numeroPedidoReal, 'os') !== false);
+    $isOS = (preg_match('/^OS/i', trim($numeroPedidoReal)) === 1);
     $tabelaItens = $isOS ? 'itens_os' : 'itens_producao';
 
     $sqlPendentes = "SELECT COUNT(*) FROM $tabelaItens

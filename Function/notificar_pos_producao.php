@@ -32,7 +32,7 @@ function notificarPosProducao(PDO $db, ?string $pedido): array
     }
 
     try {
-        $isOS = (stripos($pedido, 'os') !== false);
+        $isOS = (preg_match('/^OS/i', trim($pedido)) === 1);
         $tabelaItens = $isOS ? 'itens_os' : 'itens_producao';
 
         // Gaiola Cadilac não conta mais pra fechar o pedido: desde 2026-08 ela

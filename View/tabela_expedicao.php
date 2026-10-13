@@ -511,7 +511,7 @@ require_once '../Function/trava.php';
                         'Clássico' => 'badge-linha-classico',
                         default => 'badge-linha-indefinido',
                     };
-                    $origemItens = (stripos($p['numero_pedido'], 'os') !== false) ? 'OS' : 'PRODUCAO';
+                    $origemItens = (preg_match('/^OS/i', trim($p['numero_pedido'])) === 1) ? 'OS' : 'PRODUCAO';
 
                     // Essa fila só lista pedido com 100% Embalado (é o
                     // critério de entrada). Aqui só checamos se, além disso,

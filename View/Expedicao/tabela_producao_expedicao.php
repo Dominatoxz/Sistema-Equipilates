@@ -210,7 +210,6 @@ require_once '../../Function/trava.php';
                     <th>Carrinho (Ref)</th>
                     <th>Torre</th>
                     <th>Carrinho (Tor)</th>
-                    <th>Torre do Reformer</th>
                     <th>Cadilac</th>
                     <th>Step</th>
                     <th>Barrel</th>
@@ -225,7 +224,6 @@ require_once '../../Function/trava.php';
                     'Carrinho Excellence',
                     'Reformer Torre',
                     'Carrinho Torre',
-                    'Torre do Reformer',
                     'Cadilac Excelence',
                     'Step Chair Excelence',
                     'Lader Barrel Excelence',
@@ -257,12 +255,12 @@ require_once '../../Function/trava.php';
 
                 <?php if (empty($pedidos)): ?>
                     <tr>
-                        <td colspan="12" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
+                        <td colspan="11" class="sem-pedidos">Nenhum item em produção pendente na fábrica.</td>
                     </tr>
                 <?php else: ?>
 
                     <?php foreach ($pedidos_agrupados as $pedido):
-                        $isOsPedido = (stripos($pedido['numero'], 'os') !== false);
+                        $isOsPedido = (preg_match('/^OS/i', trim($pedido['numero'])) === 1);
                         $tabelaItensPedido = $isOsPedido ? 'itens_os' : 'itens_producao';
                         $prefixoIdPedido = $isOsPedido ? 'OS' : '';
                     ?>
@@ -348,7 +346,7 @@ require_once '../../Function/trava.php';
                     <?php endforeach; ?>
                 <?php endif; ?>
                 <tr class="linha-resumo-gaiola">
-                    <td colspan="12">Total de Gaiola Cadilac embalada aguardando armazenagem (todas as linhas): <strong><?= $totalGaiolasPendentesArmazenagem ?></strong></td>
+                    <td colspan="11">Total de Gaiola Cadilac embalada aguardando armazenagem (todas as linhas): <strong><?= $totalGaiolasPendentesArmazenagem ?></strong></td>
                 </tr>
             </tbody>
         </table>

@@ -433,7 +433,7 @@ require_once '../../Function/trava.php';
     $hoje = new DateTime('today');
 
     foreach ($pedidosPorNumero as $pedido) {
-        $isOsPedido = (stripos($pedido['numero'], 'os') !== false);
+        $isOsPedido = (preg_match('/^OS/i', trim($pedido['numero'])) === 1);
         $tabelaItensPedido = $isOsPedido ? 'itens_os' : 'itens_producao';
         $prefixoIdPedido = $isOsPedido ? 'OS' : '';
         $condicaoOs = $isOsPedido ? "numero_pedido LIKE 'OS%'" : "numero_pedido NOT LIKE 'OS%'";

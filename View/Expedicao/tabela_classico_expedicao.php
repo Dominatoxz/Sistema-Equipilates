@@ -367,7 +367,7 @@ require_once '../../Function/trava.php';
                             <?php endforeach; ?>
                             <td>
                                 <?php
-                                $isOsPedidoAcess = (stripos($pedido['numero'], 'os') !== false);
+                                $isOsPedidoAcess = (preg_match('/^OS/i', trim($pedido['numero'])) === 1);
                                 $tabelaAcessPedido = $isOsPedidoAcess ? 'itens_os' : 'itens_producao';
                                 $sqlAcess = "SELECT status FROM $tabelaAcessPedido WHERE numero_pedido = ? AND equipamento IN ($placeholders_acessorios)";
                                 $stmtAcess = $db->prepare($sqlAcess);
