@@ -8,7 +8,7 @@ require_once '../../Function/trava.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Central do Contenporâneo</title>
+    <title>Painel Central do Contemporâneo</title>
     <style>
         :root {
             --bg-color: #f4f6f9;
