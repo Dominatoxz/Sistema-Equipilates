@@ -373,11 +373,6 @@ require_once '../../Function/trava.php';
                 </a>
             <?php endif; ?>
 
-            <a href="../tabela_controle.php" class="card-botao pos-venda">
-                <div class="icon-box">🎮</div>
-                <h3>Controle</h3>
-                <p>Fila de controle de pedidos</p>
-            </a>
 
             <?php if (isset($_SESSION['nivel_acesso']) && in_array($_SESSION['nivel_acesso'], CARGOS_PEDIDOS_EXPEDIDOS)): ?>
                 <a href="../tabela_expedidos.php" class="card-botao pos-venda">
