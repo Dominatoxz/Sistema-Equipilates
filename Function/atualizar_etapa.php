@@ -88,7 +88,10 @@ if ($codigoLido) {
                     // 'N/A' é item de antes da virada de chave ou com o gate
                     // desligado — segue liberado, como sempre foi.
                     $statusQualidadeAtual = $item['status_qualidade'] ?? 'N/A';
-                    if (in_array($statusQualidadeAtual, ['Aguardando', 'Reprovado'], true)) {
+                    // Só item que ainda faz parte da inspeção (equipamento principal) fica preso aqui:
+                    // o Pedi o Pole virou acessório e não passa mais pelo inspetor.
+                    if (in_array($statusQualidadeAtual, ['Aguardando', 'Reprovado'], true)
+                        && in_array($nomeEquipamentoAtual, $equipamentosComGateQualidade, true)) {
                         $mensagemBloqueio = ($statusQualidadeAtual === 'Reprovado')
                             ? 'Item reprovado pela qualidade — aguardando nova produção.'
                             : 'Item aguardando aprovação da qualidade.';

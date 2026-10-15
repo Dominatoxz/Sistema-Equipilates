@@ -225,6 +225,7 @@ require_once '../../Function/trava.php';
                 'PUSH UP DEVICE (PAR)'                   => 'Push Up',
                 'MINI BARREL'                            => 'Mini Barrel',
                 'MINI SPINE'                              => 'Mini Spine',
+                'PEDI O POLE'                              => 'Pedi o Pole',
             ];
 
             $itensPorPedido = [];

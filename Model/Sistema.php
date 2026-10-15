@@ -120,7 +120,6 @@ class Sistema
         'ELECTRIC CHAIR',
         'ARM CHAIR',
         'LADDER BARREL CLÁSS.',
-        'PEDI O POLE',
         'WALL UNIT CLÁSSICO',
         'TORRE WALL UNIT CLÁSSICO',
         'MAT CLÁSSICO',
@@ -174,6 +173,7 @@ class Sistema
         'FINGER EXERCISE',
         'MINI BARREL',
         'MINI SPINE',
+        'PEDI O POLE',
         // Spine Corrector aparece nos dois quadros (Matheus, 2026-10-02): sem ele aqui o pedido
         // 8069 sumia do Clássico com o item ainda Produzido e nunca subia pro Financeiro.
         'SPINE CORRECTOR',
@@ -766,7 +766,6 @@ class Sistema
                          'ELECTRIC CHAIR',
                          'ARM CHAIR',
                          'LADDER BARREL CLÁSS.',
-                         'PEDI O POLE',
                          'WALL UNIT CLÁSSICO',
                          'MAT CLÁSSICO',
                          'MAT PORTÁTIL',
@@ -788,7 +787,6 @@ class Sistema
                         (NULLIF(TRIM(`ELECTRIC CHAIR`), '') IS NOT NULL AND TRIM(`ELECTRIC CHAIR`) != '0') OR
                         (NULLIF(TRIM(`ARM CHAIR`), '') IS NOT NULL AND TRIM(`ARM CHAIR`) != '0') OR
                         (NULLIF(TRIM(`LADDER BARREL CLÁSS.`), '') IS NOT NULL AND TRIM(`LADDER BARREL CLÁSS.`) != '0') OR
-                        (NULLIF(TRIM(`PEDI O POLE`), '') IS NOT NULL AND TRIM(`PEDI O POLE`) != '0') OR
                         (NULLIF(TRIM(`WALL UNIT CLÁSSICO`), '') IS NOT NULL AND TRIM(`WALL UNIT CLÁSSICO`) != '0') OR
                         (NULLIF(TRIM(`MAT CLÁSSICO`), '') IS NOT NULL AND TRIM(`MAT CLÁSSICO`) != '0') OR
                         (NULLIF(TRIM(`MAT PORTÁTIL`), '') IS NOT NULL AND TRIM(`MAT PORTÁTIL`) != '0') OR
@@ -832,7 +830,6 @@ class Sistema
                          'ELECTRIC CHAIR',
                          'ARM CHAIR',
                          'LADDER BARREL CLÁSS.',
-                         'PEDI O POLE',
                          'WALL UNIT CLÁSSICO',
                          'MAT CLÁSSICO',
                          'MAT PORTÁTIL',
@@ -852,7 +849,6 @@ class Sistema
                         (NULLIF(TRIM(`ELECTRIC CHAIR`), '') IS NOT NULL AND TRIM(`ELECTRIC CHAIR`) != '0') OR
                         (NULLIF(TRIM(`ARM CHAIR`), '') IS NOT NULL AND TRIM(`ARM CHAIR`) != '0') OR
                         (NULLIF(TRIM(`LADDER BARREL CLÁSS.`), '') IS NOT NULL AND TRIM(`LADDER BARREL CLÁSS.`) != '0') OR
-                        (NULLIF(TRIM(`PEDI O POLE`), '') IS NOT NULL AND TRIM(`PEDI O POLE`) != '0') OR
                         (NULLIF(TRIM(`WALL UNIT CLÁSSICO`), '') IS NOT NULL AND TRIM(`WALL UNIT CLÁSSICO`) != '0') OR
                         (NULLIF(TRIM(`MAT CLÁSSICO`), '') IS NOT NULL AND TRIM(`MAT CLÁSSICO`) != '0') OR
                         (NULLIF(TRIM(`MAT PORTÁTIL`), '') IS NOT NULL AND TRIM(`MAT PORTÁTIL`) != '0') OR
@@ -890,6 +886,7 @@ class Sistema
                          `CAIXA DO REFORMER CLÁSSICA`,
                          `SPINE CORRECTOR`, 
                          `SMALL BARREL`, 
+                         `PEDI O POLE`,
                          `SUPORTE SPINE CORRECTOR`, 
                          `MINI EXTENSÃO MOVE FLOW`, 
                          `PLATAFORMA BARREL CLÁSSICO`,
@@ -927,6 +924,7 @@ class Sistema
                         (NULLIF(TRIM(`CAIXA DO REFORMER CLÁSSICA`), '') IS NOT NULL AND TRIM(`CAIXA DO REFORMER CLÁSSICA`) != '0') OR
                         (NULLIF(TRIM(`SPINE CORRECTOR`), '') IS NOT NULL AND TRIM(`SPINE CORRECTOR`) != '0') OR
                         (NULLIF(TRIM(`SMALL BARREL`), '') IS NOT NULL AND TRIM(`SMALL BARREL`) != '0') OR
+                        (NULLIF(TRIM(`PEDI O POLE`), '') IS NOT NULL AND TRIM(`PEDI O POLE`) != '0') OR
                         (NULLIF(TRIM(`SUPORTE SPINE CORRECTOR`), '') IS NOT NULL AND TRIM(`SUPORTE SPINE CORRECTOR`) != '0') OR
                         (NULLIF(TRIM(`MINI EXTENSÃO MOVE FLOW`), '') IS NOT NULL AND TRIM(`MINI EXTENSÃO MOVE FLOW`) != '0') OR
                         (NULLIF(TRIM(`PLATAFORMA BARREL CLÁSSICO`), '') IS NOT NULL AND TRIM(`PLATAFORMA BARREL CLÁSSICO`) != '0') OR
@@ -935,8 +933,8 @@ class Sistema
                         (NULLIF(TRIM(`2 x 4 (TWO BY FOUR)`), '') IS NOT NULL AND TRIM(`2 x 4 (TWO BY FOUR)`) != '0') OR
                         (NULLIF(TRIM(`KUNA BOARD`), '') IS NOT NULL AND TRIM(`KUNA BOARD`) != '0') OR
                         (NULLIF(TRIM(`TRAVESSEIRO BENCH MAT`), '') IS NOT NULL AND TRIM(`TRAVESSEIRO BENCH MAT`) != '0') OR
-                        (NULLIF(TRIM(`TRAVESSEIRO RÉGUA`), '') IS NOT NULL AND TRIM(`PEDI O POLE`) != '0') OR
-                        (NULLIF(TRIM(`TRAVESSEIRO 1/2 LUA`), '') IS NOT NULL AND TRIM(`WALL UNIT CLÁSSICO`) != '0') OR
+                        (NULLIF(TRIM(`TRAVESSEIRO RÉGUA`), '') IS NOT NULL AND TRIM(`TRAVESSEIRO RÉGUA`) != '0') OR
+                        (NULLIF(TRIM(`TRAVESSEIRO 1/2 LUA`), '') IS NOT NULL AND TRIM(`TRAVESSEIRO 1/2 LUA`) != '0') OR
                         (NULLIF(TRIM(`TRAV. CILINDRICO`), '') IS NOT NULL AND TRIM(`TRAV. CILINDRICO`) != '0') OR
                         (NULLIF(TRIM(`TRAV. OMBREIRA (PAR)`), '') IS NOT NULL AND TRIM(`TRAV. OMBREIRA (PAR)`) != '0') OR
                         (NULLIF(TRIM(`TRAV. CABEC. 30 mm`), '') IS NOT NULL AND TRIM(`TRAV. CABEC. 30 mm`) != '0') OR
@@ -982,6 +980,7 @@ class Sistema
                          `CAIXA DO REFORMER CLÁSSICA`,
                          `SPINE CORRECTOR`,
                          `SMALL BARREL`,
+                         `PEDI O POLE`,
                          `SUPORTE SPINE CORRECTOR`,
                          `MINI EXTENSÃO MOVE FLOW`,
                          `PLATAFORMA BARREL CLÁSSICO`,
@@ -1018,6 +1017,7 @@ class Sistema
                         (NULLIF(TRIM(`CAIXA DO REFORMER CLÁSSICA`), '') IS NOT NULL AND TRIM(`CAIXA DO REFORMER CLÁSSICA`) != '0') OR
                         (NULLIF(TRIM(`SPINE CORRECTOR`), '') IS NOT NULL AND TRIM(`SPINE CORRECTOR`) != '0') OR
                         (NULLIF(TRIM(`SMALL BARREL`), '') IS NOT NULL AND TRIM(`SMALL BARREL`) != '0') OR
+                        (NULLIF(TRIM(`PEDI O POLE`), '') IS NOT NULL AND TRIM(`PEDI O POLE`) != '0') OR
                         (NULLIF(TRIM(`SUPORTE SPINE CORRECTOR`), '') IS NOT NULL AND TRIM(`SUPORTE SPINE CORRECTOR`) != '0') OR
                         (NULLIF(TRIM(`MINI EXTENSÃO MOVE FLOW`), '') IS NOT NULL AND TRIM(`MINI EXTENSÃO MOVE FLOW`) != '0') OR
                         (NULLIF(TRIM(`PLATAFORMA BARREL CLÁSSICO`), '') IS NOT NULL AND TRIM(`PLATAFORMA BARREL CLÁSSICO`) != '0') OR
@@ -1025,8 +1025,8 @@ class Sistema
                         (NULLIF(TRIM(`SPACER BOX`), '') IS NOT NULL AND TRIM(`SPACER BOX`) != '0') OR
                         (NULLIF(TRIM(`2 x 4 (TWO BY FOUR)`), '') IS NOT NULL AND TRIM(`2 x 4 (TWO BY FOUR)`) != '0') OR
                         (NULLIF(TRIM(`KUNA BOARD`), '') IS NOT NULL AND TRIM(`KUNA BOARD`) != '0') OR
-                        (NULLIF(TRIM(`TRAVESSEIRO BENCH MAT`), '') IS NOT NULL AND TRIM(`PEDI O POLE`) != '0') OR
-                        (NULLIF(TRIM(`TRAVESSEIRO 1/2 LUA`), '') IS NOT NULL AND TRIM(`WALL UNIT CLÁSSICO`) != '0') OR
+                        (NULLIF(TRIM(`TRAVESSEIRO BENCH MAT`), '') IS NOT NULL AND TRIM(`TRAVESSEIRO BENCH MAT`) != '0') OR
+                        (NULLIF(TRIM(`TRAVESSEIRO 1/2 LUA`), '') IS NOT NULL AND TRIM(`TRAVESSEIRO 1/2 LUA`) != '0') OR
                         (NULLIF(TRIM(`TRAV. CILINDRICO`), '') IS NOT NULL AND TRIM(`TRAV. CILINDRICO`) != '0') OR
                         (NULLIF(TRIM(`TRAV. OMBREIRA (PAR)`), '') IS NOT NULL AND TRIM(`TRAV. OMBREIRA (PAR)`) != '0') OR
                         (NULLIF(TRIM(`TRAV. CABEC. 30 mm`), '') IS NOT NULL AND TRIM(`TRAV. CABEC. 30 mm`) != '0') OR
@@ -1092,7 +1092,6 @@ class Sistema
                          'ELECTRIC CHAIR',
                          'ARM CHAIR',
                          'LADDER BARREL CLÁSS.',
-                         'PEDI O POLE',
                          'WALL UNIT CLÁSSICO',
                          'MAT CLÁSSICO',
                          'MAT PORTÁTIL',
@@ -1114,7 +1113,6 @@ class Sistema
                         (NULLIF(TRIM(`ELECTRIC CHAIR`), '') IS NOT NULL AND TRIM(`ELECTRIC CHAIR`) != '0') OR
                         (NULLIF(TRIM(`ARM CHAIR`), '') IS NOT NULL AND TRIM(`ARM CHAIR`) != '0') OR
                         (NULLIF(TRIM(`LADDER BARREL CLÁSS.`), '') IS NOT NULL AND TRIM(`LADDER BARREL CLÁSS.`) != '0') OR
-                        (NULLIF(TRIM(`PEDI O POLE`), '') IS NOT NULL AND TRIM(`PEDI O POLE`) != '0') OR
                         (NULLIF(TRIM(`WALL UNIT CLÁSSICO`), '') IS NOT NULL AND TRIM(`WALL UNIT CLÁSSICO`) != '0') OR
                         (NULLIF(TRIM(`MAT CLÁSSICO`), '') IS NOT NULL AND TRIM(`MAT CLÁSSICO`) != '0') OR
                         (NULLIF(TRIM(`MAT PORTÁTIL`), '') IS NOT NULL AND TRIM(`MAT PORTÁTIL`) != '0') OR
@@ -1139,6 +1137,7 @@ class Sistema
                          `CAIXA DO REFORMER CLÁSSICA`,
                          `SPINE CORRECTOR`,
                          `SMALL BARREL`,
+                         `PEDI O POLE`,
                          `SUPORTE SPINE CORRECTOR`,
                          `MINI EXTENSÃO MOVE FLOW`,
                          `PLATAFORMA BARREL CLÁSSICO`,
@@ -1176,6 +1175,7 @@ class Sistema
                         (NULLIF(TRIM(`CAIXA DO REFORMER CLÁSSICA`), '') IS NOT NULL AND TRIM(`CAIXA DO REFORMER CLÁSSICA`) != '0') OR
                         (NULLIF(TRIM(`SPINE CORRECTOR`), '') IS NOT NULL AND TRIM(`SPINE CORRECTOR`) != '0') OR
                         (NULLIF(TRIM(`SMALL BARREL`), '') IS NOT NULL AND TRIM(`SMALL BARREL`) != '0') OR
+                        (NULLIF(TRIM(`PEDI O POLE`), '') IS NOT NULL AND TRIM(`PEDI O POLE`) != '0') OR
                         (NULLIF(TRIM(`SUPORTE SPINE CORRECTOR`), '') IS NOT NULL AND TRIM(`SUPORTE SPINE CORRECTOR`) != '0') OR
                         (NULLIF(TRIM(`MINI EXTENSÃO MOVE FLOW`), '') IS NOT NULL AND TRIM(`MINI EXTENSÃO MOVE FLOW`) != '0') OR
                         (NULLIF(TRIM(`PLATAFORMA BARREL CLÁSSICO`), '') IS NOT NULL AND TRIM(`PLATAFORMA BARREL CLÁSSICO`) != '0') OR
@@ -1183,8 +1183,8 @@ class Sistema
                         (NULLIF(TRIM(`SPACER BOX`), '') IS NOT NULL AND TRIM(`SPACER BOX`) != '0') OR
                         (NULLIF(TRIM(`2 x 4 (TWO BY FOUR)`), '') IS NOT NULL AND TRIM(`2 x 4 (TWO BY FOUR)`) != '0') OR
                         (NULLIF(TRIM(`KUNA BOARD`), '') IS NOT NULL AND TRIM(`KUNA BOARD`) != '0') OR
-                        (NULLIF(TRIM(`TRAVESSEIRO BENCH MAT`), '') IS NOT NULL AND TRIM(`PEDI O POLE`) != '0') OR
-                        (NULLIF(TRIM(`TRAVESSEIRO 1/2 LUA`), '') IS NOT NULL AND TRIM(`WALL UNIT CLÁSSICO`) != '0') OR
+                        (NULLIF(TRIM(`TRAVESSEIRO BENCH MAT`), '') IS NOT NULL AND TRIM(`TRAVESSEIRO BENCH MAT`) != '0') OR
+                        (NULLIF(TRIM(`TRAVESSEIRO 1/2 LUA`), '') IS NOT NULL AND TRIM(`TRAVESSEIRO 1/2 LUA`) != '0') OR
                         (NULLIF(TRIM(`TRAV. CILINDRICO`), '') IS NOT NULL AND TRIM(`TRAV. CILINDRICO`) != '0') OR
                         (NULLIF(TRIM(`TRAV. OMBREIRA (PAR)`), '') IS NOT NULL AND TRIM(`TRAV. OMBREIRA (PAR)`) != '0') OR
                         (NULLIF(TRIM(`TRAV. CABEC. 30 mm`), '') IS NOT NULL AND TRIM(`TRAV. CABEC. 30 mm`) != '0') OR

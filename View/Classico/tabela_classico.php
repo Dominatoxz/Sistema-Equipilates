@@ -377,7 +377,6 @@ require_once '../../Function/resumo_celula.php';
                 'ELECTRIC CHAIR'              => 'Eletric Chair',
                 'ARM CHAIR'                   => 'Arm Chair',
                 'LADDER BARREL CLÁSS.'        => 'Lader Barrel',
-                'PEDI O POLE'                 => 'Pedi o Pole',
                 'WALL UNIT CLÁSSICO'          => 'Wall Unit',
                 'TORRE WALL UNIT CLÁSSICO'    => 'Torre Wall Unit',
                 'MAT CLÁSSICO'                => 'Mat Clássico',

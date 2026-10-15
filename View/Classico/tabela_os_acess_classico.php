@@ -264,6 +264,7 @@ require_once '../../Function/resumo_celula.php';
                 'FINGER EXERCISE'                        => 'Finger Exercise',
                 'MINI BARREL'                            => 'Mini Barrel',
                 'MINI SPINE'                              => 'Mini Spine',
+                'PEDI O POLE'                              => 'Pedi o Pole',
             ];
 
             $itensPorPedido = [];

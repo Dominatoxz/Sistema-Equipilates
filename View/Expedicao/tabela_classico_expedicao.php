@@ -221,7 +221,6 @@ require_once '../../Function/trava.php';
                 'ELECTRIC CHAIR'              => 'Eletric Chair',
                 'ARM CHAIR'                   => 'Arm Chair',
                 'LADDER BARREL CLÁSS.'        => 'Barrel',
-                'PEDI O POLE'                 => 'POP',
                 'WALL UNIT CLÁSSICO'          => 'Wall Unit',
                 'TORRE WALL UNIT CLÁSSICO'    => 'Torre WU',
                 'MAT CLÁSSICO'                => 'Mat (C)',

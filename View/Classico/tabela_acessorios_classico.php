@@ -254,6 +254,7 @@ require_once '../../Function/resumo_celula.php';
                 'PUSH UP DEVICE (PAR)'                   => 'Push Up Device',
                 'MINI BARREL'                            => 'Mini Barrel',
                 'MINI SPINE'                              => 'Mini Spine',
+                'PEDI O POLE'                              => 'Pedi o Pole',
             ];
 
             $itensPorPedido = [];
